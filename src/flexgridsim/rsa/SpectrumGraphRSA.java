@@ -67,8 +67,8 @@ public class SpectrumGraphRSA implements RSA {
 				this.spectrumGraph
 						.markEdgesRemoved(curentLink.getSource(),
 								curentLink.getDestination(),
-								shortestPath.getSlotList().get(0).y,
-								shortestPath.getSlotList().get(shortestPath.getSlotList().size()-1).y);
+								shortestPath.getSlotList().get(0).s,
+								shortestPath.getSlotList().get(shortestPath.getSlotList().size()-1).s);
 			}
 			return;
 		}
@@ -81,7 +81,7 @@ public class SpectrumGraphRSA implements RSA {
 			return;
 		for (int i = 0; i < flow.getLinks().length; i++) {
 			FlexGridLink curentLink = pt.getLink(flow.getLink(i));
-			this.spectrumGraph.restoreRemovedEdges(curentLink.getSource(), curentLink.getDestination(), flow.getSlotList().get(0).y, flow.getSlotList().get(flow.getSlotList().size()-1).y);
+			this.spectrumGraph.restoreRemovedEdges(curentLink.getSource(), curentLink.getDestination(), flow.getSlotList().get(0).s, flow.getSlotList().get(flow.getSlotList().size()-1).s);
 		}
 	}
 

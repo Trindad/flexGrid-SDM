@@ -26,7 +26,7 @@ public class OutputManager {
 		for (int i = 0; i < numberOfGraphs; i++) {
 			graphs[i] = new Graph(
 					((Element) graphlist.item(i)).getAttribute("name"),
-					((Element) graphlist.item(i)).getAttribute("dots-file"),2);
+					"graphs"+((Element) graphlist.item(i)).getAttribute("dots-file"),2);
 		}
 	}
 	

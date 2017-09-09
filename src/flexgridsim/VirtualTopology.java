@@ -105,9 +105,6 @@ public class VirtualTopology {
             dst = pt.getLink(links[links.length - 1]).getDestination();
             id = this.nextLightpathID;
             lp = new LightPath(id, src, dst, links, slotList, modulationLevel);
-
-//            System.out.println(Integer.toString(links.length) + " " + Integer.toString(src) + " -> " + Integer.toString(dst));
-            
             adjMatrix[src][dst].add(lp);
             lightPaths.put(nextLightpathID, lp);
             tr.createLightpath(lp);
@@ -204,6 +201,14 @@ public class VirtualTopology {
 	            if (!pt.getLink(links[i]).areSlotsAvailable(slotList, modulation)) {
 	                return false;
 	            }
+	        }
+	        for (int i = 0; i < links.length; i++) {
+	        	for (Slot slot : slotList) {
+	        		if (pt.getLink(links[i]).getNoise(slot)==0) {
+	        			//TODO
+			        }
+				}
+		        
 	        }
         } catch (IllegalArgumentException e){
 			System.out.println("Illegal argument for areSlotsAvailable");

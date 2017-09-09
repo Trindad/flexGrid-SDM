@@ -70,8 +70,10 @@ public class PhysicalTopology {
             if (Simulator.verbose) {
                 System.out.println(Integer.toString(links) + " links");
             }
+            
             linkVector = new FlexGridLink[links];
             adjMatrix = new FlexGridLink[nodes][nodes];
+          
             for (int i = 0; i < links; i++) {
                 id = Integer.parseInt(((Element) linklist.item(i)).getAttribute("id"));
                 src = Integer.parseInt(((Element) linklist.item(i)).getAttribute("source"));

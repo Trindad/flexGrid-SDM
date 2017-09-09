@@ -31,7 +31,7 @@ public class RandomFitDM extends DynamicModulation {
 	}
 
 		
-	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow){
+	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, int modulation){
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		
 		ArrayList<Integer> keys = new ArrayList<Integer>();
@@ -47,7 +47,7 @@ public class RandomFitDM extends DynamicModulation {
 		for (int i =  random.nextInt(listOfRegions.get(key).size()-demandInSlots+1); i < demandInSlots; i++) {
     		fittedSlotList.add(listOfRegions.get(key).get(i));
 		}
-    	if (establishConnection(links, fittedSlotList, flow)){
+    	if (establishConnection(links, fittedSlotList, flow, modulation)){
 			return true;
 		}
 		return false;

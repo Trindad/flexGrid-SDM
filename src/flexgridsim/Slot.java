@@ -8,11 +8,11 @@ public class Slot {
 	/**
 	 * 
 	 */
-	public int x;
+	public int c;
 	/**
 	 * 
 	 */
-	public int y;
+	public int s;
 	
 	/**
 	 * 
@@ -23,11 +23,13 @@ public class Slot {
 	 */
 	public Slot(int x, int y) {
 		super();
-		this.x = x;
-		this.y = y;
+		this.c = x;
+		this.s = y;
 	}
+	
+	
 	@Override
 	public String toString(){
-		return "("+x+","+y+")";
+		return "("+c+","+s+")";
 	}
 }

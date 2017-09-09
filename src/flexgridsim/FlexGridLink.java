@@ -2,6 +2,8 @@ package flexgridsim;
 
 import java.util.ArrayList;
 
+import flexgridsim.util.Decibel;
+
 /**
  * This class is based on the WDMLink but it's adapted to RSA operations for
  * contiguous slots allocation.
@@ -15,13 +17,12 @@ public class FlexGridLink {
 	private int dst;
 	private double delay;
 	private int slots;
-	//private boolean[][] freeSlots;
 	private  boolean[][] reservedSlots;
 	private double weight;
 	private int[] modulationLevel;
 	private int distance;
 	private int cores;
-	private double[][] SNR;
+	private double[][] noise;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -56,14 +57,13 @@ public class FlexGridLink {
 			this.cores = cores;
 			this.reservedSlots = new boolean[cores][slots];
 			this.modulationLevel = new int[slots];
-			this.SNR = new double[cores][slots];
+			this.noise = new double[cores][slots];
 			this.distance = distance;
 			for (int i = 0; i < cores; i++) {
 				this.modulationLevel[i] = 0;
 				for (int j = 0; j < slots; j++) {
 					this.reservedSlots[i][j] = false;
-					//this.freeSlots[i][j] = true;
-					this.SNR[i][j]=0;
+					this.noise[i][j]=-100;
 				}
 			}
 		}
@@ -71,14 +71,23 @@ public class FlexGridLink {
 	
 	/**
 	 * @param slotList 
+	 * @param modulation 
 	 */
-	public void updateCrossTalk(ArrayList<Slot> slotList){
-		for (Slot p : slotList) {
-			this.SNR[p.x][p.y]=0;
+	public void updateNoise(ArrayList<Slot> slotList, int modulation){
+		for (Slot s : slotList) {
+			this.noise[s.c][s.s]=Decibel.add( ModulationsMuticore.interCoreXT(modulation), ModulationsMuticore.inBandXT[modulation]);
 		}
 		/*
 		 * TODO:implement crosstalk index
 		 */
+	}
+	
+	/**
+	 * @param slot
+	 * @return crosstalk in the slot
+	 */
+	public double getNoise(Slot slot) {
+		return noise[slot.c][slot.s];
 	}
 
 	/**
@@ -87,11 +96,11 @@ public class FlexGridLink {
 	 *
 	 * @return the free slots for this modulation
 	 */
-	public boolean[][] getSpectrum(int modulation) {
+	public boolean[][] getSpectrum() {
 		boolean[][] freeSlots = new boolean[cores][slots];
 		for (int i = 0; i < freeSlots.length; i++) {
 			for (int j = 0; j < freeSlots[i].length; j++) {
-				if (!reservedSlots[i][j] && SNR[i][j] < Modulations.getSNRThreshold(modulation)){
+				if (!reservedSlots[i][j]){
 					freeSlots[i][j] = true;
 				} else {
 					freeSlots[i][j] = false;
@@ -100,7 +109,81 @@ public class FlexGridLink {
 		}
 		return freeSlots;
 	}
+	
+	/**
+	 * Gets the number of free slots in the link.
+	 * @param modulation modulation level
+	 * @param power power of transmission
+	 *
+	 * @return the free slots for this modulation
+	 */
+	public boolean[][] getAllocableSpectrum(int modulation, double power) {
+		boolean[][] freeSlots = new boolean[cores][slots];
+		for (int i = 0; i < freeSlots.length; i++) {
+			for (int j = 0; j < freeSlots[i].length; j++) {
+				double SNR = Decibel.subtract(power, noise[i][j]);
+				if (!reservedSlots[i][j] 
+					&& SNR >= ModulationsMuticore.getSNRThreshold(modulation)//check if allocation is possible
+					&& !allocationAffectsNeighbors(i, j, modulation, power)) { //check if allocation will disrupt other connections
+					
+					freeSlots[i][j] = true;
+				} else {
+					freeSlots[i][j] = false;
+				}
+			}
+		}
+		//printSpectrum();
+		return freeSlots;
+	}
 
+	/**
+	 * @param i index of spectrum (core)
+	 * @param j index of spectrum (slot)
+	 * @param modulation
+	 * @param power
+	 * @return true if the allocation affects neighbors; false otherwise
+	 */
+	public boolean allocationAffectsNeighbors(int i, int j, int modulation, double power) {
+		for (Slot s : getNeighborSlotsInUse(i, j)) {
+			double totalNoise = Decibel.add(noise[s.c][s.s], ModulationsMuticore.interCoreXT(modulation)); 
+			if (Decibel.subtract(power,totalNoise) < ModulationsMuticore.getSNRThreshold(modulation)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @param i index of spectrum (core)
+	 * @param j index of spectrum (slot)
+	 * @return a list of neighbor slots
+	 */
+	public ArrayList<Slot> getNeighborSlotsInUse(int i, int j){
+		ArrayList<Slot> neighbors = new ArrayList<Slot>();
+		if (i==0){
+			if (reservedSlots[this.cores-1][j]){
+				neighbors.add(new Slot(this.cores-1, j));
+			}
+			if (reservedSlots[1][j]){
+				neighbors.add(new Slot(1, j));
+			}
+		} else if (i==cores-1){
+			if (reservedSlots[0][j] ){
+				neighbors.add(new Slot(0, j));
+			}
+			if (reservedSlots[cores-2][j]){
+				neighbors.add(new Slot(this.cores-2, j));
+			}
+		} else {
+			if (reservedSlots[i+1][j]){
+				neighbors.add(new Slot(i+1, j));
+			}
+			if (reservedSlots[i-1][j]){
+				neighbors.add(new Slot(i-1, j));
+			}
+		}
+		return neighbors;
+	}
 	/**
 	 * Gets the number of free slots in the link.
 	 * 
@@ -176,19 +259,19 @@ public class FlexGridLink {
 	 */
 	public Boolean areSlotsAvailable(ArrayList<Slot> slotList, int modulation) {
 		for (int i = 0; i < slotList.size(); i++) {
-			if (slotList.get(i).x < 0 ) 
+			if (slotList.get(i).c < 0 ) 
 				throw (new IllegalArgumentException());
-			else if  (slotList.get(i).y >= slots) 
+			else if  (slotList.get(i).s >= slots) 
 				throw (new IllegalArgumentException());
-			else if   (slotList.get(i).x >= cores) 
+			else if   (slotList.get(i).c >= cores) 
 				throw (new IllegalArgumentException());
-			else if   (slotList.get(i).y < 0) 
+			else if   (slotList.get(i).s < 0) 
 				throw (new IllegalArgumentException());
 				
 			else {
-				boolean[][] freeSlots = getSpectrum(modulation);
-				for (Slot pixel : slotList) {
-					if (!freeSlots[pixel.x][pixel.y]) {
+				boolean[][] freeSlots = getSpectrum();
+				for (Slot slot : slotList) {
+					if (!freeSlots[slot.c][slot.s]) {
 						return false;
 					} 
 				}
@@ -225,12 +308,12 @@ public class FlexGridLink {
 	public boolean reserveSlots(ArrayList<Slot> slotList) {
 		try {
 			for (int i = 0; i < slotList.size(); i++) {
-				if (slotList.get(i).x < 0 || slotList.get(i).y < 0 || slotList.get(i).x >= cores || slotList.get(i).y >= slots) {
+				if (slotList.get(i).c < 0 || slotList.get(i).s < 0 || slotList.get(i).c >= cores || slotList.get(i).s >= slots) {
 					throw (new IllegalArgumentException());
 				}
 			}
-			for (Slot pixel : slotList) {
-				reservedSlots[pixel.x][pixel.y] = true;
+			for (Slot slot: slotList) {
+				reservedSlots[slot.c][slot.s] = true;
 			}
 			return true;
 		} catch (IllegalArgumentException e) {
@@ -248,22 +331,12 @@ public class FlexGridLink {
 	 */
 	public void releaseSlots(ArrayList<Slot> slotList) {
 		for (int i = 0; i < slotList.size(); i++) {
-			if (slotList.get(i).x < 0 || slotList.get(i).y < 0 || slotList.get(i).x >= cores || slotList.get(i).y >= slots) {
+			if (slotList.get(i).c < 0 || slotList.get(i).s < 0 || slotList.get(i).c >= cores || slotList.get(i).s >= slots) {
 				throw (new IllegalArgumentException());
 			}
 		}
-		try{
 		for (Slot pixel : slotList) {
-			reservedSlots[pixel.x][pixel.y] = false;
-		}
-		} catch (IllegalArgumentException e) {
-			System.out.print("Slots para soltar:");
-			for (Slot pixel : slotList) {
-				System.out.print(" ("+pixel.x+","+pixel.y+")"+" ");
-			}
-			System.out.println();
-			printSpectrum();
-			System.out.println();
+			reservedSlots[pixel.c][pixel.s] = false;
 		}
 	}
 
@@ -288,7 +361,7 @@ public class FlexGridLink {
 	 * @return the fragmentation ratio
 	 */
 	public double getFragmentationRatio(TrafficInfo[] trafficCalls, double slotCapacity) {
-		boolean[][] freeSlots = getSpectrum(0);
+		boolean[][] freeSlots = getSpectrum();
 		ArrayList<Double> fragmentsPotential = new ArrayList<Double>();
 		for (int i = 0; i < freeSlots.length - 1; i++) {
 			if (freeSlots[0][i] == true) {
@@ -322,7 +395,7 @@ public class FlexGridLink {
 			return -1;
 		}
 		int aoc=0;
-		boolean[][] freeSlots = getSpectrum(0);
+		boolean[][] freeSlots = getSpectrum();
 		for (int i = 0; i < freeSlots.length; i++) {
 			for (int j = 0; j < freeSlots[i].length; j++) {
 				if (!freeSlots[i][j]){
@@ -351,7 +424,6 @@ public class FlexGridLink {
 				}
 			}
 		}
-		//printSpectrum();
 		double usedSlots = (slots*cores-getNumFreeSlots());
 		return aoc/usedSlots;
 	}
@@ -371,10 +443,11 @@ public class FlexGridLink {
 	/**
 	 * Print spectrum.
 	 */
-
+	
+	
 	public void printSpectrum() {
 		System.out.println("----------------------------------------------------");
-		boolean[][] freeSlots = getSpectrum(0);
+		boolean[][] freeSlots = getSpectrum();
 		for (int i = 0; i < freeSlots.length; i++) {
 			
 			for (int j = 0; j < freeSlots[i].length; j++) {

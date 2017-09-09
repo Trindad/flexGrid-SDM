@@ -74,8 +74,8 @@ public class ModulationSpectrumGraphRSA implements RSA {
 					this.modulationSpectrumGraph[j].markEdgesRemoved(
 									curentLink.getSource(),
 									curentLink.getDestination(),
-									minCost.getSlotList().get(0).y,
-									minCost.getSlotList().get(minCost.getSlotList().size()-1).y);
+									minCost.getSlotList().get(0).s,
+									minCost.getSlotList().get(minCost.getSlotList().size()-1).s);
 				}
 				
 			}
@@ -91,7 +91,7 @@ public class ModulationSpectrumGraphRSA implements RSA {
 		for (int i = 0; i < flow.getLinks().length; i++) {
 			FlexGridLink curentLink = pt.getLink(flow.getLink(i));
 			for (int j = 0; j < modulationSpectrumGraph.length; j++) {
-				this.modulationSpectrumGraph[j].restoreRemovedEdges(curentLink.getSource(), curentLink.getDestination(), flow.getSlotList().get(0).y, flow.getSlotList().get(flow.getSlotList().size()-1).y);
+				this.modulationSpectrumGraph[j].restoreRemovedEdges(curentLink.getSource(), curentLink.getDestination(), flow.getSlotList().get(0).s, flow.getSlotList().get(flow.getSlotList().size()-1).s);
 			}
 		}
 	}

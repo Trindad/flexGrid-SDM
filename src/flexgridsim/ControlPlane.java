@@ -216,7 +216,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         links = lightpath.getLinks();
         for (int j = 0; j < links.length; j++) {
             pt.getLink(links[j]).releaseSlots(lightpath.getSlotList());
-            pt.getLink(links[j]).updateCrossTalk(lightpath.getSlotList());
+            pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
         }
         vt.removeLightPath(lightpath.getID());
     }
@@ -257,7 +257,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         // Implements it
         for (int j = 0; j < links.length; j++) {
             pt.getLink(links[j]).reserveSlots(lightpath.getSlotList());
-            pt.getLink(links[j]).updateCrossTalk(lightpath.getSlotList());
+            pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
         }
         
     }
@@ -289,7 +289,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     		LightPath lp = entry.getValue();
     		if (flow.getSource()==lp.getSource() && flow.getDestination() == lp.getDestination()){
     			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(lp.getModulationLevel()));
-    			int slotCount = lp.getSlotList().get(lp.getSlotList().size()-1).y;
+    			int slotCount = lp.getSlotList().get(lp.getSlotList().size()-1).s;
     			ArrayList<Slot> slotList = new ArrayList<Slot>();
     			for (int i = slotCount; i < slotCount+demandInSlots; i++) {
     				Slot p = new Slot(0,i);

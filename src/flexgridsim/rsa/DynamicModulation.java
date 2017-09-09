@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.Modulations;
+import flexgridsim.ModulationsMuticore;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
 import flexgridsim.TrafficGenerator;
@@ -39,35 +40,35 @@ public class DynamicModulation implements RSA {
 	KShortestPaths kShortestPaths = new KShortestPaths();
 		int K = 5;
 		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), K);
-		int demandInSlots[] = new int[Modulations.numberOfModulations()];
+		int demandInSlots[] = new int[ModulationsMuticore.numberOfModulations()];
 		
 		for (int k = 0; k < kPaths.length; k++) {
-				for (int m = Modulations.numberOfModulations()-1; m >= 0 ; m--)	{
+				for (int m = ModulationsMuticore.numberOfModulations()-1; m >= 0 ; m--)	{
 					flow.setModulationLevel(m);
 					demandInSlots[m] = (int) Math.ceil((double) flow.getRate() / (double)  Modulations.getBandwidth(m));
 					boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-				if (checkDistanceAlocation(kPaths, k, m)){
-					for (int i = 0; i < spectrum.length; i++) {
-						for (int j = 0; j < spectrum[i].length; j++) {
-							spectrum[i][j]=true;
+					if (checkDistanceAlocation(kPaths, k, m)){
+						for (int i = 0; i < spectrum.length; i++) {
+							for (int j = 0; j < spectrum[i].length; j++) {
+								spectrum[i][j]=true;
+							}
 						}
+						for (int i = 0; i < kPaths[k].length-1; i++) {
+							imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getAllocableSpectrum(m,20), spectrum, spectrum);
+						}
+						
+						ConnectedComponent cc = new ConnectedComponent();
+						HashMap<Integer,ArrayList<Slot>> listOfRegions = cc.listOfRegions(spectrum);
+						if (listOfRegions.isEmpty()){
+							continue;
+						}
+						int[] links = new int[kPaths[k].length - 1];
+						for (int j = 0; j < kPaths[k].length - 1; j++) {
+							links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+						}
+						if (fitConnection(listOfRegions, demandInSlots[m], links, flow, m))
+							return;
 					}
-					for (int i = 0; i < kPaths[k].length-1; i++) {
-						imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(m), spectrum, spectrum);
-					}
-					
-					ConnectedComponent cc = new ConnectedComponent();
-					HashMap<Integer,ArrayList<Slot>> listOfRegions = cc.listOfRegions(spectrum);
-					if (listOfRegions.isEmpty()){
-						continue;
-					}
-					int[] links = new int[kPaths[k].length - 1];
-					for (int j = 0; j < kPaths[k].length - 1; j++) {
-						links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-					}
-					if (fitConnection(listOfRegions, demandInSlots[m], links, flow))
-						return;
-				}
 			}
 		}
 		cp.blockFlow(flow.getID());
@@ -85,7 +86,7 @@ public class DynamicModulation implements RSA {
 		for (int i = 0; i < kPaths[k].length-1; i++) {
 			dist+=pt.getLink(kPaths[k][i], kPaths[k][i+1]).getDistance();
 		}
-		if (dist<Modulations.getMaxDistance(modulation))
+		if (dist<ModulationsMuticore.getMaxDistance(modulation))
 			return true;
 		else 
 			return false;
@@ -96,16 +97,17 @@ public class DynamicModulation implements RSA {
 	 * @param demandInSlots
 	 * @param links
 	 * @param flow
+	 * @param modulation 
 	 * @return true if fitness successful
 	 */
-	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow){
+	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, int modulation){
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		for (Integer key : listOfRegions.keySet()) {
 		    if (listOfRegions.get(key).size()>=demandInSlots){
 		    	for (int i = 0; i < demandInSlots; i++) {
 		    		fittedSlotList.add(listOfRegions.get(key).get(i));
 				}
-		    	if (establishConnection(links, fittedSlotList, flow)){
+		    	if (establishConnection(links, fittedSlotList, flow, modulation)){
 					return true;
 				}
 		    }
@@ -117,10 +119,11 @@ public class DynamicModulation implements RSA {
 	 * @param links
 	 * @param slotList
 	 * @param flow
+	 * @param modulation 
 	 * @return true if connection was successfully established
 	 */
-	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, Flow flow){
-		long id = vt.createLightpath(links, slotList ,0);
+	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, Flow flow, int modulation){
+		long id = vt.createLightpath(links, slotList, modulation);
 		if (id >= 0) {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);

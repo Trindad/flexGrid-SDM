@@ -121,8 +121,8 @@ public class MyStatistics {
 	 */
 	public void calculateLastStatistics(){
 		//bandwidth block graph
-		plotter.addDotToGraph("mbbr", load/1000, ((float) blockedBandwidth) / ((float) requiredBandwidth));
-		plotter.addDotToGraph("bp", load/1000, ((float) blocked) / ((float) arrivals) * 100);
+		plotter.addDotToGraph("mbbr", load, ((float) blockedBandwidth) / ((float) requiredBandwidth));
+		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals) * 100);
 		int count = 0;
         float bbr, jfi, sum1 = 0, sum2 = 0;
         if (blocked == 0) {
@@ -145,7 +145,7 @@ public class MyStatistics {
             }
         }
         jfi = (sum1 * sum1) / ((float) count * sum2);
-        plotter.addDotToGraph("jfi", load/1000, jfi);
+        plotter.addDotToGraph("jfi", load, jfi);
        // System.out.println("jfi="+jfi);
     	//POWE CONSUPTION
     	double PCoxc = 0;
@@ -154,10 +154,10 @@ public class MyStatistics {
 		}
     	double PCedfa = pt.getNumLinks() * 200;
     	totalPowerConsumed += simTime * (PCoxc + PCedfa);
-    	plotter.addDotToGraph("pc", load/1000, (totalPowerConsumed)/(simTime*1000));
-    	plotter.addDotToGraph("ee", load/1000, dataTransmitted/( totalPowerConsumed / 1000));
-    	plotter.addDotToGraph("data", load/1000, dataTransmitted);
-    	plotter.addDotToGraph("ee2", load/1000, (((float) blockedBandwidth) / ((float) requiredBandwidth)) / (totalPowerConsumed/(simTime*1000)));
+    	plotter.addDotToGraph("pc", load, (totalPowerConsumed)/(simTime*1000));
+    	plotter.addDotToGraph("ee", load, dataTransmitted/( totalPowerConsumed / 1000));
+    	plotter.addDotToGraph("data", load, dataTransmitted);
+    	plotter.addDotToGraph("ee2", load, (((float) blockedBandwidth) / ((float) requiredBandwidth)) / (totalPowerConsumed/(simTime*1000)));
     	
 	}
 	
@@ -175,7 +175,7 @@ public class MyStatistics {
     		}
 		}
     	fragmentationMean = fragmentationMean / pt.getNumLinks();
-    	plotter.addDotToGraph("fragmentation", load/1000, fragmentationMean);
+    	plotter.addDotToGraph("fragmentation", load, fragmentationMean);
     	double meanTransponders = 0;
     	for (int i = 0; i < numberOfUsedTransponders.length; i++) {
 			for (int j = 0; j < numberOfUsedTransponders[i].length; j++) {
@@ -186,7 +186,7 @@ public class MyStatistics {
 		}
 //    	meanTransponders = meanTransponders / size;
     	if (Double.compare(meanTransponders, Double.NaN)!=0){
-    		plotter.addDotToGraph("transponders", load/1000, meanTransponders);
+    		plotter.addDotToGraph("transponders", load, meanTransponders);
     	}
     	double xtps = 0;
     	int linksXtps = 0;
@@ -202,7 +202,7 @@ public class MyStatistics {
     		}
 		}
     	if (xtps!=0)
-    		plotter.addDotToGraph("xtps", load/1000, xtps/ linksXtps);
+    		plotter.addDotToGraph("xtps", load, xtps/ linksXtps);
     	
     	//BFR
 //    	double BFR = 0;
@@ -234,7 +234,7 @@ public class MyStatistics {
 	        this.accepted++;
         	int links =  flow.getLinks().length+1;
         	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
-            plotter.addDotToGraph("hops", load/1000, links);
+            plotter.addDotToGraph("hops", load, links);
             dataTransmitted += flow.getRate();
             for (int i = 0; i < pt.getCores(); i++) {
             	totalPowerConsumed += flow.getDuration() * flow.getSlotList().size() * Modulations.getPowerConsumption(flow.getModulationLevel());

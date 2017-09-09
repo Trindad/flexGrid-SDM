@@ -6,9 +6,9 @@
     <trace file="trace.tr"/>
 
     <traffic calls="10000" load="215" max-rate="100">
-		<calls holding-time="0.5" rate="500" cos="1" weight="1"/>
-        <calls holding-time="0.5" rate="2000" cos="1" weight="1"/>
-        <calls holding-time="0.5" rate="5000" cos="1" weight="1"/>
+		<calls holding-time="0.5" rate="1000" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="4000" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="10000" cos="1" weight="1"/>
     </traffic>
 
     <virtual-topology  name="NSFNet">

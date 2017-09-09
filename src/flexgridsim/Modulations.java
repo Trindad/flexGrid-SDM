@@ -1,16 +1,12 @@
 package flexgridsim;
 
 /**
- * The Class Modulations.
+ * The Class Modulations for use withotut SDM, deprecated
  */
 public class Modulations {
 	
 	/** The Constant distance. */
 	public static final int distance[] = {10000000,5000,3000,1750,750,250};
-	/**
-	 * SNR threshold for the correct 
-	 */
-	public static final int SNR_THRESHOLD[] = {10000000,10000000,10000000,10000000,10000000,10000000};
 	
 	
 	/**
@@ -109,19 +105,6 @@ public class Modulations {
 		}
 	}
 	
-	/**
-	 * Gets the max distance.
-	 *
-	 * @param modulationLevel the modulation level
-	 * @return the max distance
-	 */
-	public static int getSNRThreshold(int modulationLevel){
-		if (modulationLevel >= 0 && modulationLevel <= 5){
-			return SNR_THRESHOLD[modulationLevel];
-		} else {
-			return SNR_THRESHOLD[0];
-		}
-	}
 	
 	/**
 	 * Gets the modulation by distance.
