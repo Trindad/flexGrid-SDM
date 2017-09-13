@@ -14,6 +14,7 @@ public class FlowDepartureEvent extends Event{
 
     private long id;
     Flow flow;
+    BatchConnectionRequest batch;
     
     /**
      * Creates a new FlowDepartureEvent object.
@@ -27,6 +28,22 @@ public class FlowDepartureEvent extends Event{
         this.id = id;
         this.flow = flow;
     }
+    
+    /**
+     * Creates a new FlowDepartureEvent object.
+     *
+     * @param time the time
+     * @param id unique identifier of the outgoing flow
+     * @param flow the flow
+     */
+    public FlowDepartureEvent(double time, long id, BatchConnectionRequest batch) {
+    	super(time);
+        this.id = id;
+        this.batch = batch;
+    }
+    
+    
+    
     
     /**
      * Retrieves the identifier of the FlowDepartureEvent object.

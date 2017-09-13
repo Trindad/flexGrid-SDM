@@ -231,7 +231,13 @@ public class MyStatistics {
      */
     public void acceptFlow(Flow flow, LightPath lightpath) {
         if (this.numberArrivals > this.minNumberArrivals){
-	        this.accepted++;
+        	
+        	if (flow.isBatchRequest) {
+        		this.accepted += flow.getNumberOfFlowsGroomed();
+        	} else {
+        		this.accepted++;
+        	}
+        	
         	int links =  flow.getLinks().length+1;
         	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
             plotter.addDotToGraph("hops", load, links);
@@ -263,7 +269,13 @@ public class MyStatistics {
      */
     public void blockFlow(Flow flow) {
         if (this.numberArrivals > this.minNumberArrivals) {
-	        this.blocked++;
+        	
+        	if (flow.isBatchRequest) {
+        		this.blocked += flow.getNumberOfFlowsGroomed();
+        	} else {
+        		this.blocked++;
+        	}
+        	
             int cos = flow.getCOS();
             this.blockedDiff[cos]++;
             this.blockedBandwidth += flow.getRate();

@@ -27,6 +27,9 @@ public class Flow {
     private boolean groomed;
     private double time;
     private int modulationLevel;
+    
+    boolean isBatchRequest;
+    private int numberOfFlowsGroomed;
 
 	/**
 	 * Creates a new Flow object.
@@ -55,6 +58,7 @@ public class Flow {
             this.time = time;
             this.modulationLevel = 0;
             this.groomed = false;
+            this.isBatchRequest = false; //initialize with false a batch request
         }
     }
     
@@ -220,9 +224,9 @@ public class Flow {
     }
 
 	/**
-	 * Checks if is accepeted.
+	 * Checks if is accepted.
 	 *
-	 * @return true, if is accepeted
+	 * @return true, if is accepted
 	 */
 	public boolean isAccepeted() {
 		return accepeted;
@@ -269,6 +273,27 @@ public class Flow {
 		this.groomed = groomed;
 	}
     
-	
+	/**
+     * Sets the batch.
+     *
+     * @param isBatch the new batch
+     */
+    public void setBatchRequest(boolean isBatchRequest) {
+		this.isBatchRequest = isBatchRequest;
+	}
     
+    /**
+     * Is this a batch request?
+     */
+    public boolean isBatchRequest() {
+    	return this.isBatchRequest;
+    }
+
+	public void setNumberOfFlowsGroomed(int size) {
+		this.numberOfFlowsGroomed = size;
+	}
+
+	public int getNumberOfFlowsGroomed() {
+		return this.numberOfFlowsGroomed;
+	}
 }

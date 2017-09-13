@@ -52,6 +52,7 @@ public class Graph {
 			System.out.println("Error writing the graph file");
 		} catch (IndexOutOfBoundsException e){
 			System.out.println("No dots to write");
+			e.printStackTrace();
 		}
 	}
 	

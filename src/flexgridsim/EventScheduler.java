@@ -69,4 +69,54 @@ public class EventScheduler {
     public Event popEvent() {
         return eventQueue.poll();
     }
+    
+
+	/**
+	 * Update event to use in Batch-grooming algorithm.
+	 *
+	 * @param oldEvent the old event
+	 * @param newEvent the new event
+	 */
+	public void updateDeadlineEvent(DeadlineEvent oldEvent, DeadlineEvent newEvent) {
+		
+		Event temp = null;
+		
+		for (Event event : eventQueue) {
+			
+			if (event instanceof DeadlineEvent)
+			{
+				if (((BatchConnectionRequest) ((DeadlineEvent) event).getBatch()).getSource() == ((BatchConnectionRequest) oldEvent.getBatch()).getSource()
+						&& ((BatchConnectionRequest) ((DeadlineEvent) event).getBatch()).getDestination() == ((BatchConnectionRequest) oldEvent.getBatch()).getDestination())
+				{
+					temp = event;
+					break;
+				}
+			}
+		}
+		
+		if (temp != null)
+		{
+			eventQueue.remove(temp);
+		}
+			
+		this.addEvent(newEvent);	
+	}
+	
+	/**
+	 * Removes the deadline event.
+	 *
+	 * @param event
+	 */
+	public void removeDeadlineEvent(DeadlineEvent event) {
+		
+		try 
+		{
+			this.eventQueue.remove(event);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println(e);
+		}
+		
+	} 
 }

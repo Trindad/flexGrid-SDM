@@ -79,6 +79,7 @@ public class Distribution extends Random {
         double vmax = 0.999999;
         double vmin = 0;
         result = ( (max-min)*(randomValue-vmin) )/(vmax - vmin) + min;
+//        System.out.println(min+" "+max+" "+randomValue+" "+result);
         return result;
     }
     /* 100 seeds spaced by 1.000.000 values

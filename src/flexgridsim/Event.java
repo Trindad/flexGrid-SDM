@@ -11,7 +11,7 @@ package flexgridsim;
  */
 public abstract class Event {
     
-    private double time;
+    protected double time;
    
     /**
      * Instantiates a new event.

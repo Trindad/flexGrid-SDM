@@ -33,6 +33,24 @@ public interface ControlPlaneForRSA {
      * @return true, if successful
      */
     public boolean blockFlow(long id);
+    
+    
+    /**
+     * Adds a given Flow object to the HashMap of active flows.
+     * The HashMap also stores the object's unique identifier (ID). 
+     * 
+     * @param flow Flow object to be added
+     */
+    public void newFlow(Flow flow);
+    
+    /**
+     * Removes a given Flow object from the list of active flows.
+     * 
+     * @param id the unique identifier of the Flow to be removed
+     * 
+     * @return the flow object
+     */
+    public Flow removeFlow(long id);
 
     /**
      * Reroute flow.
@@ -78,4 +96,26 @@ public interface ControlPlaneForRSA {
 	 * @return if the flow can be groomed
 	 */
 	public boolean canGroom(Flow flow);
+	
+	/**
+	 * Remove a deadline event
+	 * @param batch
+	 */
+	public void removeDeadlineEvent(BatchConnectionRequest batch);
+	
+	/**
+	 * update the earliest and oldest deadline request
+	 * 
+	 * @param batch
+	 */
+	public void updateDeadlineEvent(BatchConnectionRequest batch);
+
+	/**
+	 * 
+	 * @param time
+	 * @param batch
+	 */
+	public void addScheduleDeadline(double time, BatchConnectionRequest batch);
+
+	public void removeBatch(BatchConnectionRequest batch);
 }

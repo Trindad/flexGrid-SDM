@@ -10,7 +10,7 @@ package flexgridsim;
  * 
  * @author andred, pedrom
  */
-public class FlowArrivalEvent extends Event {
+public class FlowArrivalEvent extends Event{
 	
     private Flow flow;
     
@@ -42,4 +42,5 @@ public class FlowArrivalEvent extends Event {
     public String toString() {
         return "Arrival: "+flow.toString();
     }
+    
 }

@@ -35,6 +35,7 @@ public class ImageRCSA implements RSA {
 	}
 
 	public void flowArrival(Flow flow) {
+		
 		int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
 		KShortestPaths kShortestPaths = new KShortestPaths();
 		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
@@ -112,7 +113,7 @@ public class ImageRCSA implements RSA {
 		}
 	}
 		
-	private void imageAnd(boolean[][] img1, boolean[][] img2, boolean[][] res){
+	protected void imageAnd(boolean[][] img1, boolean[][] img2, boolean[][] res){
 		for (int i = 0; i < res.length; i++) {
 			for (int j = 0; j < res[0].length; j++) {
 				res[i][j] = img1[i][j] & img2[i][j];

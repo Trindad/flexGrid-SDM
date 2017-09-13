@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import flexgridsim.rsa.BatchGrooming;
 import flexgridsim.rsa.ControlPlaneForRSA;
 import flexgridsim.rsa.RSA;
 
@@ -26,6 +27,10 @@ public class ControlPlane implements ControlPlaneForRSA {
     private Map<Long, Flow> activeFlows; // Flows that have been accepted or that are waiting for a decision 
     private Tracer tr = Tracer.getTracerObject();
     private MyStatistics st = MyStatistics.getMyStatisticsObject();
+    
+    private EventScheduler eventScheduler;
+    SetOfBatches batches;
+
 
 	/**
 	 * Creates a new ControlPlane object.
@@ -42,6 +47,10 @@ public class ControlPlane implements ControlPlaneForRSA {
 		Class RSAClass;
         mappedFlows = new HashMap<Flow, LightPath>();
         activeFlows = new HashMap<Long, Flow>();
+        this.eventScheduler = eventScheduler;
+        
+        batches = new SetOfBatches();
+        
         this.pt = pt;
         this.vt = vt;
 
@@ -62,14 +71,59 @@ public class ControlPlane implements ControlPlaneForRSA {
      * 
      * @param event the Event object taken from the queue 
      */
-    public void newEvent(Event event) {
-        if (event instanceof FlowArrivalEvent) {
-            newFlow(((FlowArrivalEvent) event).getFlow());
-            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
-        } else if (event instanceof FlowDepartureEvent) {
-            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
-            rsa.flowDeparture(removedFlow);
-        } 
+    public void newEvent(Event event) 
+    {
+    	if (rsa instanceof BatchGrooming && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
+        {
+    		System.out.println("***************************************");
+//        	System.out.println(batches.size());
+        	if(event instanceof DeadlineEvent)
+        	{
+        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
+        		try 
+        		{
+//        			System.out.println(batches.get((int) (batches.getNumberOfBatches()-1)));
+            		( (BatchGrooming) rsa).deadlineArrival( (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch() );	
+				} 
+        		catch (Exception e)
+        		{
+        			System.out.println(e);
+				}
+        	}
+        	else if(event instanceof FlowArrivalEvent )
+        	{
+        		System.out.println("Flow Event "+ batches.getNumberOfBatches() );
+        		System.out.println(((FlowArrivalEvent) event).getFlow());
+        		try 
+        		{
+        			this.batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
+        			int numberOfBatches = (int) (batches.getNumberOfBatches() - 1);
+            		
+            		newFlow(((FlowArrivalEvent) event).getFlow());
+            		updateDeadlineEvent(batches.get(numberOfBatches));
+            		
+                	( (BatchGrooming) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
+				} 
+        		catch (Exception e) 
+        		{
+					e.printStackTrace();
+				}              
+        	}
+		    
+	    } 
+    	else 
+    	{
+	    	if (event instanceof FlowArrivalEvent)
+	        {
+	            newFlow(((FlowArrivalEvent) event).getFlow());
+	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
+	        } 
+	        else if (event instanceof FlowDepartureEvent) 
+	        {
+	            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
+	            rsa.flowDeparture(removedFlow);
+	        }
+	    }
     }
 
     /**
@@ -177,7 +231,8 @@ public class ControlPlane implements ControlPlaneForRSA {
      * 
      * @param flow Flow object to be added
      */
-    private void newFlow(Flow flow) {
+    public void newFlow(Flow flow) {
+    	
         activeFlows.put(flow.getID(), flow);
     }
     
@@ -188,7 +243,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      * 
      * @return the flow object
      */
-    private Flow removeFlow(long id) {
+    public Flow removeFlow(long id) {
         Flow flow;
         LightPath lightpaths;
 
@@ -329,6 +384,54 @@ public class ControlPlane implements ControlPlaneForRSA {
         }
 		st.groomedFlow(flow);
     }
- 
+	  /**
+     * Update deadline event.
+     *
+     * @param batch the batch
+     */
+    public void updateDeadlineEvent(BatchConnectionRequest batch) {
+    	
+    	eventScheduler.updateDeadlineEvent( batch.getOldestDeadline(), batch.getEarliestDeadline() );
+    }
+    
+    /**
+     * Remove the deadline event.
+     *
+     * @param batch the batch
+     */
+    public void removeDeadlineEvent(BatchConnectionRequest batch) {
+    	try 
+    	{
+    		eventScheduler.removeDeadlineEvent(batch.getEarliestDeadline());
+    		batches.remove(batch);
+		} 
+    	catch (Exception e) 
+    	{
+    		e.printStackTrace();
+		}
+    	
+    }
+    
+	/**
+	 * New deadline to schedule
+	 * @param time
+	 */
+	public void addScheduleDeadline(double time, BatchConnectionRequest batch) {
+		
+		DeadlineEvent deadlineEvent = new DeadlineEvent(time, batch);
+		
+		try 
+		{
+			eventScheduler.addEvent(deadlineEvent);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println(e);
+		}
+	}
+
+	public void removeBatch(BatchConnectionRequest batch) {
+		this.batches.remove(batch);
+	}
 
 }

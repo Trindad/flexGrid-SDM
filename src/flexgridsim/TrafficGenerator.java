@@ -79,7 +79,7 @@ public class TrafficGenerator {
             meanHoldingTime += holdingTime * ((double) weight / (double) TotalWeight);
             callsTypesInfo[i] = new TrafficInfo(holdingTime, rate, cos, weight);
             if (Simulator.verbose) {
-                System.out.println("#################################");
+                System.out.println("###ocInGigaBits##############################");
                 System.out.println("Weight: " + Integer.toString(weight) + ".");
                 System.out.println("COS: " + Integer.toString(cos) + ".");
                 System.out.println("Rate: " + Integer.toString(rate) + "Mbps.");
@@ -140,29 +140,38 @@ public class TrafficGenerator {
         	
         }
         
-        
         for (int j = 0; j < calls; j++) {
+//        	System.out.println(calls);
             type = weightVector[dist1.nextInt(TotalWeight)];
             src = dst = dist2.nextInt(numNodes);
             while (src == dst) {
                 dst = dist2.nextInt(numNodes);
             }
             double holdingTime;
+            int rateInMbps = callsTypesInfo[type].getRate();
+
             //verifica se ha o atributo fileSizeValues, que indica que e utilizado esquema de batch
 			if (this.xml.hasAttribute("fileSizeValues")){
 				double fileSize = dist2.nextDoubleInTheInterval(minSize[j], maxSize[j]);
 				double rateInGbps = ocInGigaBits(callsTypesInfo[type].getRate());
 				holdingTime = (((fileSize)/rateInGbps)*8);
+				
+				rateInMbps = ocInMegaBits(callsTypesInfo[type].getRate());
+				
 		    } else {
 	            holdingTime = dist4.nextExponential(callsTypesInfo[type].getHoldingTime());
 		    }
-            Flow newFLow = new Flow(id, src, dst, time, callsTypesInfo[type].getRate(), holdingTime, callsTypesInfo[type].getCOS(), time+(holdingTime*0.5));
-            Event event;
-            event = new FlowArrivalEvent(time, newFLow);
+            
+			//			long id, int src, int dst, double time, int bw, double duration, int cos, double deadline)
+			Flow newFLow = new Flow(id, src, dst, time, rateInMbps, holdingTime, callsTypesInfo[type].getCOS(), time+(holdingTime*0.5));
+            
+            Event event = null;
+        	event = new FlowArrivalEvent(time, newFLow);
             time += dist3.nextExponential(meanArrivalTime);
             events.addEvent(event);
             event = new FlowDepartureEvent(time + holdingTime, id, newFLow);
             events.addEvent(event);
+
             id++;
         }
     }
@@ -210,5 +219,41 @@ public class TrafficGenerator {
 
         return(rateInGbps);
      }
+    
+    /**
+     * OC in mega bits.
+     *
+     * @param oc the oc
+     * @return the double
+     */
+    private int ocInMegaBits(int oc){
+
+        int rateInMbps = 0;
+        switch(oc) {
+            case 3:
+            	rateInMbps = 155;
+                break;
+            case 12:
+            	rateInMbps = 622;
+                break;
+            case 24:
+            	rateInMbps = 1244;
+                break;
+            case 48:
+            	rateInMbps = 2488;
+                break;
+            case 96:
+            	rateInMbps = 4976;
+                break;
+            case 192:
+            	rateInMbps = 9952;
+                break;
+            default: System.out.println("invalid rate!!");
+                System.exit(1);
+        }
+
+        return(rateInMbps);
+     }
+
 
 }
