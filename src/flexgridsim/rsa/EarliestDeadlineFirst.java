@@ -10,7 +10,7 @@ import flexgridsim.util.KShortestPaths;
 import flexgridsim.BatchConnectionRequest;
 
 
-public class BatchGrooming extends ImageRCSA {
+public class EarliestDeadlineFirst extends ImageRCSA {
 	
 	/**
      * 
@@ -101,8 +101,6 @@ public class BatchGrooming extends ImageRCSA {
 			f.setBatchRequest(true);
 		}
 		
-        //update scheduler
-//        cp.addScheduleDeadline(batch.getEarliestDeadline().getTime(),batch);
         cp.updateDeadlineEvent(batch);
         
 	}

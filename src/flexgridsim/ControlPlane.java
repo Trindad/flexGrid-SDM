@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
-import flexgridsim.rsa.BatchGrooming;
+import flexgridsim.rsa.EarliestDeadlineFirst;
 import flexgridsim.rsa.ControlPlaneForRSA;
 import flexgridsim.rsa.RSA;
 
@@ -73,7 +73,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     public void newEvent(Event event) 
     {
-    	if (rsa instanceof BatchGrooming && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
+    	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
     		System.out.println("***************************************");
 //        	System.out.println(batches.size());
@@ -83,7 +83,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         		try 
         		{
 //        			System.out.println(batches.get((int) (batches.getNumberOfBatches()-1)));
-            		( (BatchGrooming) rsa).deadlineArrival( (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch() );	
+            		( (EarliestDeadlineFirst) rsa).deadlineArrival( (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch() );	
 				} 
         		catch (Exception e)
         		{
@@ -102,7 +102,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             		newFlow(((FlowArrivalEvent) event).getFlow());
             		updateDeadlineEvent(batches.get(numberOfBatches));
             		
-                	( (BatchGrooming) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
+                	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
 				} 
         		catch (Exception e) 
         		{

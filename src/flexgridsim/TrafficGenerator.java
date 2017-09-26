@@ -154,9 +154,11 @@ public class TrafficGenerator {
 			if (this.xml.hasAttribute("fileSizeValues")){
 				double fileSize = dist2.nextDoubleInTheInterval(minSize[j], maxSize[j]);
 				double rateInGbps = ocInGigaBits(callsTypesInfo[type].getRate());
-				holdingTime = (((fileSize)/rateInGbps)*8);
 				
 				rateInMbps = ocInMegaBits(callsTypesInfo[type].getRate());
+				holdingTime = (((fileSize)/rateInGbps)*8);
+				
+				
 				
 		    } else {
 	            holdingTime = dist4.nextExponential(callsTypesInfo[type].getHoldingTime());
