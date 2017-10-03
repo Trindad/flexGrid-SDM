@@ -22,6 +22,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
     private PhysicalTopology pt;
+    private int nFlows;
     private VirtualTopology vt;
     private Map<Flow, LightPath> mappedFlows; // Flows that have been accepted into the network
     private Map<Long, Flow> activeFlows; // Flows that have been accepted or that are waiting for a decision 
@@ -53,7 +54,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         this.pt = pt;
         this.vt = vt;
-
+        nFlows = 0;
         try {
             RSAClass = Class.forName(rsaModule);
             rsa = (RSA) RSAClass.newInstance();
@@ -76,10 +77,10 @@ public class ControlPlane implements ControlPlaneForRSA {
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
     		System.out.println("***************************************");
-//        	System.out.println(batches.size());
+        	
         	if(event instanceof DeadlineEvent)
         	{
-        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
+//        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
         		try 
         		{
 //        			System.out.println(batches.get((int) (batches.getNumberOfBatches()-1)));
@@ -92,15 +93,15 @@ public class ControlPlane implements ControlPlaneForRSA {
         	}
         	else if(event instanceof FlowArrivalEvent )
         	{
-        		System.out.println("Flow Event "+ batches.getNumberOfBatches() );
-        		System.out.println(((FlowArrivalEvent) event).getFlow());
+//        		System.out.println("number of flows:" + nFlows++);
+//        		System.out.println("Flow Event "+ batches.getNumberOfBatches() );
+//        		System.out.println(((FlowArrivalEvent) event).getFlow());
         		try 
         		{
         			this.batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
-        			int numberOfBatches = (int) (batches.getNumberOfBatches() - 1);
             		
             		newFlow(((FlowArrivalEvent) event).getFlow());
-            		updateDeadlineEvent(batches.get(numberOfBatches));
+            		updateDeadlineEvent(batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));
             		
                 	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
 				} 
@@ -403,7 +404,8 @@ public class ControlPlane implements ControlPlaneForRSA {
     	try 
     	{
     		eventScheduler.removeDeadlineEvent(batch.getEarliestDeadline());
-    		batches.remove(batch);
+//    		batches.remove(batch);
+    		batch.clear();
 		} 
     	catch (Exception e) 
     	{

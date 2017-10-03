@@ -157,9 +157,7 @@ public class TrafficGenerator {
 				
 				rateInMbps = ocInMegaBits(callsTypesInfo[type].getRate());
 				holdingTime = (((fileSize)/rateInGbps)*8);
-				
-				
-				
+
 		    } else {
 	            holdingTime = dist4.nextExponential(callsTypesInfo[type].getHoldingTime());
 		    }
@@ -215,6 +213,12 @@ public class TrafficGenerator {
             case 192:
                 rateInGbps = 10.0; //9.950720165; //9952.00Mbps;
                 break;
+            case 768:
+            	rateInGbps = 38.48;
+            	break;
+            case 1920:
+            	rateInGbps = 99.5328;
+            	break;
             default: System.out.println("invalid rate!!");
                 System.exit(1);
         }
@@ -250,6 +254,12 @@ public class TrafficGenerator {
             case 192:
             	rateInMbps = 9952;
                 break;
+            case 768:
+            	rateInMbps = 39813;
+            	break;
+            case 1920:
+            	rateInMbps = 99532;
+            	break;
             default: System.out.println("invalid rate!!");
                 System.exit(1);
         }

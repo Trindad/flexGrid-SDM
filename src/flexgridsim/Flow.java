@@ -29,6 +29,7 @@ public class Flow {
     private int modulationLevel;
     
     boolean isBatchRequest;
+    boolean isPostponeRequest;
     private int numberOfFlowsGroomed;
 
 	/**
@@ -59,6 +60,8 @@ public class Flow {
             this.modulationLevel = 0;
             this.groomed = false;
             this.isBatchRequest = false; //initialize with false a batch request
+            this.numberOfFlowsGroomed = 0;
+            this.isPostponeRequest = false;
         }
     }
     
@@ -287,6 +290,15 @@ public class Flow {
      */
     public boolean isBatchRequest() {
     	return this.isBatchRequest;
+    }
+    
+    public boolean isPostponeRequest() {
+    	return this.isPostponeRequest;
+    }
+    
+    public void setPostponeRequest(boolean post) {
+    	
+    	this.isPostponeRequest = post;
     }
 
 	public void setNumberOfFlowsGroomed(int size) {

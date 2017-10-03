@@ -14,7 +14,7 @@
     <virtual-topology  name="NSFNet">
     </virtual-topology>
     
-    <physical-topology name="NSFNet" cores="7" slots="180" slotsBandwidth="12.5">
+    <physical-topology name="NSFNet" cores="7" slots="240" slotsBandwidth="12.5">
         <nodes>
             <node id="0"/>
             <node id="1" />

@@ -52,7 +52,7 @@ public class InscribedRectangleRCSA implements RSA {
 			for (int i = 0; i < kPaths[k].length-1; i++) {
 				imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(), spectrum, spectrum);
 			}
-			//printSpectrum(spectrum);
+//			printSpectrum(spectrum);
 			
 			InscribedRectangle ir = new InscribedRectangle();
 			ArrayList<Rectangle> rectangles = ir.calculateRectangles(spectrum.length, spectrum[0].length, spectrum);

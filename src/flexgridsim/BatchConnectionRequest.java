@@ -27,8 +27,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
     private DeadlineEvent oldestDeadline;
     
     static int  indexFlow = 0;
-    
-    private int numberOfFlows;
+   
     
     public int getSource() {
 		return source;
@@ -46,14 +45,6 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		this.destination = destination;
 	}
 
-	public int getNumberOfJointFlows() {
-		return numberOfFlows;
-	}
-
-	public void setNumberOfJointFlows() {
-		numberOfFlows++;
-	}
-
 	public BatchConnectionRequest(int source, int destination) 
     {
     	established = false;
@@ -63,8 +54,6 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
     	
     	earliestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
     	oldestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
-    	
-    	numberOfFlows = 0;
     }
     
 	public boolean isEstablished() {
@@ -120,11 +109,6 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		
 		if(this.size() == 1)
 		{
-			if(this.numberOfFlows >= 1) 
-			{
-				this.numberOfFlows--;
-			}
-				
 			return this.get(0);
 		}
 		
@@ -152,9 +136,8 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		Flow newFlow = new Flow(Long.MAX_VALUE - indexFlow, getSource(), getDestination(), 
 				earliestDeadline.getTime(), rateSum, maxDuration, maxCos, 0);
 		
+		newFlow.setBatchRequest(true);
 		newFlow.setNumberOfFlowsGroomed(this.size());
-		
-		numberOfFlows++;
 		
 		return newFlow;//return a new flow composed by a set of requests
 	}
@@ -186,13 +169,13 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		
 		if(this.size() >= 2)
 		{
-			earliestDeadline = new DeadlineEvent(this.get(this.size() - 1).getDeadline(), this);
+			earliestDeadline = new DeadlineEvent(this.get(0).getDeadline(), this);
 	    	oldestDeadline = new DeadlineEvent(this.get(this.size() - 1).getDeadline(), this);
 		}
 		else
 		{
 			earliestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
-	    	oldestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
+	    	oldestDeadline = new DeadlineEvent(Double.MIN_VALUE, this);
 		}
 		
 	}
