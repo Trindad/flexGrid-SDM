@@ -22,7 +22,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
     private PhysicalTopology pt;
-    private int nFlows;
     private VirtualTopology vt;
     private Map<Flow, LightPath> mappedFlows; // Flows that have been accepted into the network
     private Map<Long, Flow> activeFlows; // Flows that have been accepted or that are waiting for a decision 
@@ -54,7 +53,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         this.pt = pt;
         this.vt = vt;
-        nFlows = 0;
+
         try {
             RSAClass = Class.forName(rsaModule);
             rsa = (RSA) RSAClass.newInstance();
@@ -80,7 +79,12 @@ public class ControlPlane implements ControlPlaneForRSA {
         	
         	if(event instanceof DeadlineEvent)
         	{
-//        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
+        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
+        		
+        		for (Flow f : (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch()) {
+        			System.out.println("POSTPONED? " + f);
+        		}
+        		
         		try 
         		{
 //        			System.out.println(batches.get((int) (batches.getNumberOfBatches()-1)));
@@ -98,12 +102,21 @@ public class ControlPlane implements ControlPlaneForRSA {
 //        		System.out.println(((FlowArrivalEvent) event).getFlow());
         		try 
         		{
-        			this.batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
+        			batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
             		
             		newFlow(((FlowArrivalEvent) event).getFlow());
+            		//batches.setEarliestDeadline(((FlowArrivalEvent) event).getFlow());
             		updateDeadlineEvent(batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));
+            		batches.updateEarliestDeadlineFirst();
             		
-                	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
+            		if(batches.getEarliestDeadline().getNumberOfFlows() == 0) {
+            			System.out.println("ERRRRRRRRRRRR "+batches.getEarliestDeadline().getSource()+" "+batches.getEarliestDeadline().getDestination());
+            		}
+            		
+                	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getEarliestDeadline());	
+                	
+                	batches.resetEarliestDeadline();
+                	
 				} 
         		catch (Exception e) 
         		{
@@ -401,8 +414,17 @@ public class ControlPlane implements ControlPlaneForRSA {
      * @param batch the batch
      */
     public void removeDeadlineEvent(BatchConnectionRequest batch) {
+    	
+    	if(batch.isEmpty()) return;
+    	
     	try 
     	{
+//    		if(batch.getSource() == batches.getEarliestDeadline().getSource() && batch.getDestination() == 
+//    				batches.getEarliestDeadline().getDestination())
+//    		{
+//    			batches.resetEarliestDeadline();
+//    		}
+    		
     		eventScheduler.removeDeadlineEvent(batch.getEarliestDeadline());
 //    		batches.remove(batch);
     		batch.clear();
@@ -434,6 +456,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	public void removeBatch(BatchConnectionRequest batch) {
 		this.batches.remove(batch);
+	}
+	
+	public BatchConnectionRequest getEarliestDeadline() {
+		
+		return batches.getEarliestDeadline();
 	}
 
 }

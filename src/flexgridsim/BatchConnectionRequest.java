@@ -134,7 +134,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		indexFlow++;
 		//long id, int src, int dst, double time, int bw, double duration, int cos, double deadline
 		Flow newFlow = new Flow(Long.MAX_VALUE - indexFlow, getSource(), getDestination(), 
-				earliestDeadline.getTime(), rateSum, maxDuration, maxCos, 0);
+				earliestDeadline.getTime(), rateSum, maxDuration, maxCos, earliestDeadline.getTime());
 		
 		newFlow.setBatchRequest(true);
 		newFlow.setNumberOfFlowsGroomed(this.size());
@@ -167,7 +167,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		//update deadline
 		this.sort(Comparator.comparing(Flow::getDeadline));
 		
-		if(this.size() >= 2)
+		if(this.size() >= 1)
 		{
 			earliestDeadline = new DeadlineEvent(this.get(0).getDeadline(), this);
 	    	oldestDeadline = new DeadlineEvent(this.get(this.size() - 1).getDeadline(), this);
@@ -175,7 +175,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		else
 		{
 			earliestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
-	    	oldestDeadline = new DeadlineEvent(Double.MIN_VALUE, this);
+	    	oldestDeadline = new DeadlineEvent(Double.MAX_VALUE, this);
 		}
 		
 	}

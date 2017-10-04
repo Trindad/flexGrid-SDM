@@ -118,4 +118,7 @@ public interface ControlPlaneForRSA {
 	public void addScheduleDeadline(double time, BatchConnectionRequest batch);
 
 	public void removeBatch(BatchConnectionRequest batch);
+
+	public BatchConnectionRequest getEarliestDeadline();
+
 }

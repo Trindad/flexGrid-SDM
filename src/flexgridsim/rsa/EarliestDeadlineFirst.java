@@ -2,7 +2,6 @@ package flexgridsim.rsa;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import flexgridsim.Flow;
 import flexgridsim.Slot;
@@ -47,11 +46,12 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 
             	double minDeadline = batch.getEarliestDeadline().getTime();
             	
-            	if ( ( latestDeadline.getDeadline() > minDeadline) && ( latestDeadline.isPostponeRequest() == true ) ) {
-            		System.out.println("esse caso aqui");
-            	}
+//            	if ( ( latestDeadline.getDeadline() > minDeadline) && ( latestDeadline.isPostponeRequest() == true )  ) {
+//            		System.out.println("esse caso aqui");
+//            	}
             	
-                if ( ( latestDeadline.getDeadline() > minDeadline) || ( latestDeadline.isPostponeRequest() == false ) )
+//            	System.out.println(" "+latestDeadline.getDeadline()+" "+ minDeadline+" "+cp.getEarliestDeadline());
+                if ( ( latestDeadline.getDeadline() > minDeadline) || latestDeadline.isPostponeRequest() == false )
                 {
                 	System.out.println("postponed: "+latestDeadline);
                 	
@@ -71,7 +71,7 @@ public class EarliestDeadlineFirst extends ImageRCSA {
             	{
             		System.out.println("established: "+f);
             	}
-            	 
+            	
             	removeFlowsOfBatch(batch);
             }
         	
