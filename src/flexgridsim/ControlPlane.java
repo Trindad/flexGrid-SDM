@@ -79,7 +79,8 @@ public class ControlPlane implements ControlPlaneForRSA {
         	
         	if(event instanceof DeadlineEvent)
         	{
-        		System.out.println("Deadline Event "+ batches.getNumberOfBatches() );
+        		BatchConnectionRequest b = (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch();
+        		System.out.println("Deadline Event "+ b.getNumberOfFlows() + " d: " + b.getEarliestDeadline().getTime() );
         		
         		for (Flow f : (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch()) {
         			System.out.println("POSTPONED? " + f);

@@ -124,7 +124,7 @@ public class SetOfBatches extends ArrayList<BatchConnectionRequest>{
 
 	public void resetEarliestDeadline() {
 		
-		earliestDeadline.clear();
+//		earliestDeadline.clear();
 		earliestDeadline = null;
 	}
 	

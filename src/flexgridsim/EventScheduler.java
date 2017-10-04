@@ -98,6 +98,13 @@ public class EventScheduler {
 		{
 			eventQueue.remove(temp);
 		}
+		
+		BatchConnectionRequest b = (BatchConnectionRequest) newEvent.getBatch();
+		System.out.println("NEW EVENT " + b.getNumberOfFlows());
+		
+		for (Flow f : b) {
+			System.out.println("HERE " + f);
+		}
 			
 		this.addEvent(newEvent);	
 	}

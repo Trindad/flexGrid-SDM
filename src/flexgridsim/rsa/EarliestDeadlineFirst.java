@@ -93,6 +93,7 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 	{
 		if(postponedRequests.isEmpty())
 		{
+			
 			if (batch.isEmpty()) 
 			{
 				cp.removeDeadlineEvent(batch);
@@ -105,8 +106,9 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 		{
 			f.setPostponeRequest(true);
 			batch.add(f);	
+			
 		}
-		
+		System.out.println(batch.getNumberOfFlows() + ", " + batch.getOldestDeadline().getTime() + ", " + batch.getEarliestDeadline().getTime());
         cp.updateDeadlineEvent(batch);
         
 	}
