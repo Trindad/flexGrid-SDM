@@ -78,45 +78,35 @@ public class ControlPlane implements ControlPlaneForRSA {
     		System.out.println("***************************************");
         	
         	if(event instanceof DeadlineEvent)
-        	{
-        		BatchConnectionRequest b = (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch();
-        		System.out.println("Deadline Event "+ b.getNumberOfFlows() + " d: " + b.getEarliestDeadline().getTime() );
-        		
-        		for (Flow f : (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch()) {
-        			System.out.println("POSTPONED? " + f);
-        		}
-        		
+        	{	
         		try 
         		{
-//        			System.out.println(batches.get((int) (batches.getNumberOfBatches()-1)));
-            		( (EarliestDeadlineFirst) rsa).deadlineArrival( (BatchConnectionRequest) ( (DeadlineEvent)event ).getBatch() );	
+        			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
+//        			batches.updateEarliestDeadlineFirst();
+        			
+            		( (EarliestDeadlineFirst) rsa).deadlineArrival( ((DeadlineEvent)event).getBatch() );	
+//        			( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getEarliestDeadline() );
+        			
+//            		batches.resetEarliestDeadline();
 				} 
         		catch (Exception e)
         		{
-        			System.out.println(e);
+        			e.printStackTrace();
 				}
         	}
         	else if(event instanceof FlowArrivalEvent )
         	{
-//        		System.out.println("number of flows:" + nFlows++);
-//        		System.out.println("Flow Event "+ batches.getNumberOfBatches() );
-//        		System.out.println(((FlowArrivalEvent) event).getFlow());
         		try 
         		{
         			batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
-            		
             		newFlow(((FlowArrivalEvent) event).getFlow());
-            		//batches.setEarliestDeadline(((FlowArrivalEvent) event).getFlow());
-            		updateDeadlineEvent(batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));
-            		batches.updateEarliestDeadlineFirst();
             		
-            		if(batches.getEarliestDeadline().getNumberOfFlows() == 0) {
-            			System.out.println("ERRRRRRRRRRRR "+batches.getEarliestDeadline().getSource()+" "+batches.getEarliestDeadline().getDestination());
-            		}
+//            		updateDeadlineEvent(batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));
+//            		batches.updateEarliestDeadlineFirst();
             		
-                	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getEarliestDeadline());	
+                	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
                 	
-                	batches.resetEarliestDeadline();
+//                	batches.resetEarliestDeadline();
                 	
 				} 
         		catch (Exception e) 

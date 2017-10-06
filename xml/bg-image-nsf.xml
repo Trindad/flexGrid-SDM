@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <flexgridsim version="0.4">
-    <rsa module="EarliestDeadlineFirst"/>
+    <rsa module="EarliestDeadlineFirst" algorithm="ImageRCSA"/>
 
     <trace file="trace.tr"/>
 
-    <traffic calls="10000" load="215" max-rate="1920">
-        <calls holding-time="12.5" rate="155" cos="1" weight="49"/>
+    <traffic calls="10000" load="215" max-rate="192">
+        <calls holding-time="12.5" rate="155" cos="1" weight="50"/>
         <calls holding-time="5.5" rate="622" cos="1" weight="25"/>
         <calls holding-time="5.5" rate="1244" cos="1" weight="10"/>
         <calls holding-time="10.18" rate="2488" cos="1" weight="7"/>
         <calls holding-time="5.09" rate="4976" cos="1" weight="2"/>
         <calls holding-time="2.545" rate="9952" cos="1" weight="1"/>
-        <calls holding-time="2.545" rate="39813" cos="1" weight="1"/>
+        <!-- <calls holding-time="2.545" rate="39813" cos="1" weight="1"/> -->
         <!-- <calls holding-time="2.545" rate="99532" cos="1" weight="1"/> -->
         <fileSize minRate="3" minSize="0.1" maxSize="2.5"/>
         <fileSize minRate="12" range="0.5" maxSize="5.0"/>
@@ -20,7 +20,7 @@
         <fileSize minRate="48" range="1.0" maxSize="50.0"/>
         <fileSize minRate="96" range="1.0" maxSize="50.0"/>
         <fileSize minRate="192" range="1.0" maxSize="50.0"/>
-        <fileSize minRate="768" range="1.0" maxSize="50.0"/>
+        <!-- <fileSize minRate="768" range="1.0" maxSize="50.0"/> -->
         <!-- <fileSize minRate="1920" range="1.0" maxSize="50.0"/> -->
     </traffic>
 

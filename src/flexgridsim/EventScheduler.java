@@ -30,6 +30,7 @@ public class EventScheduler {
     	 * and zero if they are equal.
     	 */
         public int compare(Event o1, Event o2) {
+        	
             if (o1.getTime() < o2.getTime()) {
                 return -1;
             }
@@ -99,14 +100,7 @@ public class EventScheduler {
 			eventQueue.remove(temp);
 		}
 		
-		BatchConnectionRequest b = (BatchConnectionRequest) newEvent.getBatch();
-		System.out.println("NEW EVENT " + b.getNumberOfFlows());
-		
-		for (Flow f : b) {
-			System.out.println("HERE " + f);
-		}
-			
-		this.addEvent(newEvent);	
+		if(newEvent != null) this.addEvent(newEvent);	
 	}
 	
 	/**

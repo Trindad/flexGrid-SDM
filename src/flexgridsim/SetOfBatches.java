@@ -54,25 +54,21 @@ public class SetOfBatches extends ArrayList<BatchConnectionRequest>{
 	
 	public void updateEarliestDeadlineFirst() {
 		
-		BatchConnectionRequest newEarliest = null;
-		double temp = Double.MAX_VALUE;
-		double max = Double.MAX_VALUE;
+		BatchConnectionRequest minDeadline = earliestDeadline;
 		
 		for(BatchConnectionRequest b: this) {
 			
-			if(b.getNumberOfFlows() > 0 && b.getEarliestDeadline().getTime() < max) 
+			if(b.getNumberOfFlows() > 0 && ( b.getEarliestDeadline().getTime() < minDeadline.getEarliestDeadline().getTime() ) )
 			{
-				max = temp;
-				temp = b.getEarliestDeadline().getTime();
-				newEarliest = b;
+				minDeadline = b;
 			}
 		}
 		
-		if(newEarliest != null) earliestDeadline = newEarliest; 
+		if(minDeadline != null) earliestDeadline = minDeadline; 
 	}
 	
 	/**
-	 * Remove batch
+	 * 
 	 * @param batch
 	 * @return
 	 */
@@ -124,7 +120,6 @@ public class SetOfBatches extends ArrayList<BatchConnectionRequest>{
 
 	public void resetEarliestDeadline() {
 		
-//		earliestDeadline.clear();
 		earliestDeadline = null;
 	}
 	

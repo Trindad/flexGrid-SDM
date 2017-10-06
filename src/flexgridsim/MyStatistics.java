@@ -238,7 +238,7 @@ public class MyStatistics {
         		this.accepted++;
         		
         	}
-        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
+//        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
         	int links =  flow.getLinks().length+1;
         	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
             plotter.addDotToGraph("hops", load, links);

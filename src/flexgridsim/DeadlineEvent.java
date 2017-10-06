@@ -25,9 +25,15 @@ public class DeadlineEvent  extends Event {
 		super(time);
 	}
 
-	public Object getBatch() {
-		return this.batch;
+	/**
+	 * Gets the batch.
+	 *
+	 * @return the batch
+	 */
+	public BatchConnectionRequest getBatch() {
+		return batch;
 	}
+
 
 	/**
 	 * Set of batch

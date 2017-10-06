@@ -22,10 +22,6 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 		
         int []path = new int[0];
         
-        for(Flow f: batch) {
-        	System.out.println(f + ", postponed? " + f.isPostponeRequest());
-        }
-        
         while( batch.getNumberOfFlows() >= 1 )
         {   
         	Flow batchFlow;
@@ -43,23 +39,17 @@ public class EarliestDeadlineFirst extends ImageRCSA {
         		}
         		
             	Flow latestDeadline = batch.latestFlow();
-
             	double minDeadline = batch.getEarliestDeadline().getTime();
             	
-//            	if ( ( latestDeadline.getDeadline() > minDeadline) && ( latestDeadline.isPostponeRequest() == true )  ) {
-//            		System.out.println("esse caso aqui");
-//            	}
-            	
-//            	System.out.println(" "+latestDeadline.getDeadline()+" "+ minDeadline+" "+cp.getEarliestDeadline());
                 if ( ( latestDeadline.getDeadline() > minDeadline) || latestDeadline.isPostponeRequest() == false )
                 {
-                	System.out.println("postponed: "+latestDeadline);
+                	System.out.println("postponed: "+latestDeadline+" t: "+latestDeadline.getTime() + " d: "+latestDeadline.getDeadline());
                 	
                 	postponedRequests.add(latestDeadline);
                 }
                 else
                 {
-                	System.out.println("blocked: "+latestDeadline);
+                	System.out.println("blocked: "+latestDeadline+" t: "+latestDeadline.getTime() + " d: "+latestDeadline.getDeadline());
                 	blockedRequests.add(latestDeadline);
                 }
                 
@@ -67,11 +57,13 @@ public class EarliestDeadlineFirst extends ImageRCSA {
             }
             else
             {
+            	System.out.println("number o flows: "+batch.getNumberOfFlows());
             	for(Flow f: batch) 
             	{
-            		System.out.println("established: "+f);
+            		System.out.println("established: "+f+" t: "+f.getTime() + " d: "+f.getDeadline());
             	}
             	
+            	batch.setEstablished(true);
             	removeFlowsOfBatch(batch);
             }
         	
@@ -108,7 +100,8 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 			batch.add(f);	
 			
 		}
-		System.out.println(batch.getNumberOfFlows() + ", " + batch.getOldestDeadline().getTime() + ", " + batch.getEarliestDeadline().getTime());
+		
+//		System.out.println(batch.getNumberOfFlows() + ", " + batch.getOldestDeadline().getTime() + ", " + batch.getEarliestDeadline().getTime());
         cp.updateDeadlineEvent(batch);
         
 	}
