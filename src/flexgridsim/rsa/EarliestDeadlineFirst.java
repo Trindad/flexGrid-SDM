@@ -3,14 +3,41 @@ package flexgridsim.rsa;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.w3c.dom.Element;
+
 import flexgridsim.Flow;
+import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
+import flexgridsim.TrafficGenerator;
+import flexgridsim.VirtualTopology;
 import flexgridsim.util.ConnectedComponent;
+import flexgridsim.util.InscribedRectangle;
 import flexgridsim.util.KShortestPaths;
+import flexgridsim.util.Rectangle;
+import flexgridsim.util.WeightedGraph;
 import flexgridsim.BatchConnectionRequest;
 
 
-public class EarliestDeadlineFirst extends ImageRCSA {
+public class EarliestDeadlineFirst extends RCSA {
+	
+	protected PhysicalTopology pt;
+	protected VirtualTopology vt;
+	protected ControlPlaneForRSA cp;
+	protected WeightedGraph graph;
+	
+	private RSAProxy rsa;
+	 
+	 public void simulationInterface(Element xml, PhysicalTopology pt, VirtualTopology vt, ControlPlaneForRSA cp,
+				TrafficGenerator traffic) {
+		this.pt = pt;
+		this.vt = vt;
+		this.cp = cp;
+		this.graph = pt.getWeightedGraph();
+			
+		rsa = new RSAProxy(cp.getRsaAlgorithm());
+		rsa.simulationInterface(xml, pt, vt, cp, traffic);
+	}
+	 
 	/**
      * 
      * @param flow
@@ -29,7 +56,7 @@ public class EarliestDeadlineFirst extends ImageRCSA {
         	batchFlow = batch.convertBatchToSingleFlow();
         	cp.newFlow(batchFlow);
         	
-        	path = executeRCSA(batchFlow);//RSA using Image
+        	path = rsa.executeRCSA(batchFlow);//RSA using Image
         	
         	if (path.length == 0) 
             {    
@@ -80,7 +107,8 @@ public class EarliestDeadlineFirst extends ImageRCSA {
         }
         
     }
-	
+
+
 	private void postponeFlows(ArrayList<Flow> postponedRequests, BatchConnectionRequest batch) 
 	{
 		if(postponedRequests.isEmpty())
@@ -123,47 +151,129 @@ public class EarliestDeadlineFirst extends ImageRCSA {
 		
 	}
 	
-	/**
-	 * Execute RCSA using Image
-	 * @param flow
-	 * @return
-	 */
-	public int[] executeRCSA(Flow flow) {
+	
+	private class RSAProxy {
+		private Object rsa;
+		private String algorithm;
 		
-		int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
-		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
-		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-		
-		for (int k = 0; k < kPaths.length; k++) {
+		public RSAProxy(String algorithm) {
+			super();
+			this.algorithm = algorithm;
 			
-			for (int i = 0; i < spectrum.length; i++) {
-				for (int j = 0; j < spectrum[i].length; j++) {
-					spectrum[i][j]=true;
-				}
-			}
-			for (int i = 0; i < kPaths[k].length-1; i++) {
-				imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(), spectrum, spectrum);
-			}
+			if (algorithm.equals("flexgridsim.rsa.MyImageRCSA")) {
+	        	rsa = new MyImageRCSA();
+	        } else if (algorithm.equals("flexgridsim.rsa.MyInscribedRectangleRCSA")) {
+	        	rsa = new MyInscribedRectangleRCSA();
+	        }
+		}
+
+
+		public void simulationInterface(Element xml, PhysicalTopology pt, VirtualTopology vt, ControlPlaneForRSA cp,
+				TrafficGenerator traffic) {
 			
-			//printSpectrum(spectrum);
-			ConnectedComponent cc = new ConnectedComponent();
-			HashMap<Integer,ArrayList<Slot>> listOfRegions = cc.listOfRegions(spectrum);
-			
-			if (listOfRegions.isEmpty()){
-				continue;
-			}
-			
-			int[] links = new int[kPaths[k].length - 1];
-			
-			for (int j = 0; j < kPaths[k].length - 1; j++) {
-				links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-			}
-			if (fitConnection(listOfRegions, demandInSlots, links, flow))
-				return links;
-			
+			if (algorithm.equals("flexgridsim.rsa.MyImageRCSA")) {
+	        	((MyImageRCSA) rsa).simulationInterface(xml, pt, vt, cp, traffic);
+	        } else if (algorithm.equals("flexgridsim.rsa.MyInscribedRectangleRCSA")) {
+	        	((MyInscribedRectangleRCSA) rsa).simulationInterface(xml, pt, vt, cp, traffic);
+	        }
 		}
 		
-		return new int[0];
+		public int[] executeRCSA(Flow flow) {
+			if (algorithm.equals("flexgridsim.rsa.MyImageRCSA")) {
+	        	return ((MyImageRCSA) rsa).executeRCSA(flow);
+	        } else if (algorithm.equals("flexgridsim.rsa.MyInscribedRectangleRCSA")) {
+	        	return ((MyInscribedRectangleRCSA) rsa).executeRCSA(flow);
+	        }
+			
+			return null;
+		}
 	}
+	
+	@SuppressWarnings("unused")
+	private class MyImageRCSA  extends ImageRCSA{
+		
+		/**
+		 * Execute RCSA using Image
+		 * @param flow
+		 * @return
+		 */
+		public int[] executeRCSA(Flow flow) {
+			
+			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
+			KShortestPaths kShortestPaths = new KShortestPaths();
+			int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
+			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+			
+			for (int k = 0; k < kPaths.length; k++) {
+				
+				for (int i = 0; i < spectrum.length; i++) {
+					for (int j = 0; j < spectrum[i].length; j++) {
+						spectrum[i][j]=true;
+					}
+				}
+				for (int i = 0; i < kPaths[k].length-1; i++) {
+					imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(), spectrum, spectrum);
+				}
+				
+				//printSpectrum(spectrum);
+				ConnectedComponent cc = new ConnectedComponent();
+				HashMap<Integer,ArrayList<Slot>> listOfRegions = cc.listOfRegions(spectrum);
+				
+				if (listOfRegions.isEmpty()){
+					continue;
+				}
+				
+				int[] links = new int[kPaths[k].length - 1];
+				
+				for (int j = 0; j < kPaths[k].length - 1; j++) {
+					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+				}
+				if (fitConnection(listOfRegions, demandInSlots, links, flow))
+					return links;
+				
+			}
+			
+			return new int[0];
+		}
+	}
+	
+	
+	@SuppressWarnings("unused")
+	private class MyInscribedRectangleRCSA  extends InscribedRectangleRCSA {
+		
+		public  int[] executeRCSA(Flow flow) {
+			
+			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
+			KShortestPaths kShortestPaths = new KShortestPaths();
+			int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
+			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+			
+			for (int k = 0; k < kPaths.length; k++) {
+				for (int i = 0; i < spectrum.length; i++) {
+					for (int j = 0; j < spectrum[i].length; j++) {
+						spectrum[i][j]=true;
+					}
+				}
+				for (int i = 0; i < kPaths[k].length-1; i++) {
+					imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(), spectrum, spectrum);
+				}
+//				printSpectrum(spectrum);
+				
+				InscribedRectangle ir = new InscribedRectangle();
+				ArrayList<Rectangle> rectangles = ir.calculateRectangles(spectrum.length, spectrum[0].length, spectrum);
+
+				int[] links = new int[kPaths[k].length - 1];
+				for (int j = 0; j < kPaths[k].length - 1; j++) {
+					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+				}
+
+				if (fitConnection(rectangles, demandInSlots, links, flow, spectrum)){
+					return links;
+				}
+			}
+			cp.blockFlow(flow.getID());
+			return new int[0];
+		}
+	}
+
 }

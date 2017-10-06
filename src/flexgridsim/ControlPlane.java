@@ -21,6 +21,7 @@ import flexgridsim.rsa.RSA;
 public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
+    private String rsaAlgorithm;
     private PhysicalTopology pt;
     private VirtualTopology vt;
     private Map<Flow, LightPath> mappedFlows; // Flows that have been accepted into the network
@@ -42,7 +43,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param vt the network's virtual topology
 	 * @param traffic the traffic
 	 */
-    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
+    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
         @SuppressWarnings("rawtypes")
 		Class RSAClass;
         mappedFlows = new HashMap<Flow, LightPath>();
@@ -53,6 +54,8 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         this.pt = pt;
         this.vt = vt;
+        
+        this.setRsaAlgorithm(rsaAlgorithm);
 
         try {
             RSAClass = Class.forName(rsaModule);
@@ -452,6 +455,14 @@ public class ControlPlane implements ControlPlaneForRSA {
 	public BatchConnectionRequest getEarliestDeadline() {
 		
 		return batches.getEarliestDeadline();
+	}
+
+	public String getRsaAlgorithm() {
+		return rsaAlgorithm;
+	}
+
+	public void setRsaAlgorithm(String rsaAlgorithm) {
+		this.rsaAlgorithm = rsaAlgorithm;
 	}
 
 }

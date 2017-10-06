@@ -124,7 +124,7 @@ public class InscribedRectangleRCSA implements RSA {
 		}
 	}
 		
-	private void imageAnd(boolean[][] img1, boolean[][] img2, boolean[][] res){
+	protected void imageAnd(boolean[][] img1, boolean[][] img2, boolean[][] res){
 		for (int i = 0; i < res.length; i++) {
 			for (int j = 0; j < res[0].length; j++) {
 				res[i][j] = img1[i][j] & img2[i][j];

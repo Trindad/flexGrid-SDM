@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <flexgridsim version="0.4">
-    <rsa module="EarliestDeadlineFirst" algorithm="ImageRCSA"/>
+    <rsa module="EarliestDeadlineFirst" algorithm="MyImageRCSA"/>
 
     <trace file="trace.tr"/>
 

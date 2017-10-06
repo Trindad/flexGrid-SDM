@@ -35,4 +35,7 @@ public class RCSA implements RSA{
 	public void flowDeparture(Flow flow) {
 	}
 
+	public int[] executeRCSA(Flow flow) {
+		return null;
+	}
 }

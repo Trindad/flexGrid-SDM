@@ -166,10 +166,12 @@ public class Simulator {
 	            tr.toogleTraceWriting(Simulator.trace);
 	            
 	            String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
+	            String rsaAlgorithm = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("algorithm");
+	            
 	            if (Simulator.verbose) {
 	                System.out.println("RSA module: " + rsaModule);
 	            }
-	            ControlPlane cp = new ControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, pt, vt, traffic);
+	            ControlPlane cp = new ControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, rsaAlgorithm, pt, vt, traffic);
 	
 	            if (Simulator.verbose) {
 	                System.out.println("(4) Done. (" + Float.toString((float) ((float) (System.currentTimeMillis() - begin) / (float) 1000)) + " sec)\n");

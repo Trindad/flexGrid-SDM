@@ -121,4 +121,6 @@ public interface ControlPlaneForRSA {
 
 	public BatchConnectionRequest getEarliestDeadline();
 
+	public String getRsaAlgorithm();
+
 }
