@@ -94,7 +94,7 @@ public class ImageRCSA implements RSA {
 //		System.out.println(keys);
 		for (Integer key : listOfRegions.keySet()) {
 //			int i = 0;
-			System.out.println("tami: "+listOfRegions.get(key).size()+" key: "+key+" d: "+demandInSlots);
+//			System.out.println("tami: "+listOfRegions.get(key).size()+" key: "+key+" d: "+demandInSlots);
 		    
 			if (listOfRegions.get(key).size() >= demandInSlots)
 			{
@@ -111,7 +111,7 @@ public class ImageRCSA implements RSA {
 //		    			if(i >=  listOfRegions.get(key).size()) break;
 //			    		t++;
 					}
-		    		System.out.print(fittedSlotList);
+//		    		System.out.print(fittedSlotList);
 //			    	if (fittedSlotList.size() == demandInSlots)
 //			    	{
 	//		    		System.out.println(" alloc key:"+key);
@@ -144,9 +144,9 @@ public class ImageRCSA implements RSA {
 		if (id >= 0) {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
-			System.out.println("*************SLOT**************");
-			System.out.println(slotList);
-			System.out.println("*************FIN**************");
+//			System.out.println("*************SLOT**************");
+//			System.out.println(slotList);
+//			System.out.println("*************FIN**************");
 			flow.setSlotList(slotList);
 			cp.acceptFlow(flow.getID(), lps);
 			return true;

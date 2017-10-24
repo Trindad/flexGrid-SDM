@@ -125,4 +125,6 @@ public interface ControlPlaneForRSA {
 
 	public double getTime();
 
+	public void setTime(double f);
+
 }

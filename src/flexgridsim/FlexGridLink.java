@@ -283,7 +283,7 @@ public class FlexGridLink {
 //				System.out.println();
 				for (Slot slot : slotList) {
 					if (!freeSlots[slot.c][slot.s]) {
-						System.out.print(" "+slot.c+" =*= "+slot.s+" ");
+//						System.out.print(" "+slot.c+" =*= "+slot.s+" ");
 						return false;
 					} 
 				}

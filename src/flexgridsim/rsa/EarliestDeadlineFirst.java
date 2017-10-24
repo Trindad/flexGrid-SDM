@@ -66,18 +66,18 @@ public class EarliestDeadlineFirst extends RCSA {
         		}
         		
             	Flow latestDeadline = batch.latestFlow();
-            	double minDeadline = batch.getEarliestDeadline().getTime();
             	
-                if ( ( latestDeadline.getDeadline() > minDeadline) || latestDeadline.isPostponeRequest() == false )
+            	if( latestDeadline.getDeadline() <= cp.getTime())
+                {
+                	System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
+                	blockedRequests.add(latestDeadline);
+                	cp.setTime(0.0f);
+                }
+                else
                 {
                 	System.out.println("postponed: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
                 	
                 	postponedRequests.add(latestDeadline);
-                }
-                else if(cp.getTime() <= latestDeadline.getDeadline())
-                {
-                	System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
-                	blockedRequests.add(latestDeadline);
                 }
                 
                 batch.removeFlow(latestDeadline);

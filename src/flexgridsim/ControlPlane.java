@@ -84,11 +84,11 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-    		System.out.println("***************************************");
+    		System.out.println("******************"+time+"*********************");
         	
         	if(event instanceof DeadlineEvent)
         	{	
-        		System.out.println("MAX TIME: "+time);
+        		
         		try 
         		{
         			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
