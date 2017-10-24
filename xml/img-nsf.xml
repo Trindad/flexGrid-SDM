@@ -5,7 +5,7 @@
 
     <trace file="trace.tr"/>
 
-    <traffic calls="100000" load="215" max-rate="100">
+    <traffic calls="10000" load="215" max-rate="100">
 		<calls holding-time="0.5" rate="125" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="400" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="1000" cos="1" weight="1"/>

@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.w3c.dom.Element;
@@ -79,17 +80,55 @@ public class ImageRCSA implements RSA {
 	 * @return given a list of rectangles and a demand, the algorithm tries to fit the connector into the spectra
 	 */
 	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow){
+		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+//		System.out.println("demand: "+demandInSlots);
+//		for (Integer key : listOfRegions.keySet()) {
+//			System.out.println("tam: "+listOfRegions.get(key).size()+" key: "+key);
+//		}
+		
+		
+//		ArrayList<Integer> keys = new ArrayList<Integer>();
+//		keys.addAll(listOfRegions.keySet());
+//		Collections.shuffle(keys);
+//		System.out.println(keys);
 		for (Integer key : listOfRegions.keySet()) {
-		    if (listOfRegions.get(key).size()>=demandInSlots){
-		    	for (int i = 0; i < demandInSlots; i++) {
-		    		fittedSlotList.add(listOfRegions.get(key).get(i));
-				}
-		    	if (establishConnection(links, fittedSlotList, 0, flow)){
-					return true;
-				}
+//			int i = 0;
+			System.out.println("tami: "+listOfRegions.get(key).size()+" key: "+key+" d: "+demandInSlots);
+		    
+			if (listOfRegions.get(key).size() >= demandInSlots)
+			{
+//		    	while(i < listOfRegions.get(key).size())
+//		    	{
+//		    		int t = 0;
+//			    	System.out.println("t: "+t+" iterator: "+i+" d: "+demandInSlots);
+//		    		while( t < demandInSlots) 
+//		    		{
+			    	for(int i = 0; i < demandInSlots;i++) {
+		    			fittedSlotList.add(listOfRegions.get(key).get(i));
+		    			
+//		    			i++;
+//		    			if(i >=  listOfRegions.get(key).size()) break;
+//			    		t++;
+					}
+		    		System.out.print(fittedSlotList);
+//			    	if (fittedSlotList.size() == demandInSlots)
+//			    	{
+	//		    		System.out.println(" alloc key:"+key);
+						if(establishConnection(links, fittedSlotList, 0, flow)) 
+						{
+							return true;
+						}
+//					}
+//			    	else
+//			    	{
+//			    		fittedSlotList.clear();
+//			    	}
+//			    	
+//		    	}	
 		    }
 		}
+		
 		return false;
 	}
 	
@@ -105,6 +144,9 @@ public class ImageRCSA implements RSA {
 		if (id >= 0) {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
+			System.out.println("*************SLOT**************");
+			System.out.println(slotList);
+			System.out.println("*************FIN**************");
 			flow.setSlotList(slotList);
 			cp.acceptFlow(flow.getID(), lps);
 			return true;

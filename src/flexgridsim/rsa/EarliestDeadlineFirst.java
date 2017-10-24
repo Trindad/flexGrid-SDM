@@ -70,13 +70,13 @@ public class EarliestDeadlineFirst extends RCSA {
             	
                 if ( ( latestDeadline.getDeadline() > minDeadline) || latestDeadline.isPostponeRequest() == false )
                 {
-                	System.out.println("postponed: "+latestDeadline+" t: "+latestDeadline.getTime() + " d: "+latestDeadline.getDeadline());
+                	System.out.println("postponed: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
                 	
                 	postponedRequests.add(latestDeadline);
                 }
-                else
+                else if(cp.getTime() <= latestDeadline.getDeadline())
                 {
-                	System.out.println("blocked: "+latestDeadline+" t: "+latestDeadline.getTime() + " d: "+latestDeadline.getDeadline());
+                	System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
                 	blockedRequests.add(latestDeadline);
                 }
                 
@@ -84,10 +84,12 @@ public class EarliestDeadlineFirst extends RCSA {
             }
             else
             {
-            	System.out.println("number o flows: "+batch.getNumberOfFlows());
+            	if(batch.size() >= 2){
+            		System.out.println("number of flows: "+batch.getNumberOfFlows());
+            	}
             	for(Flow f: batch) 
             	{
-            		System.out.println("established: "+f+" t: "+f.getTime() + " d: "+f.getDeadline());
+            		System.out.println("established: "+f+" time: "+f.getTime() + " deadline: "+f.getDeadline());
             	}
             	
             	batch.setEstablished(true);
@@ -205,7 +207,7 @@ public class EarliestDeadlineFirst extends RCSA {
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 			
 			for (int k = 0; k < kPaths.length; k++) {
-				
+
 				for (int i = 0; i < spectrum.length; i++) {
 					for (int j = 0; j < spectrum[i].length; j++) {
 						spectrum[i][j]=true;
@@ -249,6 +251,7 @@ public class EarliestDeadlineFirst extends RCSA {
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 			
 			for (int k = 0; k < kPaths.length; k++) {
+				
 				for (int i = 0; i < spectrum.length; i++) {
 					for (int j = 0; j < spectrum[i].length; j++) {
 						spectrum[i][j]=true;
@@ -257,6 +260,7 @@ public class EarliestDeadlineFirst extends RCSA {
 				for (int i = 0; i < kPaths[k].length-1; i++) {
 					imageAnd(pt.getLink(kPaths[k][i], kPaths[k][i+1]).getSpectrum(), spectrum, spectrum);
 				}
+				
 //				printSpectrum(spectrum);
 				
 				InscribedRectangle ir = new InscribedRectangle();

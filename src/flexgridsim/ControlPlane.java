@@ -22,6 +22,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
     private String rsaAlgorithm;
+    private double time = 0.0f;
     private PhysicalTopology pt;
     private VirtualTopology vt;
     private Map<Flow, LightPath> mappedFlows; // Flows that have been accepted into the network
@@ -76,12 +77,18 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     public void newEvent(Event event) 
     {
+    	if(event.getTime() > time) 
+    	{
+    		time = event.getTime();
+    	}
+    	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
     		System.out.println("***************************************");
         	
         	if(event instanceof DeadlineEvent)
         	{	
+        		System.out.println("MAX TIME: "+time);
         		try 
         		{
         			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
@@ -134,7 +141,15 @@ public class ControlPlane implements ControlPlaneForRSA {
 	    }
     }
 
-    /**
+    public double getTime() {
+		return time;
+	}
+
+	public void setTime(double time) {
+		this.time = time;
+	}
+
+	/**
      * Retrieves a Flow object from the list of active flows.
      * 
      * @param id the unique identifier of the Flow object

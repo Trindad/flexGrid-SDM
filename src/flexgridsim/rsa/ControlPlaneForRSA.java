@@ -123,4 +123,6 @@ public interface ControlPlaneForRSA {
 
 	public String getRsaAlgorithm();
 
+	public double getTime();
+
 }

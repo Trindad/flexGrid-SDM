@@ -37,6 +37,7 @@ public class ConnectedComponent {
 				}
 			}
 		}
+//		System.out.println(res);
 		return res;
 	}
 

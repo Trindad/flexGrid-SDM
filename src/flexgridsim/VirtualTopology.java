@@ -202,14 +202,14 @@ public class VirtualTopology {
 	                return false;
 	            }
 	        }
-	        for (int i = 0; i < links.length; i++) {
-	        	for (Slot slot : slotList) {
-	        		if (pt.getLink(links[i]).getNoise(slot)==0) {
-	        			//TODO
-			        }
-				}
-		        
-	        }
+//	        for (int i = 0; i < links.length; i++) {
+//	        	for (Slot slot : slotList) {
+//	        		if (pt.getLink(links[i]).getNoise(slot)==0) {
+//	        			//TODO
+//			        }
+//				}
+//		        
+//	        }
         } catch (IllegalArgumentException e){
 			System.out.println("Illegal argument for areSlotsAvailable");
 			return false;
