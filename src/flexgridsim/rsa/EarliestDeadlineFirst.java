@@ -43,71 +43,112 @@ public class EarliestDeadlineFirst extends RCSA {
      * @param flow
      */
 	public void deadlineArrival(BatchConnectionRequest batch) 
-    {
-		ArrayList<Flow> postponedRequests = new ArrayList<Flow>();
-		ArrayList<Flow> blockedRequests = new ArrayList<Flow>();
-		
-        int []path = new int[0];
-        
-        while( batch.getNumberOfFlows() >= 1 )
-        {   
-        	Flow batchFlow;
-        	
-        	batchFlow = batch.convertBatchToSingleFlow();
-        	cp.newFlow(batchFlow);
-        	
-        	path = rsa.executeRCSA(batchFlow);//RSA using Image
-        	
-        	if (path.length == 0) 
-            {    
-        		if(batchFlow.getNumberOfFlowsGroomed() >= 2) 
-        		{
-        			cp.removeFlow(batchFlow.getID());
-        		}
-        		
-            	Flow latestDeadline = batch.latestFlow();
-            	
-            	if( latestDeadline.getDeadline() <= cp.getTime())
-                {
-                	System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
-                	blockedRequests.add(latestDeadline);
-                	cp.setTime(0.0f);
-                }
-                else
-                {
-                	System.out.println("postponed: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
-                	
-                	postponedRequests.add(latestDeadline);
-                }
-                
-                batch.removeFlow(latestDeadline);
-            }
-            else
-            {
-            	if(batch.size() >= 2){
-            		System.out.println("number of flows: "+batch.getNumberOfFlows());
-            	}
-            	for(Flow f: batch) 
-            	{
-            		System.out.println("established: "+f+" time: "+f.getTime() + " deadline: "+f.getDeadline());
-            	}
-            	
-            	batch.setEstablished(true);
-            	removeFlowsOfBatch(batch);
-            }
-        	
-        }
-        
-        postponeFlows(postponedRequests, batch);
-        	
-        for(Flow f: blockedRequests) 
-        {
-			if( cp.blockFlow(f.getID()) == false) 
-			{
-				System.out.println("error while blocking");
+    {   
+//    	if( (batch.size() == 1) && (!batch.get(0).isPostponeRequest()) && ( ( batch.get(0).getDeadline() - batch.get(0).getTime() ) >= 1.0f ) )
+//    	{        	
+////    		batchFlow = batch.get(0);
+////    		batch.removeFlow(batch.get(0));
+////    		batch.add(batchFlow);
+//    		System.out.println("postponed*: "+batch.get(0)+" time: "+batch.get(0).getTime() + " deadline: "+batch.get(0).getDeadline());
+//    		batch.get(0).setPostponeRequest(true);
+//    		cp.updateDeadlineEvent(batch);
+//    		
+//    		return;
+//    	}
+//    	else 
+//    	{
+    		ArrayList<Flow> postponedRequests = new ArrayList<Flow>();
+    		ArrayList<Flow> blockedRequests = new ArrayList<Flow>();
+    		
+    		Flow batchFlow;
+    		
+    		int []path = new int[0];
+    		
+    		while( batch.getNumberOfFlows() >= 1 ) 
+    		{  	 
+			    batchFlow = batch.convertBatchToSingleFlow();
+			    cp.newFlow(batchFlow);
+			
+				path = rsa.executeRCSA(batchFlow);//RSA using Image
+			
+				if (path.length == 0) 
+			    {    
+					if(batchFlow.getNumberOfFlowsGroomed() >= 2) 
+					{
+						cp.removeFlow(batchFlow.getID());
+					}
+					
+			    	Flow latestDeadline = batch.latestFlow();
+			    	
+			    	if( latestDeadline.getDeadline() <= cp.getTime())
+			        {
+			    		path = rsa.executeRCSA(latestDeadline);//RSA using Image
+			    		
+			    		if(path.length == 0)
+			    		{
+			    			System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
+				        	blockedRequests.add(latestDeadline);
+			    		}	
+			    		else 
+			    		{
+			    			System.out.println("established*: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
+			    		}
+			        }
+			        else
+			        {
+			        	System.out.println("postponed: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
+			        	
+			        	postponedRequests.add(latestDeadline);
+			        	latestDeadline.setPostponeRequest(true);
+			        }
+			    	
+//			    	if(latestDeadline.getTime() > cp.getTime()) cp.setTime(latestDeadline.getTime());
+			        
+			        batch.removeFlow(latestDeadline);
+			    }
+			    else
+			    {
+			    	if(batch.size() >= 2)
+			    	{
+			    		System.out.println("number of flows: "+batch.getNumberOfFlows());
+			    	}
+			    	for(Flow f: batch) 
+			    	{
+			    		System.out.println("established: "+f+" time: "+f.getTime() + " deadline: "+f.getDeadline());
+			    	}
+			    	
+			    	batch.setEstablished(true);
+			    	removeFlowsOfBatch(batch);
+			    }
+				
+				
 			}
-        }
-        
+    		
+//    		for(Flow f: blockedRequests)
+//	        {	
+//    			if(cp.getTime() == f.getDeadline())
+//    			{
+//	    			cp.setTime(0);
+//	    			
+//	    			for(Flow flow: postponedRequests)
+//	    			{
+//	    				if(flow.getTime() > cp.getTime()) cp.setTime(flow.getTime());
+//	    			}	
+//	    			
+//	    			break;
+//	        	}
+//	        }
+    		
+			postponeFlows(postponedRequests, batch);
+			
+			for(Flow f: blockedRequests) 
+			{
+				if( cp.blockFlow(f.getID()) == false) 
+				{
+					System.out.println("error while blocking");
+				}
+			}
+//    	}
     }
 
 
