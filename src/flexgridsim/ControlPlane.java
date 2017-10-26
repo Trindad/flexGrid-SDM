@@ -77,6 +77,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     public void newEvent(Event event) 
     {
+    	double lastTime = time;
     	if(event.getTime() > time) 
     	{
     		time = event.getTime();
@@ -84,7 +85,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-    		System.out.println("******************"+time+"*********************");
+    		System.out.println("******************"+time+"  "+lastTime+"*********************");
         	
         	if(event instanceof DeadlineEvent)
         	{	

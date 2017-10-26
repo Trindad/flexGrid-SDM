@@ -259,12 +259,7 @@ public class FlexGridLink {
 	 */
 	public Boolean areSlotsAvailable(ArrayList<Slot> slotList, int modulation) {
 		
-//		System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-//		for(Slot s: slotList)
-//			System.out.print(s+" ");
-//		System.out.println("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		for (int i = 0; i < slotList.size(); i++) {
-//			System.out.print(slotList.get(i).c);
 			if (slotList.get(i).c < 0 ) 
 				throw (new IllegalArgumentException());
 			else if  (slotList.get(i).s >= slots) 
@@ -276,20 +271,14 @@ public class FlexGridLink {
 				
 			else {
 				boolean[][] freeSlots = getSpectrum();
-				
-//				for(int j = 0; j < freeSlots.length; j++)
-//					for(int k =0; k < freeSlots[j].length; k++)
-//						System.out.print(freeSlots[j][k]+ " ");
-//				System.out.println();
+			
 				for (Slot slot : slotList) {
 					if (!freeSlots[slot.c][slot.s]) {
-//						System.out.print(" "+slot.c+" =*= "+slot.s+" ");
 						return false;
 					} 
 				}
 			}
 		}
-//		System.out.println("\n");
 		return true;
 	}
 

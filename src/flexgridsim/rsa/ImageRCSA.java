@@ -1,7 +1,6 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import org.w3c.dom.Element;
@@ -82,51 +81,61 @@ public class ImageRCSA implements RSA {
 	public boolean fitConnection(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow){
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-//		System.out.println("demand: "+demandInSlots);
-//		for (Integer key : listOfRegions.keySet()) {
-//			System.out.println("tam: "+listOfRegions.get(key).size()+" key: "+key);
-//		}
-		
-		
-//		ArrayList<Integer> keys = new ArrayList<Integer>();
-//		keys.addAll(listOfRegions.keySet());
-//		Collections.shuffle(keys);
-//		System.out.println(keys);
+		boolean established = false;
+
 		for (Integer key : listOfRegions.keySet()) {
-//			int i = 0;
-//			System.out.println("tami: "+listOfRegions.get(key).size()+" key: "+key+" d: "+demandInSlots);
-		    
+
+			//First-fit
 			if (listOfRegions.get(key).size() >= demandInSlots)
 			{
-//		    	while(i < listOfRegions.get(key).size())
-//		    	{
-//		    		int t = 0;
-//			    	System.out.println("t: "+t+" iterator: "+i+" d: "+demandInSlots);
-//		    		while( t < demandInSlots) 
-//		    		{
-			    	for(int i = 0; i < demandInSlots;i++) {
-		    			fittedSlotList.add(listOfRegions.get(key).get(i));
-		    			
-//		    			i++;
-//		    			if(i >=  listOfRegions.get(key).size()) break;
-//			    		t++;
-					}
-//		    		System.out.print(fittedSlotList);
-//			    	if (fittedSlotList.size() == demandInSlots)
-//			    	{
-	//		    		System.out.println(" alloc key:"+key);
-						if(establishConnection(links, fittedSlotList, 0, flow)) 
+				int newCore = listOfRegions.get(key).get(0).c;
+				
+				for(int i = 0; i < listOfRegions.get(key).size(); i++) 
+				{
+					while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
+					{
+						if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
 						{
+							fittedSlotList.add(listOfRegions.get(key).get(i));
+			    			i++;
+			    			if( listOfRegions.get(key).size() == i) break;
+						}
+						else break;
+			    			
+					}
+					
+					if(fittedSlotList.size() == demandInSlots)
+					{
+						if(establishConnection(links, fittedSlotList, 0, flow)) {
+							System.out.println("Fist-fit");
+//							System.out.print(fittedSlotList);
 							return true;
 						}
-//					}
-//			    	else
-//			    	{
-//			    		fittedSlotList.clear();
-//			    	}
-//			    	
-//		    	}	
+					}
+					
+					if(i < listOfRegions.get(key).size())
+					{
+						newCore = listOfRegions.get(key).get(i).c;
+						
+					}
+					
+					fittedSlotList.clear();
+				}
 		    }
+			
+			//construct a super-channel crossing different cores
+			if(!established && listOfRegions.get(key).size() >= demandInSlots)
+			{
+				fittedSlotList.clear();
+				for(int i = 0; i < demandInSlots; i++) {
+					fittedSlotList.add(listOfRegions.get(key).get(i));
+				}
+				
+				if(establishConnection(links, fittedSlotList, 0, flow)) {
+					return true;
+				}
+			}
+			
 		}
 		
 		return false;
@@ -145,7 +154,7 @@ public class ImageRCSA implements RSA {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
 //			System.out.println("*************SLOT**************");
-//			System.out.println(slotList);
+			System.out.println(slotList);
 //			System.out.println("*************FIN**************");
 			flow.setSlotList(slotList);
 			cp.acceptFlow(flow.getID(), lps);
