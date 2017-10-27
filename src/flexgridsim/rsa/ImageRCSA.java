@@ -104,7 +104,7 @@ public class ImageRCSA implements RSA {
 			{
 				if(establishConnection(links, fittedSlotList, 0, flow)) 
 				{
-					System.out.println("First-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+//					System.out.println("First-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
 //					System.out.print(fittedSlotList);
 					return true;
 				}
@@ -151,13 +151,13 @@ public class ImageRCSA implements RSA {
 				if(fittedSlotList.size() == demandInSlots)
 				{
 					if(establishConnection(links, fittedSlotList, 0, flow)) {
-						System.out.println("First-last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+//						System.out.println("First-last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
 	//					System.out.print(fittedSlotList);
 						return true;
 					}
 				}
 				
-				if(i < listOfRegions.get(key).size())
+				if(i < n)
 				{
 					newCore = listOfRegions.get(key).get(i).c;
 					
@@ -168,13 +168,13 @@ public class ImageRCSA implements RSA {
 		}
 		else if( (demandInSlots >= numberOfSlots+1) && listOfRegions.get(key).get(n-1).c >= 3)
 		{
-			System.out.println("AQUI LAST: "+demandInSlots+" "+n);
+//			System.out.println("AQUI LAST: "+demandInSlots+" "+n);
 //			System.out.print(listOfRegions.get(key));
 			int newCore = listOfRegions.get(key).get(n-1).c;
 			
 			for(int i = n-1; i >= 0 && newCore >= numberOfCores; i--) 
 			{
-				while( (i >= newCore-1 && newCore >= numberOfCores) && (Math.abs(newCore - listOfRegions.get(key).get(i).c) == 1) && 
+				while( (i >= newCore-1) && (Math.abs(newCore - listOfRegions.get(key).get(i).c) == 1) && 
 						(fittedSlotList.size() < demandInSlots)) 
 				{
 					if( ( ( i >= ( n-1 ) || Math.abs( listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s ) == 1 ) ) )
@@ -190,7 +190,7 @@ public class ImageRCSA implements RSA {
 				}
 				
 //				System.out.print(fittedSlotList);
-				System.out.println("\ntamanho fitted slot: "+fittedSlotList.size()+" demand: "+demandInSlots+"\n");
+//				System.out.println("\ntamanho fitted slot: "+fittedSlotList.size()+" demand: "+demandInSlots+"\n");
 			  
 				boolean established  = false;
 				
@@ -199,15 +199,14 @@ public class ImageRCSA implements RSA {
 					established = establishConnection(links, fittedSlotList, 0, flow);
 					if(established) 
 					{
-			          System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-			          System.out.print(fittedSlotList);
+//			          System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+//			          System.out.print(fittedSlotList);
 			          return true;
 					}
 				}
 			  
 				if(i >= 0) 
 				{ 
-			      int lastCore = newCore;
 			
 			      newCore = listOfRegions.get(key).get(i).c;
 			      
@@ -221,7 +220,7 @@ public class ImageRCSA implements RSA {
 				}
 			}
 			
-			System.out.println("\n*****************************************");
+//			System.out.println("\n*****************************************");
 		}
 		
 		return false;
@@ -245,6 +244,7 @@ public class ImageRCSA implements RSA {
 			if (listOfRegions.get(key).size() >= demandInSlots)
 			{
 				established = firstLastFit(listOfRegions,demandInSlots, links, flow, key);
+//				established = firstFit(listOfRegions,demandInSlots, links, flow, key);
 				
 				//construct a super-channel crossing different cores
 				if(!established)

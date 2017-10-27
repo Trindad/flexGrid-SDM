@@ -125,7 +125,7 @@ public class EarliestDeadlineFirst extends RCSA {
         }
         else
         {
-        	if( (latestDeadline.getTime()/latestDeadline.getDeadline()) >= 0.6f )
+        	if( (latestDeadline.getTime()/latestDeadline.getDeadline()) >= 0.6f && latestDeadline.getRate() < 1244)
         	{
         		System.out.println("postponed: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
 	        	
