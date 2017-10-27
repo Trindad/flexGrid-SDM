@@ -70,6 +70,162 @@ public class ImageRCSA implements RSA {
 		return;
 	}
 
+	@SuppressWarnings("unused")
+	private boolean firstFit(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, Integer key) {
+		
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		
+		int newCore = listOfRegions.get(key).get(0).c;
+		
+		for(int i = 0; i < listOfRegions.get(key).size(); i++) 
+		{
+			while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
+			{
+				if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
+				{
+					fittedSlotList.add(listOfRegions.get(key).get(i));
+	    			i++;
+	    			
+	    			if( listOfRegions.get(key).size() == i)
+	    			{
+	    				break;
+	    			}
+	    				
+				}
+				else
+				{
+					break;
+				}
+					
+	    			
+			}
+			
+			if(fittedSlotList.size() == demandInSlots)
+			{
+				if(establishConnection(links, fittedSlotList, 0, flow)) 
+				{
+					System.out.println("First-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+//					System.out.print(fittedSlotList);
+					return true;
+				}
+			}
+			
+			if(i < listOfRegions.get(key).size())
+			{
+				newCore = listOfRegions.get(key).get(i).c;
+				
+			}
+			
+			fittedSlotList.clear();
+		}
+		
+		return false;
+	}
+	
+	@SuppressWarnings("unused")
+	private boolean firstLastFit(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, Integer key) {
+		
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		int n = listOfRegions.get(key).size();
+		int numberOfSlots = 200;
+		int numberOfCores = 3;
+		
+		if(demandInSlots <= numberOfSlots && listOfRegions.get(key).get(0).c <= numberOfCores)
+		{
+			int newCore = listOfRegions.get(key).get(0).c;
+			
+			for(int i = 0; i < n; i++) 
+			{
+				while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
+				{
+					if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
+					{
+						fittedSlotList.add(listOfRegions.get(key).get(i));
+		    			i++;
+		    			if( listOfRegions.get(key).size() == i) break;
+					}
+					else break;
+		    			
+				}
+				
+				if(fittedSlotList.size() == demandInSlots)
+				{
+					if(establishConnection(links, fittedSlotList, 0, flow)) {
+						System.out.println("First-last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+	//					System.out.print(fittedSlotList);
+						return true;
+					}
+				}
+				
+				if(i < listOfRegions.get(key).size())
+				{
+					newCore = listOfRegions.get(key).get(i).c;
+					
+				}
+				
+				fittedSlotList.clear();
+			}
+		}
+		else if( (demandInSlots >= numberOfSlots+1) && listOfRegions.get(key).get(n-1).c >= 3)
+		{
+			System.out.println("AQUI LAST: "+demandInSlots+" "+n);
+//			System.out.print(listOfRegions.get(key));
+			int newCore = listOfRegions.get(key).get(n-1).c;
+			
+			for(int i = n-1; i >= 0 && newCore >= numberOfCores; i--) 
+			{
+				while( (i >= newCore-1 && newCore >= numberOfCores) && (Math.abs(newCore - listOfRegions.get(key).get(i).c) == 1) && 
+						(fittedSlotList.size() < demandInSlots)) 
+				{
+					if( ( ( i >= ( n-1 ) || Math.abs( listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s ) == 1 ) ) )
+					{
+						fittedSlotList.add(listOfRegions.get(key).get(i));
+			          
+						i--;
+					}
+					else 
+					{
+			    	  	break;
+					}  
+				}
+				
+//				System.out.print(fittedSlotList);
+				System.out.println("\ntamanho fitted slot: "+fittedSlotList.size()+" demand: "+demandInSlots+"\n");
+			  
+				boolean established  = false;
+				
+				if(fittedSlotList.size() == demandInSlots)
+				{
+					established = establishConnection(links, fittedSlotList, 0, flow);
+					if(established) 
+					{
+			          System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+			          System.out.print(fittedSlotList);
+			          return true;
+					}
+				}
+			  
+				if(i >= 0) 
+				{ 
+			      int lastCore = newCore;
+			
+			      newCore = listOfRegions.get(key).get(i).c;
+			      
+			      if(!established && fittedSlotList.size() == demandInSlots) 
+			      {
+			    	  fittedSlotList.clear();
+			    	  
+			    	  if((n-demandInSlots)<= 0) return false;
+			      }
+			    	  
+				}
+			}
+			
+			System.out.println("\n*****************************************");
+		}
+		
+		return false;
+	}
 	
 	/**
 	 * @param listOfRegions
@@ -85,60 +241,33 @@ public class ImageRCSA implements RSA {
 
 		for (Integer key : listOfRegions.keySet()) {
 
-			//First-fit
+			//First-fit or First-Last-fit
 			if (listOfRegions.get(key).size() >= demandInSlots)
 			{
-				int newCore = listOfRegions.get(key).get(0).c;
+				established = firstLastFit(listOfRegions,demandInSlots, links, flow, key);
 				
-				for(int i = 0; i < listOfRegions.get(key).size(); i++) 
+				//construct a super-channel crossing different cores
+				if(!established)
 				{
-					while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
-					{
-						if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
-						{
-							fittedSlotList.add(listOfRegions.get(key).get(i));
-			    			i++;
-			    			if( listOfRegions.get(key).size() == i) break;
-						}
-						else break;
-			    			
+					for(int i = 0; i < demandInSlots; i++) {
+						fittedSlotList.add(listOfRegions.get(key).get(i));
 					}
 					
-					if(fittedSlotList.size() == demandInSlots)
+					if(establishConnection(links, fittedSlotList, 0, flow)) 
 					{
-						if(establishConnection(links, fittedSlotList, 0, flow)) {
-							System.out.println("Fist-fit");
-//							System.out.print(fittedSlotList);
-							return true;
-						}
-					}
-					
-					if(i < listOfRegions.get(key).size())
-					{
-						newCore = listOfRegions.get(key).get(i).c;
-						
+						return true;
 					}
 					
 					fittedSlotList.clear();
 				}
-		    }
-			
-			//construct a super-channel crossing different cores
-			if(!established && listOfRegions.get(key).size() >= demandInSlots)
-			{
-				fittedSlotList.clear();
-				for(int i = 0; i < demandInSlots; i++) {
-					fittedSlotList.add(listOfRegions.get(key).get(i));
-				}
-				
-				if(establishConnection(links, fittedSlotList, 0, flow)) {
-					return true;
+				else
+				{
+					return established;
 				}
 			}
-			
 		}
 		
-		return false;
+		return established;
 	}
 	
 	/**
@@ -154,7 +283,7 @@ public class ImageRCSA implements RSA {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
 //			System.out.println("*************SLOT**************");
-			System.out.println(slotList);
+//			System.out.println(slotList);
 //			System.out.println("*************FIN**************");
 			flow.setSlotList(slotList);
 			cp.acceptFlow(flow.getID(), lps);
