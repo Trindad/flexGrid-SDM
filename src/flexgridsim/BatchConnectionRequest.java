@@ -198,6 +198,19 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		return ( this.get(this.size() - 1) );
 	}
 
+	public Flow largestRate() {
+		
+		this.sort(Comparator.comparing(Flow::getRate));
+
+		return ( this.get(this.size() - 1) );
+	}
+	
+	public Flow smallestRate() {
+		
+		this.sort(Comparator.comparing(Flow::getRate));
+		return ( this.get(0));
+	}
+	
 	public int getNumberOfFlows() {
 		
 		return this.size();
