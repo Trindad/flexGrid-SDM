@@ -5,6 +5,8 @@
 
 package flexgridsim.rsa;
 
+import java.util.ArrayList;
+
 import org.w3c.dom.Element;
 
 import flexgridsim.*;

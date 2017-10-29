@@ -66,8 +66,8 @@ public class EarliestDeadlineFirst extends RCSA {
 				
 				
 //		    	Flow latestDeadline = batch.largestRate();//Inverse
-//		    	Flow latestDeadline = batch.latestFlow();
-		    	Flow latestDeadline = batch.smallestRate();
+		    	Flow latestDeadline = batch.latestFlow();
+//		    	Flow latestDeadline = batch.smallestRate();
 		    	
 		        canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);		
 
@@ -176,23 +176,26 @@ public class EarliestDeadlineFirst extends RCSA {
         else
         {
         	/**
+        	 * First-last-fit
         	 *  batch.largestRate() BBR: 18.502337% blocked = 4.87%
         	 *  batch.latestFlow BBR: 26.861143% blocked = 10.12%
         	 *  batch.smallestRate BBR: 31.757801% blocked = 13.570001%
         	 */
-//        	justPostpone(request, postponedRequests, blockedRequests);
+        	justPostpone(request, postponedRequests, blockedRequests);
         	/**
+        	 * First-last-fit
         	 * batch.largestRate()BBR: 15.319607% blocked = 3.12%
         	 * batch.latestFlow BBR: 15.14443% blocked = 3.08%
         	 * batch.smallestRate BBR: 15.126721% blocked = 2.98%
         	 */
 //        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
         	/**
+        	 * First-last-fit
         	 * batch.largestRate() BBR: 14.601167% blocked= 2.72% 
         	 * batch.latestFlow BBR: 17.953188% blocked = 4.5499997%
         	 * batch.smallestRate BBR: 17.738594% blocked = 4.44% 
         	 */
-        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
+//        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
         }
 	}
 
@@ -287,6 +290,7 @@ public class EarliestDeadlineFirst extends RCSA {
 		public int[] executeRCSA(Flow flow) {
 			
 			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
+			System.out.println("demand: "+demandInSlots);
 			KShortestPaths kShortestPaths = new KShortestPaths();
 			int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];

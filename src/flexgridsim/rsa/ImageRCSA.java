@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.PhysicalTopology;
+import flexgridsim.ResourceAssignment;
 import flexgridsim.Slot;
 import flexgridsim.TrafficGenerator;
 import flexgridsim.VirtualTopology;
@@ -32,6 +33,16 @@ public class ImageRCSA implements RSA {
 		this.vt = vt;
 		this.cp = cp;
 		this.graph = pt.getWeightedGraph();
+	}
+	
+	public int getNumberOfCores() {
+		
+		return pt.getCores();
+	}
+	
+	public int getNumberOfSlots() {
+		
+		return pt.getNumSlots();
 	}
 
 	public void flowArrival(Flow flow) {
@@ -70,162 +81,7 @@ public class ImageRCSA implements RSA {
 		return;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean firstFit(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, Integer key) {
-		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		
-		int newCore = listOfRegions.get(key).get(0).c;
-		
-		for(int i = 0; i < listOfRegions.get(key).size(); i++) 
-		{
-			while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
-			{
-				if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
-				{
-					fittedSlotList.add(listOfRegions.get(key).get(i));
-	    			i++;
-	    			
-	    			if( listOfRegions.get(key).size() == i)
-	    			{
-	    				break;
-	    			}
-	    				
-				}
-				else
-				{
-					break;
-				}
-					
-	    			
-			}
-			
-			if(fittedSlotList.size() == demandInSlots)
-			{
-				if(establishConnection(links, fittedSlotList, 0, flow)) 
-				{
-//					System.out.println("First-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-//					System.out.print(fittedSlotList);
-					return true;
-				}
-			}
-			
-			if(i < listOfRegions.get(key).size())
-			{
-				newCore = listOfRegions.get(key).get(i).c;
-				
-			}
-			
-			fittedSlotList.clear();
-		}
-		
-		return false;
-	}
-	
-	@SuppressWarnings("unused")
-	private boolean firstLastFit(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow, Integer key) {
-		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		int n = listOfRegions.get(key).size();
-		int numberOfSlots = 200;
-		int numberOfCores = 3;
-		
-		if(demandInSlots <= numberOfSlots && listOfRegions.get(key).get(0).c <= numberOfCores)
-		{
-			int newCore = listOfRegions.get(key).get(0).c;
-			
-			for(int i = 0; i < n; i++) 
-			{
-				while( (newCore == listOfRegions.get(key).get(i).c) && (fittedSlotList.size() < demandInSlots)) 
-				{
-					if( (i < 1 || (listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s) <= 1) ) 
-					{
-						fittedSlotList.add(listOfRegions.get(key).get(i));
-		    			i++;
-		    			if( listOfRegions.get(key).size() == i) break;
-					}
-					else break;
-		    			
-				}
-				
-				if(fittedSlotList.size() == demandInSlots)
-				{
-					if(establishConnection(links, fittedSlotList, 0, flow)) {
-//						System.out.println("First-last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-	//					System.out.print(fittedSlotList);
-						return true;
-					}
-				}
-				
-				if(i < n)
-				{
-					newCore = listOfRegions.get(key).get(i).c;
-					
-				}
-				
-				fittedSlotList.clear();
-			}
-		}
-		else if( (demandInSlots >= numberOfSlots+1) && listOfRegions.get(key).get(n-1).c >= 3)
-		{
-//			System.out.println("AQUI LAST: "+demandInSlots+" "+n);
-//			System.out.print(listOfRegions.get(key));
-			int newCore = listOfRegions.get(key).get(n-1).c;
-			
-			for(int i = n-1; i >= 0 && newCore >= numberOfCores; i--) 
-			{
-				while( (i >= newCore-1) && (Math.abs(newCore - listOfRegions.get(key).get(i).c) == 1) && 
-						(fittedSlotList.size() < demandInSlots)) 
-				{
-					if( ( ( i >= ( n-1 ) || Math.abs( listOfRegions.get(key).get(i).s - listOfRegions.get(key).get(i-1).s ) == 1 ) ) )
-					{
-						fittedSlotList.add(listOfRegions.get(key).get(i));
-			          
-						i--;
-					}
-					else 
-					{
-			    	  	break;
-					}  
-				}
-				
-//				System.out.print(fittedSlotList);
-//				System.out.println("\ntamanho fitted slot: "+fittedSlotList.size()+" demand: "+demandInSlots+"\n");
-			  
-				boolean established  = false;
-				
-				if(fittedSlotList.size() == demandInSlots)
-				{
-					established = establishConnection(links, fittedSlotList, 0, flow);
-					if(established) 
-					{
-//			          System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-//			          System.out.print(fittedSlotList);
-			          return true;
-					}
-				}
-			  
-				if(i >= 0) 
-				{ 
-			
-			      newCore = listOfRegions.get(key).get(i).c;
-			      
-			      if(!established && fittedSlotList.size() == demandInSlots) 
-			      {
-			    	  fittedSlotList.clear();
-			    	  
-			    	  if((n-demandInSlots)<= 0) return false;
-			      }
-			    	  
-				}
-			}
-			
-//			System.out.println("\n*****************************************");
-		}
-		
-		return false;
-	}
-	
+
 	/**
 	 * @param listOfRegions
 	 * @param demandInSlots
@@ -237,17 +93,16 @@ public class ImageRCSA implements RSA {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		boolean established = false;
+		
 
-		for (Integer key : listOfRegions.keySet()) {
-
-			//First-fit or First-Last-fit
-			if (listOfRegions.get(key).size() >= demandInSlots)
+		ResourceAssignment assigmnet= new ResourceAssignment(this);
+		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
+		
+		if(!established)
+		{
+			for (Integer key : listOfRegions.keySet()) 
 			{
-				established = firstLastFit(listOfRegions,demandInSlots, links, flow, key);
-//				established = firstFit(listOfRegions,demandInSlots, links, flow, key);
-				
-				//construct a super-channel crossing different cores
-				if(!established)
+				if (listOfRegions.get(key).size() >= demandInSlots)
 				{
 					for(int i = 0; i < demandInSlots; i++) {
 						fittedSlotList.add(listOfRegions.get(key).get(i));
@@ -257,12 +112,6 @@ public class ImageRCSA implements RSA {
 					{
 						return true;
 					}
-					
-					fittedSlotList.clear();
-				}
-				else
-				{
-					return established;
 				}
 			}
 		}

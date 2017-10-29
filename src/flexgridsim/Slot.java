@@ -5,6 +5,26 @@ package flexgridsim;
  *
  */
 public class Slot {
+	public int getC() {
+		return c;
+	}
+
+
+	public void setC(int c) {
+		this.c = c;
+	}
+
+
+	public int getS() {
+		return s;
+	}
+
+
+	public void setS(int s) {
+		this.s = s;
+	}
+
+
 	/**
 	 * 
 	 */
