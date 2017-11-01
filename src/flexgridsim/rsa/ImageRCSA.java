@@ -26,6 +26,7 @@ public class ImageRCSA implements RSA {
 	protected VirtualTopology vt;
 	protected ControlPlaneForRSA cp;
 	protected WeightedGraph graph;
+	protected int availableSlots;
 	
 	public void simulationInterface(Element xml, PhysicalTopology pt,
 			VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic) {
@@ -77,6 +78,7 @@ public class ImageRCSA implements RSA {
 				return;
 			
 		}
+		System.out.println("Block Flow: "+flow +" time: "+flow.getTime() + " deadline: "+flow.getDeadline());
 		cp.blockFlow(flow.getID());
 		return;
 	}
@@ -96,11 +98,15 @@ public class ImageRCSA implements RSA {
 		
 
 		ResourceAssignment assigmnet= new ResourceAssignment(this);
-//		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
-		established = assigmnet.lastFit(listOfRegions,demandInSlots, links, flow);
+		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
+//		established = assigmnet.lastFit(listOfRegions,demandInSlots, links, flow);
+//		established = assigmnet.firstLastFit(listOfRegions,demandInSlots, links, flow);//divided per core
+//		established = assigmnet.firstLastFitSlots(listOfRegions,demandInSlots, links, flow);//divided per slots
+		this.availableSlots = assigmnet.getNumberOfAvailableSlots();
 		
 		if(!established)
 		{
+			
 			for (Integer key : listOfRegions.keySet()) 
 			{
 				if (listOfRegions.get(key).size() >= demandInSlots)
@@ -156,4 +162,8 @@ public class ImageRCSA implements RSA {
 		
 	}
 	
+	public int getNumberOfAvailableSlots() {
+		
+		return this.availableSlots;
+	}
 }

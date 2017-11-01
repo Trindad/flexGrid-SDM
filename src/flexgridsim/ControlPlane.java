@@ -85,7 +85,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-    		System.out.println("******************"+time+"  "+lastTime+"*********************");
+    		System.out.println("******************"+time+"  "+lastTime+" "+event.getTime()+"*********************");
         	
         	if(event instanceof DeadlineEvent)
         	{	
@@ -415,7 +415,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     public void updateDeadlineEvent(BatchConnectionRequest batch) {
     	
-    	eventScheduler.updateDeadlineEvent( batch.getOldestDeadline(), batch.getEarliestDeadline() );
+    	eventScheduler.updateDeadlineEvent( batch.getOldestDeadline(), batch.getNewDeadline(time) );
     }
     
     /**

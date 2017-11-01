@@ -25,6 +25,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
     
     private DeadlineEvent earliestDeadline;
     private DeadlineEvent oldestDeadline;
+    private double arrivalTime;
     
     static int  indexFlow = 0;
    
@@ -142,6 +143,16 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		return newFlow;//return a new flow composed by a set of requests
 	}
 	
+	public DeadlineEvent getNewDeadline(double time) {
+		
+		arrivalTime = earliestDeadline.time;
+		
+		earliestDeadline.time = time + Math.log(arrivalTime/2.0f) ;
+		
+		arrivalTime = earliestDeadline.time;
+		
+		return earliestDeadline;
+	}
 	
 	@Override
 	public boolean add(Flow flow) {
@@ -205,6 +216,19 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		return ( this.get(this.size() - 1) );
 	}
 	
+	public Flow largestDuration() {
+		this.sort(Comparator.comparing(Flow::getDuration));
+
+		return ( this.get(this.size() - 1) );
+	}
+	
+	public Flow smallestDuration() {
+		
+		this.sort(Comparator.comparing(Flow::getDuration));
+
+		return ( this.get(0) );
+	}
+	
 	public Flow smallestRate() {
 		
 		this.sort(Comparator.comparing(Flow::getRate));
@@ -214,5 +238,12 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 	public int getNumberOfFlows() {
 		
 		return this.size();
+	}
+
+	public int minRate() {
+		
+		this.sort(Comparator.comparing(Flow::getRate));
+
+		return ( this.get(0).getRate() );
 	}
 }

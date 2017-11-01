@@ -24,6 +24,7 @@ public class EarliestDeadlineFirst extends RCSA {
 	protected VirtualTopology vt;
 	protected ControlPlaneForRSA cp;
 	protected WeightedGraph graph;
+	protected int numberOfAvailableSlots = 0;
 	
 	private RSAProxy rsa;
 	 
@@ -38,6 +39,7 @@ public class EarliestDeadlineFirst extends RCSA {
 		rsa.simulationInterface(xml, pt, vt, cp, traffic);
 	}
 	 
+	
 	/**
      * 
      * @param flow
@@ -48,30 +50,46 @@ public class EarliestDeadlineFirst extends RCSA {
 		ArrayList<Flow> blockedRequests = new ArrayList<Flow>();
 		Flow batchFlow;
 		
-		int []path = new int[0];
-		
+//		if(batch.size() == 1 && (batch.get(0).getDeadline() >= (30.0f*batch.get(0).getTime())) && !batch.get(0).isPostponeRequest())
+//		{
+//			System.out.println("postponed*: "+batch.get(0)+" time: "+batch.get(0).getTime() + " deadline: "+batch.get(0).getDeadline());
+//			postponedRequests.add(batch.get(0));
+//			batch.get(0).setPostponeRequest(true);
+//		}
+//		else
+//		{
+			
 		while( batch.getNumberOfFlows() >= 1 ) 
 		{  	 
 		    batchFlow = batch.convertBatchToSingleFlow();
 		    cp.newFlow(batchFlow);
 		
-			path = rsa.executeRCSA(batchFlow);//RSA using Image
-		
-			if (path.length == 0) 
+			if (runRCSA(batchFlow) == 0) 
 		    {    
 				if(batchFlow.getNumberOfFlowsGroomed() >= 2) 
 				{
 					cp.removeFlow(batchFlow.getID());
 				}
 				
-				
-//		    	Flow latestDeadline = batch.largestRate();//Inverse
-		    	Flow latestDeadline = batch.latestFlow();
-//		    	Flow latestDeadline = batch.smallestRate();
-		    	
-		        canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);		
-
-		        batch.removeFlow(latestDeadline);
+				if(batch.size() == 1 && ( batch.get(0).getDeadline() >= ( 10.0f*batch.get(0).getTime() ) ) && !batch.get(0).isPostponeRequest())
+				{
+					System.out.println("postponed*: "+batch.get(0)+" time: "+batch.get(0).getTime() + " deadline: "+batch.get(0).getDeadline());
+					postponedRequests.add(batch.get(0));
+					batch.get(0).setPostponeRequest(true);
+					
+					break;
+				}
+				else
+				{
+//			    	Flow latestDeadline = batch.largestRate();//Inverse
+//			    	Flow latestDeadline = batch.latestFlow();
+			    	Flow latestDeadline = batch.smallestRate();
+//					Flow latestDeadline = batch.largestDuration();
+//					Flow latestDeadline = batch.smallestDuration();
+			    	
+			    	canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);
+			    	batch.removeFlow(latestDeadline);
+				}	 
 		    }
 		    else
 		    {
@@ -87,10 +105,10 @@ public class EarliestDeadlineFirst extends RCSA {
 		    	batch.setEstablished(true);
 		    	removeFlowsOfBatch(batch);
 		    }
-			
+//		}
 			
 		}
-		
+	
 		postponeFlows(postponedRequests, batch);
 		
 		for(Flow f: blockedRequests) 
@@ -102,61 +120,68 @@ public class EarliestDeadlineFirst extends RCSA {
 		}
     }
 
+	public int runRCSA(Flow flow) {
+
+		int []path = new int[0];
+		path = rsa.executeRCSA(flow);
+		this.numberOfAvailableSlots = rsa.getNumberOfAvailableSlots();
+		return path.length;//RSA using Image
+	}
+	
 	private void canBeBlock(BatchConnectionRequest batch, ArrayList<Flow> blockedRequests, Flow latestDeadline) 
 	{
-		int []path = new int[0];
-		
-		path = rsa.executeRCSA(latestDeadline);//RSA using Image
-		
-		if(path.length == 0)
-		{
-			System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
-        	blockedRequests.add(latestDeadline);
-		}	
-		else 
-		{
-			System.out.println("established*: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
-		}
+		System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
+        blockedRequests.add(latestDeadline);
 	}
 	
 	@SuppressWarnings("unused")
 	private void postponeConditionLargestRate(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
-		
-		if( (request.getTime()/request.getDeadline()) >= 0.6f && request.getRate() <= 1244)
-		{
-			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
-    	
-			postponedRequests.add(request);
-			request.setPostponeRequest(true);
-		}
-		else
-		{
+	
+//		
+//		if(runRCSA(request) == 0)
+//		{
+			//select the best option to postponed
+			if( (request.getRate() >= 622) && (request.getTime()/request.getDeadline()) <= 0.9f)
+			{
+				System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
+	    	
+				postponedRequests.add(request);
+				request.setPostponeRequest(true);
+				
+				return;
+			}	
+			
 			canBeBlock(batch, blockedRequests, request) ;
-		}	
+//		}
 	}
 	
 	@SuppressWarnings("unused")
 	private void postponeConditionSmallestRate(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
 		
-		if(request.getRate() <= 622)//smallest bit-rate
-		{
-			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
-        	
-			postponedRequests.add(request);
-			request.setPostponeRequest(true);
-		}
-		else
-		{
-			canBeBlock(batch, blockedRequests, request) ;
-		}	
+//		if(runRCSA(request) == 0)
+//		{
+			if(request.getRate() <= 622 && (request.getTime()/request.getDeadline()) <= 0.9f)//smallest bit-rate
+			{
+				System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
+	        	
+				postponedRequests.add(request);
+				request.setPostponeRequest(true);
+				return;
+			}
+		
+			canBeBlock(batch, blockedRequests, request);
+//		}
 	}
 	
 	@SuppressWarnings("unused")
-	private void justPostpone(Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
+	private void justPostpone(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
 		
-		System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
-		postponedRequests.add(request);
-    	request.setPostponeRequest(true);
+//		if(runRCSA(request) == 0)
+//		{
+			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
+			postponedRequests.add(request);
+	    	request.setPostponeRequest(true);
+//		}
 	}
 	
 	/**
@@ -169,8 +194,9 @@ public class EarliestDeadlineFirst extends RCSA {
 	private void canBePostpone(BatchConnectionRequest batch, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests, Flow request)
 	{
     	
-    	if( request.getDeadline() <= cp.getTime())
+    	if( (request.getDeadline() <= cp.getTime() || request.getDeadline() <= request.getTime()) || (this.numberOfAvailableSlots <= Math.ceil(request.getRate()*0.3f) ))
         {
+    		
     		canBeBlock(batch, blockedRequests, request) ;
         }
         else
@@ -181,19 +207,20 @@ public class EarliestDeadlineFirst extends RCSA {
         	 *  batch.latestFlow BBR: 26.861143% blocked = 10.12%
         	 *  batch.smallestRate BBR: 31.757801% blocked = 13.570001%
         	 */
-        	justPostpone(request, postponedRequests, blockedRequests);
+//        	justPostpone(batch, request, postponedRequests, blockedRequests);
         	/**
         	 * First-last-fit
         	 * batch.largestRate()BBR: 15.319607% blocked = 3.12%
         	 * batch.latestFlow BBR: 15.14443% blocked = 3.08%
         	 * batch.smallestRate BBR: 15.126721% blocked = 2.98%
         	 */
-//        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
+        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
         	/**
         	 * First-last-fit
-        	 * batch.largestRate() BBR: 14.601167% blocked= 2.72% 
-        	 * batch.latestFlow BBR: 17.953188% blocked = 4.5499997%
-        	 * batch.smallestRate BBR: 17.738594% blocked = 4.44% 
+        	 * batch.largestRate() BBR: 16.134462% blocked= 3.87% 
+        	 * batch.latestFlow BBR: 17.455202% blocked = 4.11%
+        	 * batch.smallestRate BBR: 16.455309% blocked = 3.8% 
+        	 * melhor com 0.2 ou 0.3 melhores resultados
         	 */
 //        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
         }
@@ -277,6 +304,15 @@ public class EarliestDeadlineFirst extends RCSA {
 			
 			return null;
 		}
+		
+		public int getNumberOfAvailableSlots() {
+			
+			if (algorithm.equals("flexgridsim.rsa.MyImageRCSA")) {
+	        	return ((MyImageRCSA) rsa).getNumberOfAvailableSlots();
+	        } 
+			
+			return 0;
+		}
 	}
 	
 	@SuppressWarnings("unused")
@@ -290,7 +326,7 @@ public class EarliestDeadlineFirst extends RCSA {
 		public int[] executeRCSA(Flow flow) {
 			
 			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
-			System.out.println("demand: "+demandInSlots);
+
 			KShortestPaths kShortestPaths = new KShortestPaths();
 			int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 5);
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
@@ -326,6 +362,12 @@ public class EarliestDeadlineFirst extends RCSA {
 			
 			return new int[0];
 		}
+		
+		public int getNumberOfAvailableSlots() {
+			
+			return this.availableSlots;
+		}
+		
 	}
 	
 	
