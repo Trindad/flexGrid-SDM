@@ -184,6 +184,19 @@ public class EarliestDeadlineFirst extends RCSA {
 //		}
 	}
 	
+	
+	public boolean differenceBeteweenDeadlineAndArrivalTime(double time, double deadline) {
+		
+		double diference = time/deadline;
+				
+		if(diference <= 0.7f)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * 
 	 * @param batch
@@ -194,7 +207,8 @@ public class EarliestDeadlineFirst extends RCSA {
 	private void canBePostpone(BatchConnectionRequest batch, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests, Flow request)
 	{
     	
-    	if( (request.getDeadline() <= cp.getTime() || request.getDeadline() <= request.getTime()) || (this.numberOfAvailableSlots <= Math.ceil(request.getRate()*0.3f) ))
+    	if( (request.getDeadline() <= cp.getTime() || request.getDeadline() <= request.getTime()) ||
+    			(this.numberOfAvailableSlots <= Math.ceil(request.getRate()*0.3f) ) || differenceBeteweenDeadlineAndArrivalTime(cp.getTime(), request.getDeadline()))
         {
     		
     		canBeBlock(batch, blockedRequests, request) ;
@@ -214,7 +228,7 @@ public class EarliestDeadlineFirst extends RCSA {
         	 * batch.latestFlow BBR: 15.14443% blocked = 3.08%
         	 * batch.smallestRate BBR: 15.126721% blocked = 2.98%
         	 */
-        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
+//        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
         	/**
         	 * First-last-fit
         	 * batch.largestRate() BBR: 16.134462% blocked= 3.87% 
@@ -222,7 +236,7 @@ public class EarliestDeadlineFirst extends RCSA {
         	 * batch.smallestRate BBR: 16.455309% blocked = 3.8% 
         	 * melhor com 0.2 ou 0.3 melhores resultados
         	 */
-//        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
+        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
         }
 	}
 
