@@ -98,8 +98,8 @@ public class ImageRCSA implements RSA {
 		
 
 		ResourceAssignment assigmnet= new ResourceAssignment(this);
-		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
-//		established = assigmnet.lastFit(listOfRegions,demandInSlots, links, flow);
+//		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
+		established = assigmnet.lastFit(listOfRegions,demandInSlots, links, flow);
 //		established = assigmnet.firstLastFit(listOfRegions,demandInSlots, links, flow);//divided per core
 //		established = assigmnet.firstLastFitSlots(listOfRegions,demandInSlots, links, flow);//divided per slots
 		this.availableSlots = assigmnet.getNumberOfAvailableSlots();
