@@ -232,6 +232,10 @@ public class MyStatistics {
     public void acceptFlow(Flow flow, LightPath lightpath) {
         if (this.numberArrivals > this.minNumberArrivals){
 //        	System.out.println("will update: "+this.accepted);
+        	if (flow == null) {
+        		System.out.println("NAO CREIO");
+        	}
+        	
         	if (flow.isBatchRequest) {
         		this.accepted += Math.max(flow.getNumberOfFlowsGroomed(), 1);
         	} else {
@@ -239,6 +243,11 @@ public class MyStatistics {
         		
         	}
 //        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
+        	
+        	if (flow.getLinks() == null) {
+        		System.out.println("IMPOSSIBLE");
+        	}
+        	
         	int links =  flow.getLinks().length+1;
         	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
             plotter.addDotToGraph("hops", load, links);

@@ -147,9 +147,22 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		
 		arrivalTime = earliestDeadline.time;
 		
-		earliestDeadline.time = time + Math.log(arrivalTime/2.0f) ;
+		double diff = Math.abs(time-arrivalTime);
+
+		if(diff > 0.0001)
+		{
+			earliestDeadline.time =  (time + diff*0.5) ;
+		}
+		else
+		{
+
+			this.sort(Comparator.comparing(Flow::getDeadline));
+			earliestDeadline.time = this.get(0).getDeadline();
+		}
+		
 		
 		arrivalTime = earliestDeadline.time;
+		System.out.println("arrivalTime: "+arrivalTime);
 		
 		return earliestDeadline;
 	}

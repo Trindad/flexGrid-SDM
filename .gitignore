@@ -1,1 +1,7 @@
 /bin/
+<<<<<<< Updated upstream
+=======
+*.xml
+*.log
+*.dat
+>>>>>>> Stashed changes

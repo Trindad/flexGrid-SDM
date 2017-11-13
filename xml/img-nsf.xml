@@ -5,15 +5,16 @@
 
     <trace file="trace.tr"/>
 
-    <traffic calls="100000" load="215" max-rate="100">
-		<calls holding-time="0.5" rate="125" cos="1" weight="1"/>
+    <traffic calls="100000" load="215" max-rate="1000">
+        <calls holding-time="0.5" rate="125" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="250" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="400" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="1000" cos="1" weight="1"/>
     </traffic>
 
     <virtual-topology  name="NSFNet">
     </virtual-topology>
-    
+
     <physical-topology name="NSFNet" cores="7" slots="180" slotsBandwidth="12.5">
         <nodes>
             <node id="0"/>
@@ -31,7 +32,7 @@
             <node id="12"/>
             <node id="13"/>
         </nodes>
-	<!-- Link weigth = distance in Km
+    <!-- Link weigth = distance in Km
              Link delay = 1ms for 200Km -->
         <links>
             <link id="0" source="0" destination="1" delay="3.75" bandwidth="10000" weight="750" distance="750"/>
@@ -77,10 +78,12 @@
         </links>
     </physical-topology>
     <graphs>
-    	<graph name="mbbr" dots-file="img-graph-mbbr.dat"/>
-    	<graph name="hops" dots-file="img-graph-hops.dat"/>
-		<graph name="jfi" dots-file="img-graph-jfi.dat"/>
-    	<graph name="xtps" dots-file="img-graph-xtps.dat"/>
-    	<graph name="data" dots-file="img-graph-data.dat"/>
+        <graph name="mbbr" dots-file="img-180-graph-mbbr.dat"/>
+        <graph name="bp" dots-file="img-180-graph-bp.dat"/>
+        <graph name="hops" dots-file="img-graph-hops.dat"/>
+        <graph name="jfi" dots-file="img-graph-jfi.dat"/>
+        <graph name="xtps" dots-file="img-graph-xtps.dat"/>
+        <graph name="data" dots-file="img-graph-data.dat"/>
     </graphs>
 </flexgridsim>
+

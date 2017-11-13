@@ -77,7 +77,6 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     public void newEvent(Event event) 
     {
-    	double lastTime = time;
     	if(event.getTime() > time) 
     	{
     		time = event.getTime();
@@ -85,7 +84,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-    		System.out.println("******************"+time+"  "+lastTime+" "+event.getTime()+"*********************");
+    		System.out.println("******************"+time+" "+event.getTime()+"*********************");
         	
         	if(event instanceof DeadlineEvent)
         	{	
@@ -93,12 +92,8 @@ public class ControlPlane implements ControlPlaneForRSA {
         		try 
         		{
         			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
-//        			batches.updateEarliestDeadlineFirst();
         			
             		( (EarliestDeadlineFirst) rsa).deadlineArrival( ((DeadlineEvent)event).getBatch() );	
-//        			( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getEarliestDeadline() );
-        			
-//            		batches.resetEarliestDeadline();
 				} 
         		catch (Exception e)
         		{
@@ -112,12 +107,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         			batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
             		newFlow(((FlowArrivalEvent) event).getFlow());
             		
-//            		updateDeadlineEvent(batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));
-//            		batches.updateEarliestDeadlineFirst();
-            		
                 	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
-                	
-//                	batches.resetEarliestDeadline();
                 	
 				} 
         		catch (Exception e) 

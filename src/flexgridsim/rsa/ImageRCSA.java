@@ -8,7 +8,6 @@ import org.w3c.dom.Element;
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.PhysicalTopology;
-import flexgridsim.ResourceAssignment;
 import flexgridsim.Slot;
 import flexgridsim.TrafficGenerator;
 import flexgridsim.VirtualTopology;
@@ -17,7 +16,7 @@ import flexgridsim.util.KShortestPaths;
 import flexgridsim.util.WeightedGraph;
 
 /**
- * @author pedrom
+ * @author pedrom, trindade
  *
  */
 public class ImageRCSA implements RSA {
@@ -78,7 +77,7 @@ public class ImageRCSA implements RSA {
 				return;
 			
 		}
-		System.out.println("Block Flow: "+flow +" time: "+flow.getTime() + " deadline: "+flow.getDeadline());
+		
 		cp.blockFlow(flow.getID());
 		return;
 	}
@@ -95,14 +94,6 @@ public class ImageRCSA implements RSA {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		boolean established = false;
-		
-
-		ResourceAssignment assigmnet= new ResourceAssignment(this);
-//		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);
-		established = assigmnet.lastFit(listOfRegions,demandInSlots, links, flow);
-//		established = assigmnet.firstLastFit(listOfRegions,demandInSlots, links, flow);//divided per core
-//		established = assigmnet.firstLastFitSlots(listOfRegions,demandInSlots, links, flow);//divided per slots
-		this.availableSlots = assigmnet.getNumberOfAvailableSlots();
 		
 		if(!established)
 		{
@@ -133,7 +124,9 @@ public class ImageRCSA implements RSA {
 	 * @param flow
 	 * @return true if the connection was successfully established; false otherwise
 	 */
-	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow){
+	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
+		
+		if(links == null) System.out.println("ERROR LINKS");
 		long id = vt.createLightpath(links, slotList ,0);
 		if (id >= 0) {
 			LightPath lps = vt.getLightpath(id);
