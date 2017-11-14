@@ -169,8 +169,7 @@ public class EarliestDeadlineFirst extends RCSA {
 			canBeBlock(batch, blockedRequests, request);
 //		}
 	}
-	
-	@SuppressWarnings("unused")
+
 	private void justPostpone(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
 			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
 			postponedRequests.add(request);
@@ -385,7 +384,6 @@ public class EarliestDeadlineFirst extends RCSA {
 	}
 	
 	
-	@SuppressWarnings("unused")
 	private class MyInscribedRectangleRCSA  extends InscribedRectangleRCSA {
 		
 		public  int[] executeRCSA(Flow flow) {

@@ -22,6 +22,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
     private String rsaAlgorithm;
+    private boolean costMKP = false;//used in batch requests 
     private double time = 0.0f;
     private PhysicalTopology pt;
     private VirtualTopology vt;
@@ -44,7 +45,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param vt the network's virtual topology
 	 * @param traffic the traffic
 	 */
-    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
+    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String costMultipleKnapsackPloblem, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
         @SuppressWarnings("rawtypes")
 		Class RSAClass;
         mappedFlows = new HashMap<Flow, LightPath>();
@@ -57,6 +58,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         this.vt = vt;
         
         this.setRsaAlgorithm(rsaAlgorithm);
+        if(costMultipleKnapsackPloblem.equals("true") == true) this.setCostMKP(true);
 
         try {
             RSAClass = Class.forName(rsaModule);
@@ -469,6 +471,20 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	public void setRsaAlgorithm(String rsaAlgorithm) {
 		this.rsaAlgorithm = rsaAlgorithm;
+	}
+
+	/**
+	 * @return the costMKP
+	 */
+	public boolean isCostMKP() {
+		return costMKP;
+	}
+
+	/**
+	 * @param costMKP the costMKP to set
+	 */
+	public void setCostMKP(boolean costMKP) {
+		this.costMKP = costMKP;
 	}
 
 }

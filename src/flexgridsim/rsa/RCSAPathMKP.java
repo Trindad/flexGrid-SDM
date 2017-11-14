@@ -180,7 +180,7 @@ public class RCSAPathMKP  extends EarliestDeadlineFirst{
 					
 					if(temp.isEmpty() || indexOfPaths.isEmpty()) return false;
 					
-					OptimizedResourceAssignment mkp = new OptimizedResourceAssignment(temp, batch, true, this.slotCapacity, cp.getTime());
+					OptimizedResourceAssignment mkp = new OptimizedResourceAssignment(temp, batch, cp.isCostMKP(), this.slotCapacity, cp.getTime());
 					ArrayList<ArrayList<Integer>> solution = mkp.getEachDemandPerPath();
 					
 					if(solution.size() >= 1)

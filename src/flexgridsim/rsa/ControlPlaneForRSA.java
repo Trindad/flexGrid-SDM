@@ -127,4 +127,6 @@ public interface ControlPlaneForRSA {
 
 	public void setTime(double f);
 
+	public boolean isCostMKP();
+
 }

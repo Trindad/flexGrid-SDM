@@ -155,7 +155,7 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
 				}
 				
-				OptimizedResourceAssignment mkp = new OptimizedResourceAssignment(available, batch, true, pt.getSlotCapacity(), cp.getTime());
+				OptimizedResourceAssignment mkp = new OptimizedResourceAssignment(available, batch, cp.isCostMKP(), pt.getSlotCapacity(), cp.getTime());
 				ArrayList<ArrayList<Integer>> solution = mkp.getEachDemandPerPath();
 				
 				if(solution.size() >= 1)
