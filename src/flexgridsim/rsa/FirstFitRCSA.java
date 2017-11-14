@@ -18,7 +18,6 @@ public class FirstFitRCSA extends ImageRCSA{
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		boolean established = false;
-		
 
 		ResourceAssignment assigmnet = new ResourceAssignment(this);
 		established = assigmnet.firstFit(listOfRegions,demandInSlots, links, flow);

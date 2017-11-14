@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <flexgridsim version="0.4">
-    <rsa module="ImageRCSA"/>
+    <rsa module="FirstLastFitRCSA"/>
 
     <trace file="trace.tr"/>
 
-    <traffic calls="100000" load="215" max-rate="1000">
+    <traffic calls="10000" load="100" max-rate="1000">
         <calls holding-time="0.5" rate="125" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="250" cos="1" weight="1"/>
-        <calls holding-time="0.5" rate="400" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="375" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="500" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="625" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="750" cos="1" weight="1"/>
+        <calls holding-time="0.5" rate="875" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="1000" cos="1" weight="1"/>
     </traffic>
 
     <virtual-topology  name="NSFNet">
     </virtual-topology>
-
+    
     <physical-topology name="NSFNet" cores="7" slots="180" slotsBandwidth="12.5">
         <nodes>
             <node id="0"/>
@@ -78,12 +82,11 @@
         </links>
     </physical-topology>
     <graphs>
-        <graph name="mbbr" dots-file="img-180-graph-mbbr.dat"/>
-        <graph name="bp" dots-file="img-180-graph-bp.dat"/>
+        <graph name="mbbr" dots-file="img-graph-mbbr.dat"/>
+        <graph name="bp" dots-file="img-graph-bp.dat"/>
         <graph name="hops" dots-file="img-graph-hops.dat"/>
         <graph name="jfi" dots-file="img-graph-jfi.dat"/>
         <graph name="xtps" dots-file="img-graph-xtps.dat"/>
         <graph name="data" dots-file="img-graph-data.dat"/>
     </graphs>
 </flexgridsim>
-

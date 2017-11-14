@@ -54,8 +54,7 @@ public class ResourceAssignment {
 //			System.out.print(mergedRegions.get(i));
 //		}
 //		System.out.println("nSlots: "+nSlots);
-		
-		
+
 		/**
 		 * Try to assignment the request in just one core 
 		 */
