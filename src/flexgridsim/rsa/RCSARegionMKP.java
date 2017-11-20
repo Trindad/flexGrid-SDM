@@ -27,7 +27,7 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 		{  	 
 			int n = 0;
 			
-			if(batch.size() >= 2)
+			if(batch.size() >= 3)
 			{	 
 				if(rsa.getGraph() != null)
 				{
@@ -37,8 +37,7 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 					{
 						break;
 					}
-				}
-				
+				}		
 			}
 			else
 			{
@@ -55,7 +54,11 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 		    
 			if (n == 0) 
 		    { 
+//		    	Flow latestDeadline = batch.largestRate();
 			    Flow latestDeadline = batch.latestFlow();
+//			    Flow latestDeadline = batch.smallestRate();
+//				Flow latestDeadline = batch.largestDuration();//the best result
+//				Flow latestDeadline = batch.smallestDuration();
 			    	
 			    canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);
 			    batch.removeFlow(latestDeadline);	 
@@ -161,9 +164,9 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 				if(solution.size() >= 1)
 				{
 					ArrayList<Integer> established = new ArrayList<Integer>();
-					System.out.println("solução "+solution);
-					System.out.println(available);
-					System.out.println(indexOfPaths);
+//					System.out.println("solução "+solution);
+//					System.out.println(available);
+//					System.out.println(indexOfPaths);
 					for(int i = 0; i < solution.size(); i++) {
 						
 						if(solution.get(i).size() >= 1) 
@@ -181,7 +184,7 @@ public class RCSARegionMKP extends EarliestDeadlineFirst {
 							{
 								for(int u = 0; u < solution.get(i).size(); u++) {
 									
-									System.out.println("established*: " + solution.get(i).get(u) + " : " + batch.get(solution.get(i).get(u))+" time: "+batch.get(solution.get(i).get(u)).getTime() + " deadline: "+batch.get(solution.get(i).get(u)).getDeadline());
+//									System.out.println("established*: " + solution.get(i).get(u) + " : " + batch.get(solution.get(i).get(u))+" time: "+batch.get(solution.get(i).get(u)).getTime() + " deadline: "+batch.get(solution.get(i).get(u)).getDeadline());
 									established.add(solution.get(i).get(u));
 									cont--;
 								}

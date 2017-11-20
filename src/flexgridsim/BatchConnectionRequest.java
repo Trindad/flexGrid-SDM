@@ -146,10 +146,11 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 	public DeadlineEvent getNewDeadline(double time) {
 		
 		arrivalTime = earliestDeadline.time;
+		double limit = Math.pow(10.0f, -6);
 		
 		double diff = Math.abs(time-arrivalTime);
 
-		if(diff > 0.0001)
+		if(diff > limit)
 		{
 			earliestDeadline.time =  (time + diff*0.5) ;
 		}
@@ -162,7 +163,7 @@ public class BatchConnectionRequest extends ArrayList<Flow> {
 		
 		
 		arrivalTime = earliestDeadline.time;
-		System.out.println("arrivalTime: "+arrivalTime);
+//		System.out.println("arrivalTime: "+arrivalTime);
 		
 		return earliestDeadline;
 	}

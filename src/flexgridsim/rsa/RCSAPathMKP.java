@@ -27,7 +27,7 @@ public class RCSAPathMKP  extends EarliestDeadlineFirst{
 		{  	 
 			int n = 0;
 			
-			if(batch.size() >= 2)
+			if(batch.size() >= 3)
 			{	 
 				if(rsa.getGraph() != null)
 				{
@@ -55,7 +55,11 @@ public class RCSAPathMKP  extends EarliestDeadlineFirst{
 		    
 			if (n == 0) 
 		    { 
+//		    	Flow latestDeadline = batch.largestRate();
 			    Flow latestDeadline = batch.latestFlow();
+//			    Flow latestDeadline = batch.smallestRate();
+//				Flow latestDeadline = batch.largestDuration();
+//				Flow latestDeadline = batch.smallestDuration();
 			    	
 			    canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);
 			    batch.removeFlow(latestDeadline);	 
@@ -211,7 +215,7 @@ public class RCSAPathMKP  extends EarliestDeadlineFirst{
 //										Flow f = batch.get(solution.get(i).get(i));
 //										batch.remove(f);
 //										System.out.println(" "+);
-										System.out.println("established: " + solution.get(i).get(u) + " : " + batch.get(solution.get(i).get(u))+" time: "+batch.get(solution.get(i).get(u)).getTime() + " deadline: "+batch.get(solution.get(i).get(u)).getDeadline());
+//										System.out.println("established: " + solution.get(i).get(u) + " : " + batch.get(solution.get(i).get(u))+" time: "+batch.get(solution.get(i).get(u)).getTime() + " deadline: "+batch.get(solution.get(i).get(u)).getDeadline());
 										established.add(solution.get(i).get(u));
 										cont--;
 									}

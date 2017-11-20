@@ -86,14 +86,14 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-    		System.out.println("******************"+time+" "+event.getTime()+"*********************");
+//    		System.out.println("******************"+time+" "+event.getTime()+"*********************");
         	
         	if(event instanceof DeadlineEvent)
         	{	
         		
         		try 
         		{
-        			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
+//        			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
         			
             		( (EarliestDeadlineFirst) rsa).deadlineArrival( ((DeadlineEvent)event).getBatch() );	
 				} 
@@ -108,6 +108,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         		{
         			batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
             		newFlow(((FlowArrivalEvent) event).getFlow());
+//            		System.out.println(((FlowArrivalEvent) event).getFlow());
             		
                 	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
                 	

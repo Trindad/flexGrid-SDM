@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <flexgridsim version="0.4">
-    <rsa module="EarliestDeadlineFirst" algorithm="MyImageRCSA"/>
+    <rsa module="EarliestDeadlineFirst" algorithm="MyImageRCSA" costMPK="false"/>
 
     <trace file="trace.tr"/>
 
-    <traffic calls="10000" load="215" max-rate="1000">
+    <traffic calls="10000" load="400" max-rate="1000">
     <!-- <traffic calls="100000" load="215" max-rate="100"> -->
         <!-- <calls holding-time="0.5" rate="125" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="400" cos="1" weight="1"/>

@@ -22,7 +22,6 @@ public class FirstLastFitRCSA extends ImageRCSA{
 
 		ResourceAssignment assigmnet = new ResourceAssignment(this);
 		established = assigmnet.firstLastFit(listOfRegions,demandInSlots, links, flow);//focus on core
-//		established = assigmnet.firstLastFitSlots(listOfRegions,demandInSlots, links, flow);//focus on slots
 		this.availableSlots = assigmnet.getNumberOfAvailableSlots();
 		
 		if(!established)

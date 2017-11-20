@@ -1,6 +1,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import flexgridsim.Flow;
@@ -54,125 +55,76 @@ public class ResourceAssignment {
 //			System.out.print(mergedRegions.get(i));
 //		}
 //		System.out.println("nSlots: "+nSlots);
-
+		
+		regions.sort(Comparator.comparing(ArrayList::size));
+		
 		/**
 		 * Try to assignment the request in just one core 
 		 */
-		for(int u = 0; u < cont.size() ; u++) {
-			
-			int nCores =  cont.get(u).size();
-			
-			for(int w = 0; w < nCores; w++) {
-				int i = cont.get(u).get(w);
-				int shift = 0;
+		for(int u = 0; u < regions.size() ; u++) {
 				
-				for(int j = shift; j < channel[i].length; j++) {
-					
-					if(channel[i][j] != null && fittedSlotList.size() < demandInSlots)
-					{
-						fittedSlotList.add(channel[i][j]);
-					}
-//					else if(channel[i][j] == null) break;
-					
-					if(fittedSlotList.size() == demandInSlots) 
-					{
-						if(rsa.establishConnection(links, fittedSlotList, 0, flow)) {
+			if(regions.get(u).size() < demandInSlots) {
+				continue;
+			}
+			
+			int i = regions.get(u).get(0).c;
+			int shift = 0;
+			
+			for(int j = shift; j < channel[i].length; j++) {
+				
+				if(channel[i][j] != null && fittedSlotList.size() < demandInSlots)
+				{
+					fittedSlotList.add(channel[i][j]);
+				}
+				else if(channel[i][j] == null) break;
+				
+				if(fittedSlotList.size() == demandInSlots) 
+				{
+					if(rsa.establishConnection(links, fittedSlotList, 0, flow)) {
 //							System.out.println("First-fit: "+demandInSlots+" tam: "+fittedSlotList.size());
 //							System.out.println(fittedSlotList);
-							return true;
-						}
-				
-						fittedSlotList.clear();
-					}
-				}
-				
-				fittedSlotList.clear();
-			}	
-		}
-
-		for(int u = 0; u <= cont.size()-1 ; u++) {
-			
-			int nCores =  cont.get(u).size();
-			ArrayList<Integer> temp = new ArrayList<Integer>();
-			
-			for(int w = 0; w < nCores; w++) {
-				temp.add(cont.get(u).get(w));
-			}
-			
-			int w = 0, n = 1;
-			nSlots = numberOfSlotsPerCore(demandInSlots, n);
-			
-			while( n <  nCores )
-			{
-				int i = temp.get(w);			
-				if(regions.get(i).isEmpty())
-				{
-					continue;
-				}
-				
-				int it = 0, j = 0, lastShift = j;
-				
-				while( j < channel[i].length) 
-				{	
-					if(fittedSlotList.size() == demandInSlots)
-					{
-						break;
-					}
-					if(channel[i][j] != null && fittedSlotList.size() < demandInSlots && it < nSlots)
-					{
-						fittedSlotList.add(channel[i][j]);
-						it++;
-					}
-					if(it == nSlots && w < (nCores-1) && fittedSlotList.size() < demandInSlots)
-					{
-						it = 0;
-						j = lastShift;
-						w++;
-						i = temp.get(w);
-					}
-					else if(channel[i][j] == null && it < nSlots)
-					{
-						int v = j;
-						j = lastShift;
-						lastShift = v;
-		
-						it = 0;
-						fittedSlotList.clear();
-					}
-					
-					j++;
-				}
-				
-				if(fittedSlotList.size() == demandInSlots)
-				{
-					if(rsa.establishConnection(links, fittedSlotList, 0, flow)) 
-					{
-//						System.out.println("First-fit: "+demandInSlots+" tam: "+fittedSlotList.size());
-//						System.out.println(fittedSlotList);
 						return true;
 					}
+			
+					fittedSlotList.clear();
 				}
-
-				nSlots = numberOfSlotsPerCore(demandInSlots, n);
-//				System.out.println("c = "+nCores+" s = "+nSlots+ " n = "+n+" d = "+demandInSlots);
-				for(int t = nCores-1; t >= 0; t--) {
-					
-					if(regions.get(t).size() < (demandInSlots/(nCores-n)))
-					{
-						cont.get(u).remove(t);
-					}
-				}
-				
-				n++;
-				w = 0;
-				nCores = cont.get(u).size();
-				fittedSlotList.clear();
-				
 			}
 			
-			fittedSlotList.clear();
+			fittedSlotList.clear();	
 		}
-//		System.out.println("--------------");
+
+		for(int n = 2; n <= regions.size(); n++) {
+			
+			for(int u = 0; u < cont.size() ; u++) {
+				int nCores =  cont.get(u).size();
+				nSlots = numberOfSlotsPerCore(demandInSlots, n);
+				
+				for(int i = 0; i < nCores; i++) {
+					
+					for(int j = 0; j < channel[i].length; j++) {
+						
+						if(channel[i][j] != null && fittedSlotList.size() < nSlots)
+						{
+							fittedSlotList.add(channel[i][j]);
+						}
+						else if(channel[i][j] == null) break;
+		
+						if(fittedSlotList.size() == nSlots) 
+						{
+							if(rsa.establishConnection(links, fittedSlotList, 0, flow)) 
+							{
+								return true;
+							}
+							
+							fittedSlotList.clear();	
+						}
+					}
+				}
+			}
+			
+			fittedSlotList.clear();	
+		}
+		
 		return false;
 	}
 	
@@ -201,6 +153,7 @@ public class ResourceAssignment {
 		return contiguosCore;
 	}
 	
+	
 	public boolean runLastFit(Slot [][]channel, ArrayList< ArrayList<Slot> > regions, ArrayList<Integer> coreIndices, int demandInSlots, int[] links, Flow flow) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
@@ -218,127 +171,73 @@ public class ResourceAssignment {
 //		}
 //		System.out.println("nSlots: "+nSlots);
 		
+		regions.sort(Comparator.comparing(ArrayList::size));
+		
 		/**
 		 * Try to assignment the request in just one core 
 		 */
-		for(int u = cont.size()-1; u >= 0 ; u--) {
-			
-			int nCores =  cont.get(u).size();
-			
-			for(int w = nCores-1; w >= 0; w--) {
-				
-				int i = cont.get(u).get(w);
-				int shift = channel[cont.get(u).get(w)].length-1;
-				
-				for(int j = shift; j >= 0; j--) {
-					
-					if(channel[i][j] != null && fittedSlotList.size() < demandInSlots)
-					{
-						fittedSlotList.add(channel[i][j]);
-					}
-//					else if(channel[i][j] == null) break;
-
-					if(fittedSlotList.size() == demandInSlots) 
-					{
-						if(rsa.establishConnection(links, fittedSlotList, 0, flow)) {
-//							System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-//							System.out.println(fittedSlotList);
-							return true;
-						}
-						
-						fittedSlotList.clear();	
-					}
-				}
-				
-				fittedSlotList.clear();
-			}	
-		}
-		
-		for(int u = cont.size()-1; u >= 0 ; u--) {
-			
-			int nCores =  cont.get(u).size();
-			ArrayList<Integer> temp = new ArrayList<Integer>();
-			
-			for(int w = 0; w < nCores; w++) {
-				temp.add(cont.get(u).get(w));
+		for(int u = 0; u < regions.size() ; u++) {
+	
+			if(regions.get(u).size() < nSlots) {
+				continue;
 			}
 			
-			int shift = channel[0].length;
-			int w = nCores-1;
-			int n = 1;
-			nSlots = numberOfSlotsPerCore(demandInSlots, n);
-			
-			while( n < nCores )
-			{
-				int i = temp.get(w);			
-				if(regions.get(i).isEmpty())
+			int i = regions.get(u).get(0).c;
+			for(int j = (channel[i].length-1); j >= 0; j--) {
+				
+				if(channel[i][j] != null && fittedSlotList.size() < nSlots)
 				{
-					continue;
+					fittedSlotList.add(channel[i][j]);
 				}
-				
-				int it = 0;
-				int j = shift;
-				int lastShift = j;
-				
-				while( j > 0 && fittedSlotList.size() < demandInSlots) 
-				{
-					j--;
-					
-					if(channel[i][j] != null && fittedSlotList.size() < demandInSlots && it < nSlots)
-					{
-						fittedSlotList.add(channel[i][j]);
-						it++;
-					}
-					if(it == nSlots && w >= 1 && fittedSlotList.size() < demandInSlots)
-					{
-						it = 0;
-						j = lastShift;
-						w--;
-						i = temp.get(w);
-					}
-					else if(channel[i][j] == null && it < nSlots)
-					{
-						int v = j;
-						j = lastShift;
-						lastShift = v;
-						
-						it = 0;
-						fittedSlotList.clear();
-						
-						continue;
-					}
-				}
-				
-				if(fittedSlotList.size() == demandInSlots)
+				else if(channel[i][j] == null) break;
+
+				if(fittedSlotList.size() == nSlots) 
 				{
 					if(rsa.establishConnection(links, fittedSlotList, 0, flow)) 
 					{
-//						System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
-//						System.out.println(fittedSlotList);
+//							System.out.println("Last-fit:"+demandInSlots+" tam: "+fittedSlotList.size());
+//							System.out.println(fittedSlotList);
 						return true;
 					}
-				}
-
-				nSlots = numberOfSlotsPerCore(demandInSlots, n);
-//				System.out.println("c = "+nCores+" s = "+nSlots+ " n = "+n+" d = "+demandInSlots);
-				n++;
-				for(int t = nCores-1; t >= 0; t--) {
 					
-					if(regions.get(t).size() < (demandInSlots/nCores))
-					{
-						cont.get(u).remove(t);
-					}
+					fittedSlotList.clear();	
 				}
-				
-				nCores = cont.get(u).size();
-				w = nCores-1;
-				fittedSlotList.clear();
-				
 			}
 			
 			fittedSlotList.clear();
 		}
-
+		
+		for(int n = 2; n <= regions.size() ; n++) {
+			
+			for(int u = cont.size()-1; u >= 0 ; u--) {
+				
+				int nCores =  cont.get(u).size();
+				nSlots = numberOfSlotsPerCore(demandInSlots, n);
+				
+				for(int i = nCores-1; i >= 0; i--) {
+					
+					for(int j = (channel[i].length-1); j >= 0; j--) {
+						
+						if(channel[i][j] != null && fittedSlotList.size() < nSlots)
+						{
+							fittedSlotList.add(channel[i][j]);
+						}
+						else if(channel[i][j] == null) break;
+		
+						if(fittedSlotList.size() == nSlots) 
+						{
+							if(rsa.establishConnection(links, fittedSlotList, 0, flow)) 
+							{
+								return true;
+							}
+							
+							fittedSlotList.clear();	
+						}
+					}
+				}
+			}
+			fittedSlotList.clear();	
+		}
 		return false;
 	}
 
@@ -382,106 +281,154 @@ public class ResourceAssignment {
 	@SuppressWarnings("unused")
 	public boolean firstLastFit(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow) {
 
-		int numberOfSlots = 50;
-		int numberOfCores = rsa.getNumberOfCores()-3;
-		
-		ArrayList< ArrayList<Slot> > regions = new ArrayList< ArrayList<Slot> >();
+		int numberOfSlots = 30;
+		int numberOfCores = (int) Math.floor(rsa.getNumberOfCores()/3.0f);
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		
 		Slot [][]channel = mergeRegions(listOfRegions);
 		ArrayList<Integer> coreIndices = new ArrayList<Integer>();
+		boolean established = false;
 		
 		
-		if(demandInSlots <= numberOfSlots)
+		int nSlots = numberOfSlotsPerCore(demandInSlots, rsa.getNumberOfCores());
+		ArrayList< ArrayList<Slot> > regions = new ArrayList< ArrayList<Slot> >(mergedRegions);
+		
+		for(int i = 0; i < 3; i++)
 		{
-			int nSlots = numberOfSlotsPerCore(demandInSlots, rsa.getNumberOfCores());
-			
-			for(int i = 0; i < (numberOfCores-1); i++)
+			if(!regions.get(i).isEmpty() && regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, (numberOfCores-1)))
 			{
-				if(!mergedRegions.get(i).isEmpty() && mergedRegions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, (numberOfCores-1)))
+				regions.add(mergedRegions.get(i));
+				coreIndices.add(i);
+			}		
+		}
+		
+		established = this.runFirstFit(channel, regions, coreIndices, demandInSlots, links, flow);
+		
+		if(established == false && demandInSlots >= numberOfSlots )
+		{
+			coreIndices.clear(); 
+			regions = new ArrayList< ArrayList<Slot> >(mergedRegions);	
+			for(int i = 3; i < 5; i++)
+			{
+				if(!regions.get(i).isEmpty() && regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, (rsa.getNumberOfCores()-(numberOfCores*2))))
+				{
+					regions.add(mergedRegions.get(i));
+					coreIndices.add(i);
+				}	
+			}
+			
+			established = this.runLastFit(channel, regions, coreIndices, demandInSlots, links, flow);
+			
+		}
+		
+		
+		if(demandInSlots >= (numberOfSlots*2) && established == false)
+		{	
+			coreIndices.clear(); 
+			regions = new ArrayList< ArrayList<Slot> >(mergedRegions);
+			for(int i = 5; i < 7; i++)
+			{
+				if(!regions.get(i).isEmpty() && regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, rsa.getNumberOfCores()-(numberOfCores*2)))
 				{
 					regions.add(mergedRegions.get(i));
 					coreIndices.add(i);
 				}		
 			}
 			
-			return this.runFirstFit(channel, mergedRegions, coreIndices, demandInSlots, links, flow);
-		}
-		else if( demandInSlots >= numberOfSlots+1)
-		{
-				
-			for(int i = (numberOfCores-1); i < rsa.getNumberOfCores(); i++)
-			{
-				if(!mergedRegions.get(i).isEmpty() && mergedRegions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
-				{
-					regions.add(mergedRegions.get(i));
-					coreIndices.add(i);
-				}	
-			}
-			
-			return this.runLastFit(channel, mergedRegions, coreIndices, demandInSlots, links, flow);
-			
+			return this.runFirstFit(channel, regions, coreIndices, demandInSlots, links, flow);
 		}
 		
-		return false;
+		return established;
 	}
 
 	@SuppressWarnings("unused")
 	public boolean firstLastFitSlots(HashMap<Integer,ArrayList<Slot>> listOfRegions, int demandInSlots, int[] links, Flow flow) {
 
-		int numberOfSlots = 50;
+		int numberOfSlots = 30;
 		int numberOfCores = rsa.getNumberOfCores();
-		
-		ArrayList< ArrayList<Slot> > regions = new ArrayList< ArrayList<Slot> >();
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		
 		Slot [][]channel = mergeRegions(listOfRegions);
 		ArrayList<Integer> coreIndices = new ArrayList<Integer>();
-		int limitSlots = (rsa.getNumberOfSlots()/2)-1;
-
+		int limitSlots = (int) Math.floor(rsa.getNumberOfSlots()/3.0f);
+		boolean established = false;
 		
-		if(demandInSlots <= numberOfSlots)
+		ArrayList< ArrayList<Slot> > regions = new ArrayList< ArrayList<Slot> >(mergedRegions);
+
+		for(int i = 0; i < regions.size(); i++)
 		{
-				for(int i = 0; i < mergedRegions.size(); i++)
-				{
-					if(!mergedRegions.get(i).isEmpty() && mergedRegions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
-					{
-						for(int j = mergedRegions.get(i).size()-1; j >= 0; j--) {
-							
-							if(mergedRegions.get(i).get(j) != null && mergedRegions.get(i).get(j).s > limitSlots) {
-								mergedRegions.get(i).remove(mergedRegions.get(i).get(j));
-								channel[i][j] = null;
-							}
-						}
-						if(!mergedRegions.get(i).isEmpty()) coreIndices.add(i);
-					}
-						
-				}
-				
-				return this.runFirstFit(channel, mergedRegions, coreIndices, demandInSlots, links, flow);
-		}
-		else
-		{
-			
-			for(int i = 0; i < mergedRegions.size(); i++)
+			if(!regions.get(i).isEmpty() && regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
 			{
-				if(!mergedRegions.get(i).isEmpty() && mergedRegions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
+				for(int j = regions.get(i).size()-1; j >= 0; j--) {
+					
+					if( !regions.get(i).isEmpty() && regions.get(i).get(j).s > limitSlots) 
+					{
+						regions.get(i).remove(regions.get(i).get(j));
+						channel[i][j] = null;
+					}
+				}
+				if(!regions.get(i).isEmpty()) coreIndices.add(i);
+			}	
+				
+		}
+		
+		established = this.runFirstFit(channel, regions, coreIndices, demandInSlots, links, flow);
+		
+//		System.out.println(established);
+		
+		if(established == false && demandInSlots >= numberOfSlots )
+		{
+			coreIndices.clear(); 
+			regions = new ArrayList< ArrayList<Slot> >(mergedRegions);
+			
+			for(int i = 0; i < regions.size(); i++)
+			{
+				if(regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
 				{
-					for(int j = mergedRegions.get(i).size()-1; j >= 0; j--) {
+					for(int j = regions.get(i).size()-1; j >= 0; j--) {
 						
-						if(mergedRegions.get(i).get(j) != null && mergedRegions.get(i).get(j).s <= limitSlots) {
-							mergedRegions.get(i).remove(mergedRegions.get(i).get(j));
+						if( !regions.get(i).isEmpty() && regions.get(i).get(j).s <= limitSlots ) 
+						{
+							regions.get(i).remove(regions.get(i).get(j));
 							channel[i][j] = null;
 						}
 					}
-					if(!mergedRegions.get(i).isEmpty()) coreIndices.add(i);
+					if(!regions.get(i).isEmpty()) coreIndices.add(i);
 				}	
 			}
 			
-			return this.runLastFit(channel, mergedRegions, coreIndices, demandInSlots, links, flow);
+			established = this.runLastFit(channel, regions, coreIndices, demandInSlots, links, flow);
 		}
+		
+		
+//		if(established == false && demandInSlots >= (numberOfSlots*2))
+//		{
+//			coreIndices.clear(); 
+//			regions = new ArrayList< ArrayList<Slot> >(mergedRegions);
+//			
+//			for(int i = 0; i < regions.size(); i++)
+//			{
+//				if(regions.get(i).size() >= numberOfSlotsPerCore(demandInSlots, numberOfCores))
+//				{
+//					for(int j = regions.get(i).size()-1; j >= 0; j--) {
+//						
+//						if(!regions.get(i).isEmpty() && regions.get(i).get(j) != null && regions.get(i).get(j).s <= (limitSlots*2)) {
+//							regions.get(i).remove(regions.get(i).get(j));
+//							channel[i][j] = null;
+//						}
+//					}
+//					if(!regions.get(i).isEmpty()) coreIndices.add(i);
+//				}
+//					
+//			}
+//			
+//			established = this.runFirstFit(channel, regions, coreIndices, demandInSlots, links, flow);
+//			System.out.println(established);
+//		}
+		
+		return established;
 	}
 	
 	public Slot [][]mergeRegions(HashMap<Integer,ArrayList<Slot>> listOfRegions) {

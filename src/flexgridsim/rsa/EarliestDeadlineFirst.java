@@ -66,26 +66,14 @@ public class EarliestDeadlineFirst extends RCSA {
 			
 			if (n == 0) 
 		    { 
-				
-//				if(batch.size() == 1 && ( batch.get(0).getDeadline() >= ( 10.0f*batch.get(0).getTime() ) ) && !batch.get(0).isPostponeRequest())
-//				{
-//					System.out.println("postponed*: "+batch.get(0)+" time: "+batch.get(0).getTime() + " deadline: "+batch.get(0).getDeadline());
-//					postponedRequests.add(batch.get(0));
-//					batch.get(0).setPostponeRequest(true);
-//					
-//					break;
-//				}
-//				else
-//				{
-//			    	Flow latestDeadline = batch.largestRate();//Inverse
-			    	Flow latestDeadline = batch.latestFlow();
-//			    	Flow latestDeadline = batch.smallestRate();
-//					Flow latestDeadline = batch.largestDuration();
-//					Flow latestDeadline = batch.smallestDuration();
-			    	
-			    	canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);
-			    	batch.removeFlow(latestDeadline);
-//				}	 
+//		    	Flow latestDeadline = batch.largestRate();
+			    Flow latestDeadline = batch.latestFlow();
+//			    Flow latestDeadline = batch.smallestRate();
+//				Flow latestDeadline = batch.largestDuration();
+//				Flow latestDeadline = batch.smallestDuration();
+		    	
+		    	canBePostpone(batch, postponedRequests,blockedRequests, latestDeadline);
+		    	batch.removeFlow(latestDeadline);	 
 		    }	
 		}
 	
@@ -109,10 +97,10 @@ public class EarliestDeadlineFirst extends RCSA {
 		
 		if(path.length >= 1)
 		{
-		   if(batch.size() >= 2)
-		   {
-		    		System.out.println("number of flows: "+batch.getNumberOfFlows());
-			}
+//		   if(batch.size() >= 2)
+//		   {
+//		    		System.out.println("number of flows: "+batch.getNumberOfFlows());
+//			}
 			for(Flow f: batch) 
 			{
 				System.out.println("established: "+f+" time: "+f.getTime() + " deadline: "+f.getDeadline());
@@ -125,7 +113,7 @@ public class EarliestDeadlineFirst extends RCSA {
 		return path.length;//RSA using Image
 	}
 	
-	private void canBeBlock(BatchConnectionRequest batch, ArrayList<Flow> blockedRequests, Flow latestDeadline) 
+	private void canBeBlocked(BatchConnectionRequest batch, ArrayList<Flow> blockedRequests, Flow latestDeadline) 
 	{
 		System.out.println("blocked: "+latestDeadline+" time: "+latestDeadline.getTime() + " deadline: "+latestDeadline.getDeadline());
         blockedRequests.add(latestDeadline);
@@ -133,31 +121,25 @@ public class EarliestDeadlineFirst extends RCSA {
 	
 	@SuppressWarnings("unused")
 	private void postponeConditionLargestRate(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
-	
-//		
-//		if(runRCSA(request) == 0)
-//		{
-			//select the best option to postponed
-			if( (request.getRate() >= 622) && (request.getTime()/request.getDeadline()) <= 0.9f)
-			{
-				System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
-	    	
-				postponedRequests.add(request);
-				request.setPostponeRequest(true);
-				
-				return;
-			}	
+
+		//select the best option to postponed
+		if(request.getRate() >= 622)
+		{
+			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
+    	
+			postponedRequests.add(request);
+			request.setPostponeRequest(true);
 			
-			canBeBlock(batch, blockedRequests, request) ;
-//		}
+			return;
+		}	
+		
+		canBeBlocked(batch, blockedRequests, request);
 	}
 	
 	@SuppressWarnings("unused")
 	private void postponeConditionSmallestRate(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
 		
-//		if(runRCSA(request) == 0)
-//		{
-			if(request.getRate() <= 622 && (request.getTime()/request.getDeadline()) <= 0.9f)//smallest bit-rate
+			if(request.getRate() < 622)//smallest bit-rate
 			{
 				System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
 	        	
@@ -166,11 +148,12 @@ public class EarliestDeadlineFirst extends RCSA {
 				return;
 			}
 		
-			canBeBlock(batch, blockedRequests, request);
-//		}
+			canBeBlocked(batch, blockedRequests, request);
 	}
 
+	@SuppressWarnings("unused")
 	private void justPostpone(BatchConnectionRequest batch, Flow request, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests) {
+			
 			System.out.println("postponed: "+request+" time: "+request.getTime() + " deadline: "+request.getDeadline());
 			postponedRequests.add(request);
 	    	request.setPostponeRequest(true);
@@ -198,36 +181,16 @@ public class EarliestDeadlineFirst extends RCSA {
 	 */
 	protected void canBePostpone(BatchConnectionRequest batch, ArrayList<Flow> postponedRequests, ArrayList<Flow> blockedRequests, Flow request)
 	{
-//		||    			(this.numberOfAvailableSlots <= Math.ceil(request.getRate()*0.3f) ) || differenceBeteweenDeadlineAndArrivalTime(cp.getTime(), request.getDeadline()))
-	      
-    	if( request.getDeadline() <= cp.getTime() || request.getDeadline() <= request.getTime() )
+		if( request.getDeadline() <= cp.getTime() || request.getDeadline() <= request.getTime() )
     	{
-    		
-    		canBeBlock(batch, blockedRequests, request) ;
+    		canBeBlocked(batch, blockedRequests, request) ;
         }
         else
         {
-        	/**
-        	 * First-last-fit
-        	 *  batch.largestRate() BBR: 18.502337% blocked = 4.87%
-        	 *  batch.latestFlow BBR: 26.861143% blocked = 10.12%
-        	 *  batch.smallestRate BBR: 31.757801% blocked = 13.570001%
-        	 */
         	justPostpone(batch, request, postponedRequests, blockedRequests);
-        	/**
-        	 * First-last-fit
-        	 * batch.largestRate()BBR: 15.319607% blocked = 3.12%
-        	 * batch.latestFlow BBR: 15.14443% blocked = 3.08%
-        	 * batch.smallestRate BBR: 15.126721% blocked = 2.98%
-        	 */
+        	
 //        	postponeConditionSmallestRate(batch, request, postponedRequests, blockedRequests);
-        	/**
-        	 * First-last-fit
-        	 * batch.largestRate() BBR: 16.134462% blocked= 3.87% 
-        	 * batch.latestFlow BBR: 17.455202% blocked = 4.11%
-        	 * batch.smallestRate BBR: 16.455309% blocked = 3.8% 
-        	 * melhores com 0.2 ou 0.3 melhores resultados
-        	 */
+        
 //        	postponeConditionLargestRate(batch, request, postponedRequests, blockedRequests);
         }
 	}
