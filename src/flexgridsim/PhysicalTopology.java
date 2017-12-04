@@ -259,4 +259,11 @@ public class PhysicalTopology {
         }
         return topo;
     }
+    
+    /**
+     * XT-aware initializing configuration
+     */
+    protected void setMultiCoreFiber() {
+    	this.xt = new XTAwareResourceAllocation(this.getCores(), this.getNumSlots());
+    }
 }

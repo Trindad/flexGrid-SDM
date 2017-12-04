@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <flexgridsim version="0.4">
-    <rsa module="FirstLastFitSlotsRCSA"/>
+    <rsa module="PredefinedCoreClassificationRCSA"/>
 
     <trace file="trace.tr"/>
 
-    <traffic calls="10000" load="100" max-rate="1000">
+    <traffic calls="1" load="100" max-rate="1000">
         <calls holding-time="0.5" rate="125" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="250" cos="1" weight="1"/>
         <calls holding-time="0.5" rate="375" cos="1" weight="1"/>

@@ -16,7 +16,7 @@ import flexgridsim.util.KShortestPaths;
 import flexgridsim.util.WeightedGraph;
 
 /**
- * @author pedrom, trindade
+ * @author pedrom
  *
  */
 public class ImageRCSA implements RSA {

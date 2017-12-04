@@ -1,6 +1,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import flexgridsim.util.Decibel;
 
@@ -23,6 +24,7 @@ public class FlexGridLink {
 	private int distance;
 	private int cores;
 	private double[][] noise;
+	private XTAwareResourceAllocation xt; 
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -66,6 +68,8 @@ public class FlexGridLink {
 					this.noise[i][j]=-100;
 				}
 			}
+			
+			xt = new XTAwareResourceAllocation(this.cores, this.slots);
 		}
 	}
 	
@@ -77,9 +81,6 @@ public class FlexGridLink {
 		for (Slot s : slotList) {
 			this.noise[s.c][s.s]=Decibel.add( ModulationsMuticore.interCoreXT(modulation), ModulationsMuticore.inBandXT[modulation]);
 		}
-		/*
-		 * TODO:implement crosstalk index
-		 */
 	}
 	
 	/**
@@ -88,6 +89,34 @@ public class FlexGridLink {
 	 */
 	public double getNoise(Slot slot) {
 		return noise[slot.c][slot.s];
+	}
+	
+	/**
+	 * 
+	 * @return crosstalk
+	 */
+	public double getXT(int core) {
+		return this.xt.getXT(core);
+	}
+	
+	public void updateCrosstalk(int core) {
+		
+		double n = 0;
+		
+		LinkedList<Integer> adjacent = xt.getAdjacentsCores(core);
+		
+		for(Integer i: adjacent) {
+			
+			for(int j = 0; j < this.slots; j++) {
+				
+				if(reservedSlots[i][j]) {
+					n++;
+					break;
+				}
+			}
+		}
+		
+		this.xt.meanInterCoreCrosstalk(core, n, this.distance);
 	}
 
 	/**
