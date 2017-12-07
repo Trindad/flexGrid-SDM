@@ -24,7 +24,9 @@ public class FlexGridLink {
 	private int distance;
 	private int cores;
 	private double[][] noise;
-	private XTAwareResourceAllocation xt; 
+	private double BFR; //Bandwidth Fragmentation Ration
+	private XTAwareResourceAllocation xt; //considering inter-core cross-talk 
+	private int reserved;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -73,6 +75,10 @@ public class FlexGridLink {
 		}
 	}
 	
+	public int getCores() {
+		return cores;
+	}
+
 	/**
 	 * @param slotList 
 	 * @param modulation 
@@ -96,9 +102,14 @@ public class FlexGridLink {
 	 * @return crosstalk
 	 */
 	public double getXT(int core) {
+		
 		return this.xt.getXT(core);
 	}
 	
+	/**
+	 * Update the XT 
+	 * @param core
+	 */
 	public void updateCrosstalk(int core) {
 		
 		double n = 0;
@@ -109,7 +120,7 @@ public class FlexGridLink {
 			
 			for(int j = 0; j < this.slots; j++) {
 				
-				if(reservedSlots[i][j]) {
+				if(reservedSlots[i][j] && reservedSlots[core][j]) {
 					n++;
 					break;
 				}
@@ -117,6 +128,26 @@ public class FlexGridLink {
 		}
 		
 		this.xt.meanInterCoreCrosstalk(core, n, this.distance);
+		
+		if(this.cores == 7) 
+		{
+			n = 0;
+			adjacent = xt.getAdjacentsCores(this.cores-1);
+			
+			for(Integer i: adjacent) {
+				
+				for(int j = 0; j < this.slots; j++) {
+					
+					//cross-talk between two adjacent cores
+					if(reservedSlots[i][j] && reservedSlots[core][j]) {
+						n++;
+						break;
+					}
+				}
+			}
+			
+			this.xt.meanInterCoreCrosstalk(core, n, this.distance);
+		}
 	}
 
 	/**
@@ -490,6 +521,50 @@ public class FlexGridLink {
 			}	
 			System.out.println();
 		}
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean bandwidthDefragmentationIsNecessary() {
+		
+		BFR = 1.0f - (maxBlock() / ( (this.cores * this.slots) - this.reserved)) ;
+		
+		return false;
+	}
+
+	private int maxBlock() {
+		
+		int max = 0, last = 0;
+		last = max;
+		
+		for(int i = 0; i < this.cores; i++) {
+			for(int j = 0; j < this.slots; j++) {
+				if(!reservedSlots[i][j]) {
+					max++;
+				}
+				else {
+					max = 0;
+				}
+			}
+			
+			if(max > last) {
+				last = max;
+			}
+			
+			max = 0;
+		}
+		
+		return last;
+	}
+
+	public double getBFR() {
+		return BFR;
+	}
+
+	public void setBFR(double n) {
+		BFR = n;
 	}
 
 }

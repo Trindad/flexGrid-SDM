@@ -33,6 +33,11 @@ public class ControlPlane implements ControlPlaneForRSA {
     
     private EventScheduler eventScheduler;
     SetOfBatches batches;
+    
+	private static int TH = 300;// defragmentation is triggered when the number exceeds a preset threshold TH
+	private int nExceeds = 0;
+	private String defragmentationAlgorithm;
+	private double FR;
 
 
 	/**
@@ -131,11 +136,36 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
 	            rsa.flowDeparture(removedFlow);
+	            
+	            nExceeds++;
+	            
+	            //Defragmentation
+	            if(this.nExceeds > TH && !defragmentationAlgorithm.isEmpty()) {
+	            	
+	            	this.getFragmentationRatio();
+	            	this.nExceeds = 0;
+	            }
 	        }
 	    }
     }
 
-    public double getTime() {
+    private void getFragmentationRatio() {
+		
+    	this.FR = 0.0f;
+    	
+    	int E = pt.getNumLinks();
+    	
+    	double FRi = 0.0f;
+    	
+    	for(int i = 0; i < E; i++) {
+    		double nSlots = (pt.getLink(i).getSlots()*pt.getLink(i).getCores());
+    		FRi += (nSlots - pt.getLink(i).getNumFreeSlots()) / nSlots;
+    	}
+    	
+    	this.FR = FRi/E;
+	}
+
+	public double getTime() {
 		return time;
 	}
 
@@ -486,6 +516,14 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 */
 	public void setCostMKP(boolean costMKP) {
 		this.costMKP = costMKP;
+	}
+
+	public int getFragmentationThreshold() {
+		return TH;
+	}
+
+	public void setFragmentationThreshold(int fragmentationThreshold) {
+		this.TH = fragmentationThreshold;
 	}
 
 }

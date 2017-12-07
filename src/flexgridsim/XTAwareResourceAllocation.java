@@ -16,7 +16,6 @@ public class XTAwareResourceAllocation {
 	protected int numberOfCoresAvailable;
 	protected int []availableSlots;
 	protected double []meanXT;
-	private int crosstalkThreshold = -32;//in db
 	
 	public XTAwareResourceAllocation(int numberOfCores, int numberOfCoresAvailable) {
 		super();
@@ -42,11 +41,6 @@ public class XTAwareResourceAllocation {
 		double xt = ( ( n - n * Math.exp(exponential) ) / (1.0f + n * Math.exp(exponential) ) );
 		
 		return xt;
-	}
-	
-	public int getCrosstalkThreshold() {
-		
-		return crosstalkThreshold;
 	}
 	
 	static class Graph

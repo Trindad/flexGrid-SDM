@@ -27,7 +27,8 @@ public class PhysicalTopology {
     private OXC[] nodeVector;
     private FlexGridLink[] linkVector;
     private FlexGridLink[][] adjMatrix;
-    
+
+	private int crosstalkThreshold = -32;//in db
     
     /**
      * Creates a new PhysicalTopology object.
@@ -260,10 +261,19 @@ public class PhysicalTopology {
         return topo;
     }
     
-    /**
-     * XT-aware initializing configuration
-     */
-    protected void setMultiCoreFiber() {
-    	this.xt = new XTAwareResourceAllocation(this.getCores(), this.getNumSlots());
-    }
+	public double getSumOfMeanCrosstalk(int[] links) {
+
+		double xt = 0.0f;
+		
+		for(int i = 0; i < links.length; i++) {
+			
+			xt += this.getLink(i).getXT(this.cores-1);
+			
+			if(xt > crosstalkThreshold) {
+				return 1.0f;
+			}
+		}
+		
+		return xt;
+	}
 }

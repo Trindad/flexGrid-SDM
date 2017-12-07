@@ -131,9 +131,6 @@ public class ImageRCSA implements RSA {
 		if (id >= 0) {
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
-//			System.out.println("*************SLOT**************");
-//			System.out.println(slotList);
-//			System.out.println("*************FIN**************");
 			flow.setSlotList(slotList);
 			cp.acceptFlow(flow.getID(), lps);
 			return true;
