@@ -141,6 +141,10 @@ public class Flow {
         return cos;
     }
     
+    
+    public String getLinksInStringFormat() {
+    	return  links.toString();
+    }
 
     
     /**

@@ -33,19 +33,12 @@ public class ControlPlane implements ControlPlaneForRSA {
     
     private EventScheduler eventScheduler;
     SetOfBatches batches;
-    
-	private static int TH = 300;// defragmentation is triggered when the number exceeds a preset threshold TH
-	private int nExceeds = 0;
-	private String defragmentationAlgorithm;
-	private double FR;
-
-
 	/**
 	 * Creates a new ControlPlane object.
 	 *
 	 * @param xml the xml
 	 * @param eventScheduler the event scheduler
-	 * @param rsaModule the name of the RWA class
+	 * @param rsaModule the name of the RCSA class
 	 * @param pt the network's physical topology
 	 * @param vt the network's virtual topology
 	 * @param traffic the traffic
@@ -91,15 +84,11 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
-//    		System.out.println("******************"+time+" "+event.getTime()+"*********************");
-        	
         	if(event instanceof DeadlineEvent)
         	{	
         		
         		try 
-        		{
-//        			System.out.println("Deadline event "+ ((DeadlineEvent)event).getBatch().getSource() + " "+ ((DeadlineEvent)event).getBatch().getDestination() );
-        			
+        		{	
             		( (EarliestDeadlineFirst) rsa).deadlineArrival( ((DeadlineEvent)event).getBatch() );	
 				} 
         		catch (Exception e)
@@ -113,8 +102,6 @@ public class ControlPlane implements ControlPlaneForRSA {
         		{
         			batches.addFlow( ((FlowArrivalEvent) event).getFlow() );
             		newFlow(((FlowArrivalEvent) event).getFlow());
-//            		System.out.println(((FlowArrivalEvent) event).getFlow());
-            		
                 	( (EarliestDeadlineFirst) rsa).deadlineArrival( batches.getBatch(((FlowArrivalEvent) event).getFlow().getSource(), ((FlowArrivalEvent) event).getFlow().getDestination()));	
                 	
 				} 
@@ -136,22 +123,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
 	            rsa.flowDeparture(removedFlow);
-	            
-	            nExceeds++;
-	            
-	            //Defragmentation
-	            if(this.nExceeds > TH && !defragmentationAlgorithm.isEmpty()) {
-	            	
-	            	this.getFragmentationRatio();
-	            	this.nExceeds = 0;
-	            }
+	        }
+	        else if (event instanceof DefragmentationEvent) 
+	        {
+	        	rsa.setDeFragmentation(true, ((DefragmentationEvent) event).getPath());	
 	        }
 	    }
     }
 
-    private void getFragmentationRatio() {
-		
-    	this.FR = 0.0f;
+    @SuppressWarnings("unused")
+	private double getFragmentationRatio() {
     	
     	int E = pt.getNumLinks();
     	
@@ -162,7 +143,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     		FRi += (nSlots - pt.getLink(i).getNumFreeSlots()) / nSlots;
     	}
     	
-    	this.FR = FRi/E;
+    	return (FRi/E);
 	}
 
 	public double getTime() {
@@ -516,14 +497,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 */
 	public void setCostMKP(boolean costMKP) {
 		this.costMKP = costMKP;
-	}
-
-	public int getFragmentationThreshold() {
-		return TH;
-	}
-
-	public void setFragmentationThreshold(int fragmentationThreshold) {
-		this.TH = fragmentationThreshold;
 	}
 
 }
