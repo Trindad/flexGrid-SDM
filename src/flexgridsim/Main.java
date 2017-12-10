@@ -4,8 +4,6 @@
  */
 package flexgridsim;
 
-import flexgridsim.util.JythonCaller;
-
 /**
  * The Main class takes care of the execution of the simulator, which includes
  * dealing with the arguments called (or not) on the command line.
@@ -25,11 +23,7 @@ public class Main {
 	 *            the command line arguments
 	 */
 	public static void main(String[] args) {
-		JythonCaller caller = new JythonCaller();
-		caller.divide();
-		caller.multiply();
 		
-		/*
 		Simulator flexgridsim;
 		String usage = "Usage: flexgridsim simulation_file seed [-trace] [-verbose] [minload maxload step]";
 		String simConfigFile;
@@ -79,7 +73,5 @@ public class Main {
 			flexgridsim = new Simulator();
 			flexgridsim.Execute(simConfigFile, trace, verbose, load, seed);
 		}
-		
-		*/
 	}
 }

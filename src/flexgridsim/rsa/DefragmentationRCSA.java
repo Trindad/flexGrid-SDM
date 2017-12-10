@@ -1,15 +1,18 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
+import com.sun.scenario.effect.light.Light;
 
 import flexgridsim.Flow;
+import flexgridsim.LightPath;
 import flexgridsim.Slot;
-import flexgridsim.util.KShortestPaths;
+import flexgridsim.util.JythonCaller;
 
-//import org.jython.book.interfaces.BuildingType;
-//import org.python.core.PyObject;
-//import org.python.core.PyString;
-//import org.python.util.PythonInterpreter;
+import flexgridsim.util.JythonCaller;
 
 /**
  * 
@@ -18,40 +21,102 @@ import flexgridsim.util.KShortestPaths;
  */
 public class DefragmentationRCSA extends SCVCRCSA{
 
-	/**
-	 * Traditional algorithm RCSA using First-fit 
-	 * @param Flow
-	 */
-	public void flowArrival(Flow flow) {
+	Map<Long, ArrayList<Flow>> clusters;
+	
+	public void runDeFragmentation() {
 		
-		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 3);
+		ArrayList<Flow> flows = this.filteringRequest();
+		int k = 3;
 		
-		if(kPaths.length >= 1)
-		{
-			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		this.runKMeans(this.getFeatures(flows), k);
+		
+		this.getClusters();
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		pt.resetAllSpectrum();
+
+		//re-assigned resources in the same link, but using clustering
+		for(Long key: clusters.keySet()) {
 			
-			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
-			
-			for (int k = 0; k < kPaths.length; k++) {
+			for(Flow flow: clusters.get(key)) {
+				
+				int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
 				
 				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
 				
-				int[] links = new int[kPaths[k].length - 1];
-				
-				for (int j = 0; j < kPaths[k].length - 1; j++) {
-					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
+				for (int j = 0; j < (flow.getLinks().length - 1); j++) {
+					
+					bitMap(pt.getLink(flow.getLinks()[j], flow.getLinks()[j+1]).getSpectrum(), spectrum, spectrum);
 				}
 				
-				ArrayList<Slot> slotList = fitConnection(spectrum, links, demandInSlots, 0);
+				ArrayList<Slot> slotList = fitConnection(spectrum, flow.getLinks(), demandInSlots, 0);
 				
-		    	if(establishConnection(links, slotList, 0, flow)) {
+				if(establishConnection(flow.getLinks(), slotList, 0, flow)) {
 					return;
 				}
 			}
 		}
-		
-		cp.blockFlow(flow.getID());
 	}
+	
+	public ArrayList<Slot> fitConnection(boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
+		
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		double xt = pt.getSumOfMeanCrosstalk(links);//returns the sum of cross-talk
+		int []cores = this.getCoreOfCluster(demandInSlots);
+		
+		if(xt < 1) 
+		{	
+			for(int i = 0; i < cores.length; i++) {
+				
+				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
+				
+				if(fittedSlotList.size() == demandInSlots) {
+						break;
+				}
+				
+				fittedSlotList.clear();
+			}
+		}
+		
+		return fittedSlotList;
+	}
+	
+	private int[] getCoreOfCluster(int demandInSlots) {
+		
+		return null;
+	}
+
+	private void getClusters() {
+		this.clusters = new HashMap<Long, ArrayList<Flow>>();
+		
+	}
+
+	private ArrayList<Flow> filteringRequest() {
+		
+		ArrayList<Flow> flows = new ArrayList<Flow>();
+		
+		return flows;
+	}
+	
+	private double[][]getFeatures(ArrayList<Flow> flows) {
+		
+		double[][] features = new double[flows.size()][2];
+		int i = 0;
+		
+		for(Flow f: flows) {
+			
+			features[i][0] = f.getDuration();
+			features[i][1] = f.getRate();
+			
+			i++;
+		}
+		
+		return features;
+	}
+
+	private void runKMeans(double [][]features, int k) {
+		
+		JythonCaller caller = new JythonCaller();
+		caller.kmeans(features, k);
+	}
+
 }

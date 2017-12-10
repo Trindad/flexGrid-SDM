@@ -100,7 +100,7 @@ public class SCVCRCSA implements RSA{
 	 * @param spectrum 
 	 * @return list of available slots
 	 */
-	private ArrayList<Slot> FirstFitPolicy(boolean []spectrum, int core, int[] links, int demandInSlots) {
+	protected ArrayList<Slot> FirstFitPolicy(boolean []spectrum, int core, int[] links, int demandInSlots) {
 		
 		ArrayList<Slot> setOfSlots = new ArrayList<Slot>();
 		
@@ -183,6 +183,12 @@ public class SCVCRCSA implements RSA{
 
 	@Override
 	public void flowDeparture(Flow flow) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void runDefragmentantion() {
 		// TODO Auto-generated method stub
 		
 	}

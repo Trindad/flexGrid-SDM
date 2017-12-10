@@ -7,18 +7,18 @@ package flexgridsim;
  */
 public class DefragmentationEvent extends Event{
 	
-	private String path;
+	private LightPath path;
 
-	public DefragmentationEvent(double time, String path) {
+	public DefragmentationEvent(double time, LightPath path) {
 		super(time);
 		this.path = path;
 	}
 
-	public String getPath() {
+	public LightPath getPath() {
 		return path;
 	}
 
-	public void setPath(String path) {
+	public void setPath(LightPath path) {
 		this.path = path;
 	}
 

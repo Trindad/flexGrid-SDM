@@ -137,4 +137,10 @@ public class InscribedRectangleRCSA implements RSA {
 
 	}
 
+	@Override
+	public void runDefragmentantion() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

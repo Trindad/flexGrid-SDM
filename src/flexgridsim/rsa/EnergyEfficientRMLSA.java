@@ -250,4 +250,10 @@ public class EnergyEfficientRMLSA implements RSA {
 			return bestModulationLevel;
 		}
 	}
+
+	@Override
+	public void runDefragmentantion() {
+		// TODO Auto-generated method stub
+		
+	}
 }

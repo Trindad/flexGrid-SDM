@@ -27,6 +27,7 @@ public class FlexGridLink {
 	private double BFR; //Bandwidth Fragmentation Ration
 	private XTAwareResourceAllocation xt; //considering inter-core cross-talk 
 	private int reserved;
+	private boolean isBlocked = false;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -168,6 +169,21 @@ public class FlexGridLink {
 			}
 		}
 		return freeSlots;
+	}
+	
+	/**
+	 * reset the slots 
+	 * @return
+	 */
+	public void resetSpectrum() {
+		
+		for (int i = 0; i < cores; i++) {
+			this.modulationLevel[i] = 0;
+			for (int j = 0; j < slots; j++) {
+				this.reservedSlots[i][j] = false;
+				this.noise[i][j]=-100;
+			}
+		}
 	}
 	
 	/**
@@ -565,6 +581,14 @@ public class FlexGridLink {
 
 	public void setBFR(double n) {
 		BFR = n;
+	}
+
+	public boolean isBlocked() {
+		return isBlocked;
+	}
+
+	public void setBlocked(boolean isBlocked) {
+		this.isBlocked = isBlocked;
 	}
 
 }

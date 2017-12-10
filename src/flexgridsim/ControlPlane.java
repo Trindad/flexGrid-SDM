@@ -126,7 +126,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if (event instanceof DefragmentationEvent) 
 	        {
-	        	rsa.setDeFragmentation(true, ((DefragmentationEvent) event).getPath());	
+	        	rsa.runDefragmentantion();
 	        }
 	    }
     }

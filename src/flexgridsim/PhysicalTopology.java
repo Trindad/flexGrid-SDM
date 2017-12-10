@@ -276,4 +276,12 @@ public class PhysicalTopology {
 		
 		return xt;
 	}
+
+	public void resetAllSpectrum() {
+		
+		for(int i = 0; i < linkVector.length; i++) {
+			this.getLink(i).resetSpectrum();
+		}
+		
+	}
 }

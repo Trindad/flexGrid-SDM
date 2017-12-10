@@ -46,11 +46,6 @@ public interface RSA {
      */
     public void flowDeparture(Flow flow);
 
-    /**
-     * 
-     * @param startDefragmentation
-     * @param path
-     */
-	public void setDeFragmentation(boolean startDefragmentation, String path);
+	public void runDefragmentantion();
 
 }

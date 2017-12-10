@@ -1,6 +1,7 @@
 package flexgridsim.util;
 
 import org.python.core.Py;
+import org.python.core.PyArray;
 import org.python.core.PyClass;
 import org.python.core.PyInteger;
 import org.python.core.PyObject;
@@ -27,21 +28,14 @@ public class JythonCaller {
     	engineSys.path.append(Py.newString("src/python"));
         pythonInterpreter = new PythonInterpreter(null, engineSys);
     }
-    
-    public void divide() {
-    	pythonInterpreter.exec("from divider import Divider");
-        PyClass dividerDef = (PyClass) pythonInterpreter.get("Divider");
+
+	public void kmeans(double [][]features, int k) {
+		pythonInterpreter.exec("from divider import KMeans");
+        PyClass dividerDef = (PyClass) pythonInterpreter.get("KMeans");
         PyObject divider = dividerDef.__call__();
-        PyObject pyObject = divider.invoke("divide",new PyInteger(20),new PyInteger(4));
-        System.out.println(pyObject.toString());
-    }
-    
-    public void multiply() {
-    	pythonInterpreter.exec("from divider import Divider");
-        PyClass dividerDef = (PyClass) pythonInterpreter.get("Divider");
-        PyObject divider = dividerDef.__call__();
-        PyObject []args = { new PyInteger(20), new PyInteger(4), new PyInteger(100) };
-        PyObject pyObject = divider.invoke("multiply",args);
-        System.out.println(pyObject.toString());
-    }
+        PyArray xy = new PyArray(Double.class, features);
+        PyObject []args = { xy, new PyInteger(k) };
+        PyObject pyObject = divider.invoke("kmeans",args);
+        System.out.println(pyObject.toString());	
+	}
 }
