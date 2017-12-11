@@ -29,13 +29,15 @@ public class JythonCaller {
         pythonInterpreter = new PythonInterpreter(null, engineSys);
     }
 
-	public void kmeans(double [][]features, int k) {
-		pythonInterpreter.exec("from divider import KMeans");
-        PyClass dividerDef = (PyClass) pythonInterpreter.get("KMeans");
-        PyObject divider = dividerDef.__call__();
+	public String[] kmeans(double [][]features, int k) {
+		pythonInterpreter.exec("from kmeans import KMeans");
+        PyClass kmeansDef = (PyClass) pythonInterpreter.get("KMeans");
+        PyObject kmeans = kmeansDef.__call__();
         PyArray xy = new PyArray(Double.class, features);
         PyObject []args = { xy, new PyInteger(k) };
-        PyObject pyObject = divider.invoke("kmeans",args);
-        System.out.println(pyObject.toString());	
+        PyObject pyObject = kmeans.invoke("kmeans",args);
+        pyObject.getType();
+        
+        return pyObject.toString().split("-");	
 	}
 }

@@ -19,23 +19,22 @@ import flexgridsim.util.JythonCaller;
  * @author trindade
  *
  */
-public class DefragmentationRCSA extends SCVCRCSA{
+public class DefragmentationRCSA extends SCVCRCSA {
 
-	Map<Long, ArrayList<Flow>> clusters;
+	private Map<Integer, ArrayList<Flow> > clusters;
+	private static int k = 3;//number of clusters
 	
 	public void runDeFragmentation() {
 		
-		ArrayList<Flow> flows = this.filteringRequest();
-		int k = 3;
+		Map<Flow, LightPath> flows = cp.getMappedFlows();
 		
-		this.runKMeans(this.getFeatures(flows), k);
+		this.runKMeans(k, flows);
 		
-		this.getClusters();
 		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 		pt.resetAllSpectrum();
 
 		//re-assigned resources in the same link, but using clustering
-		for(Long key: clusters.keySet()) {
+		for(Integer key: clusters.keySet()) {
 			
 			for(Flow flow: clusters.get(key)) {
 				
@@ -85,38 +84,56 @@ public class DefragmentationRCSA extends SCVCRCSA{
 		return null;
 	}
 
-	private void getClusters() {
-		this.clusters = new HashMap<Long, ArrayList<Flow>>();
-		
-	}
-
-	private ArrayList<Flow> filteringRequest() {
-		
-		ArrayList<Flow> flows = new ArrayList<Flow>();
-		
-		return flows;
-	}
-	
-	private double[][]getFeatures(ArrayList<Flow> flows) {
+	private double[][]getFeatures(Map<Flow, LightPath> flows) {
 		
 		double[][] features = new double[flows.size()][2];
+		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
+		
 		int i = 0;
 		
-		for(Flow f: flows) {
+		for(Flow f: flows.keySet()) {
 			
 			features[i][0] = f.getDuration();
 			features[i][1] = f.getRate();
 			
+			listOfFlows.add(f);
 			i++;
 		}
 		
 		return features;
 	}
 
-	private void runKMeans(double [][]features, int k) {
+	private void runKMeans(int k, Map<Flow, LightPath> flows) {
+		
+		double[][] features = new double[flows.size()][2];
+		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
+		
+		int i = 0;
+		
+		for(Flow f: flows.keySet()) {
+			
+			features[i][0] = f.getDuration();
+			features[i][1] = f.getRate();
+			
+			listOfFlows.add(f);
+			i++;
+		}
 		
 		JythonCaller caller = new JythonCaller();
-		caller.kmeans(features, k);
+		String []labels = caller.kmeans(features, k);
+		
+		this.clusters = new HashMap<Integer, ArrayList<Flow> >();
+		
+		for(i = 0; i < k; i++) {
+			
+			clusters.put(i, null);
+			
+		}
+		
+		for(i = 0; i < labels.length; i++) {
+			
+			clusters.get(Integer.parseInt(labels[i])).add(listOfFlows.get(i));
+		}
 	}
 
 }

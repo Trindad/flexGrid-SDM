@@ -16,8 +16,9 @@ class KMeans:
         centroids = kmeans.cluster_centers_
         labels = kmeans.labels_
 
-        print(centroids)
-        print(labels)
+        str_labels = '-'.join(labels)
+        return str_labels
+
     #Plot graffic 
     def plotGraphic(self, labels, X, centroids):
         colors = ["g.", "r."]
