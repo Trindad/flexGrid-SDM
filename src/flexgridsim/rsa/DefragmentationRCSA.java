@@ -1,5 +1,6 @@
 package flexgridsim.rsa;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,13 +55,15 @@ public class DefragmentationRCSA extends SCVCRCSA {
 	public ArrayList<Slot> fitConnection(boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = pt.getSumOfMeanCrosstalk(links);//returns the sum of cross-talk
-		int []cores = this.getCoreOfCluster(demandInSlots);
 		
-		if(xt < 1) 
-		{	
-			for(int i = 0; i < cores.length; i++) {
-				
+		int []cores = this.getCoreOfCluster(demandInSlots);
+		BigDecimal xt = new BigDecimal(0.0f);
+	
+		for(int i = 0; i < cores.length; i++) {
+			xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk
+			
+			if(xt.compareTo( new BigDecimal(0) ) <= 0) 
+			{	
 				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
 				
 				if(fittedSlotList.size() == demandInSlots) {

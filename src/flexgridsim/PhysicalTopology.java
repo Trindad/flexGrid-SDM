@@ -4,6 +4,7 @@
  */
 package flexgridsim;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.w3c.dom.*;
@@ -15,7 +16,7 @@ import flexgridsim.util.WeightedGraph;
  * on a network, or to the way that the devices on a network are arranged and
  * how they communicate with each other.
  * 
- * @author andred, pedrom
+ * @author andred, pedrom, trindade
  */
 public class PhysicalTopology {
 
@@ -28,7 +29,7 @@ public class PhysicalTopology {
     private FlexGridLink[] linkVector;
     private FlexGridLink[][] adjMatrix;
 
-	private double crosstalkThreshold = -32;//in db
+	private BigDecimal crosstalkThreshold = new BigDecimal(-14);//in db
     
     /**
      * Creates a new PhysicalTopology object.
@@ -261,17 +262,17 @@ public class PhysicalTopology {
         return topo;
     }
     
-	public double getSumOfMeanCrosstalk(int[] links) {
+	public BigDecimal getSumOfMeanCrosstalk(int[] links, int coreIndex) {
 
-		double xt = 0.0f;
+		BigDecimal xt = new BigDecimal(0.0f);
 		
 		for(int i = 0; i < links.length; i++) {
 			
-			xt += this.getLink(i).getXT(this.cores-1);
-			System.out.println(xt);
+			xt = xt.add( this.getLink(i).getXT(coreIndex) );
 			
-			if(xt < crosstalkThreshold) {
-				return 1;
+			if(xt.compareTo(this.crosstalkThreshold) < 0) {
+				System.out.println("ULTRAPASSOU");
+				return new BigDecimal(1.0f);
 			}
 		}
 		
@@ -283,6 +284,5 @@ public class PhysicalTopology {
 		for(int i = 0; i < linkVector.length; i++) {
 			this.getLink(i).resetSpectrum();
 		}
-		
 	}
 }

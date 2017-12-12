@@ -1,5 +1,6 @@
 package flexgridsim.rsa;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.w3c.dom.Element;
@@ -76,8 +77,8 @@ public class SCVCRCSA implements RSA{
 				
 				ArrayList<Slot> slotList = fitConnection(spectrum, links, demandInSlots, 0);
 				
-		    	if(establishConnection(links, slotList, 0, flow)) {
-					return;
+		    	if(!slotList.isEmpty()) {
+					if(establishConnection(links, slotList, 0, flow)) return;
 				}
 			}
 		}
@@ -112,13 +113,11 @@ public class SCVCRCSA implements RSA{
 		ArrayList<Slot> setOfSlots = new ArrayList<Slot>();
 		
 		if (spectrum.length >= demandInSlots) {
-			
-			
+
 			for(int i = 0; i < spectrum.length; i++) {
 				
 				if(spectrum[i] == true) {
-
-//					System.out.println("Here");
+					
 					setOfSlots.add( new Slot(core,i) );
 				}
 				else
@@ -144,17 +143,19 @@ public class SCVCRCSA implements RSA{
 	public ArrayList<Slot> fitConnection(boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = pt.getSumOfMeanCrosstalk(links);//returns the sum of cross-talk
-		System.out.println("XT: "+xt);
-		
-		if(xt <= 0) {
-			
-			for (int i = 0; i < spectrum.length; i++) {
+		BigDecimal xt = new BigDecimal(0.0f);
 				
+		for (int i = 0; i < spectrum.length; i++) {
+			
+			xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
+			System.out.println("XT: "+xt+ "c:"+xt.compareTo(new BigDecimal(0)));
+			if(xt.compareTo(new BigDecimal(0)) <= 0) {
+
 				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
 				
 				if(fittedSlotList.size() == demandInSlots) {
 					
+					System.out.println(fittedSlotList);
 					return fittedSlotList;
 				}
 				
@@ -189,8 +190,14 @@ public class SCVCRCSA implements RSA{
 			flow.setLinks(links);
 			flow.setSlotList(slotList);
 			
+			//update cross-talk
 			cp.acceptFlow(flow.getID(), lps);
-			System.out.println("Connection accepted");
+			
+			for(int i = 0; i < links.length; i++) {
+				pt.getLink(links[i]).updateCrosstalk();
+			}
+			
+			System.out.println("Connection accepted:"+flow);
 			return true;
 		} 
 		else 

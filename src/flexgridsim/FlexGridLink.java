@@ -1,5 +1,6 @@
 package flexgridsim;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -102,52 +103,56 @@ public class FlexGridLink {
 	 * 
 	 * @return crosstalk
 	 */
-	public double getXT(int core) {
+	public BigDecimal getXT(int core) {
 		
-		return this.xt.getXT(core);
+		BigDecimal temp = this.xt.getXT(core);
+		return temp;
 	}
 	
 	/**
 	 * Update the XT 
-	 * @param core
 	 */
-	public void updateCrosstalk(int core) {
+	public void updateCrosstalk() {
 		
 		double n = 0;
 		
-		LinkedList<Integer> adjacent = xt.getAdjacentsCores(core);
-		
-		for(Integer i: adjacent) {
+		for(int k = 0; k < this.cores; k++) {
 			
-			for(int j = 0; j < this.slots; j++) {
-				
-				if(reservedSlots[i][j] && reservedSlots[core][j]) {
-					n++;
-					break;
-				}
-			}
-		}
-		
-		this.xt.meanInterCoreCrosstalk(core, n, this.distance);
-		
-		if(this.cores == 7) 
-		{
-			n = 0;
-			adjacent = xt.getAdjacentsCores(this.cores-1);
+			LinkedList<Integer> adjacent = xt.getAdjacentsCores(k);
 			
 			for(Integer i: adjacent) {
 				
 				for(int j = 0; j < this.slots; j++) {
 					
-					//cross-talk between two adjacent cores
-					if(reservedSlots[i][j] && reservedSlots[core][j]) {
+					if(reservedSlots[i][j] && reservedSlots[k][j]) {
 						n++;
 						break;
 					}
 				}
 			}
 			
-			this.xt.meanInterCoreCrosstalk(core, n, this.distance);
+//			this.xt.meanInterCoreCrosstalk(k, n, this.distance);
+			this.xt.meanInterCoreCrosstalk(k, adjacent.size(), this.distance);
+			
+			if(this.cores == 7) 
+			{
+				n = 0;
+				adjacent = xt.getAdjacentsCores(this.cores-1);
+				
+				for(Integer i: adjacent) {
+					
+					for(int j = 0; j < this.slots; j++) {
+						
+						//cross-talk between two adjacent cores
+						if(reservedSlots[i][j] && reservedSlots[k][j]) {
+							n++;
+							break;
+						}
+					}
+				}
+				
+				this.xt.meanInterCoreCrosstalk(k, n, this.distance);
+			}
 		}
 	}
 

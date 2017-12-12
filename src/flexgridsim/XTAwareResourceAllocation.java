@@ -1,28 +1,35 @@
 package flexgridsim;
 
+import java.math.BigDecimal;
 import java.util.LinkedList;
 
 public class XTAwareResourceAllocation {
 	
 	//parameters to calculate mean inter-core crosstalk
+	//Data: Resource Allocation for Space-Division Multiplexing: Optical White Box Versus Optical Black Box Networking
 	private static final double B = 4.0f*Math.pow(10.0f,6);//Propagation constant
-	private static final double R = 0.055f;//Bending radius
-	private static final double corePitch = 4.5f * Math.pow(10.0f, -5);
-	private static final double k = 3.16f * Math.pow(10.0f, -5);//Coupling coefficient and modulation format is fixed
+	private static final double R = 0.05f;//Bending radius
+	private static final double corePitch = 4f * Math.pow(10.0f, -5);
+	private static final double k = 4f * Math.pow(10.0f, -4);//Coupling coefficient and modulation format is fixed
 	
 	private Graph cores;
 	
 	protected int numberOfCores;
 	protected int numberOfCoresAvailable;
 	protected int []availableSlots;
-	protected double []meanXT;
+	protected BigDecimal []meanXT;
 	
 	public XTAwareResourceAllocation(int numberOfCores, int numberOfCoresAvailable) {
-		super();
+
 		this.numberOfCores = numberOfCores;
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 		
-		this.meanXT = new double[this.numberOfCores];
+		this.meanXT = new BigDecimal[this.numberOfCores];
+		
+		for(int i = 0; i < this.numberOfCores; i++) {
+			this.meanXT[i] = new BigDecimal(0);
+		}
+		
 		this.createGraph();
 	}
 	
@@ -34,13 +41,17 @@ public class XTAwareResourceAllocation {
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 	}
 	
-	protected double meanInterCoreCrosstalk(int core, double n, double L) {
+	protected BigDecimal meanInterCoreCrosstalk(int core, double n, double L) {
+//		System.out.println("nAdj: "+ n);
+		double h = ((k * k) / B) * (R / corePitch);
+		double exponential = (-1 * (n + 1)) * 2 * h * L;
+		System.out.println(h + " " + exponential + " " + Math.exp(exponential));
 		
-		double h = (2.0f*Math.pow(k, 2) * R) / (Math.pow(B, 1) * corePitch);
-		double exponential = (-1.0f * (n + 1.0f)) * h * L;
-		double xt = ( ( n - n * Math.exp(exponential) ) / (1.0f + n * Math.exp(exponential) ) );
-		this.meanXT[core] = xt;
-		return xt;
+		double xt = ( n - n * Math.exp(exponential) ) / ( 1.0f + n * Math.exp(exponential) );
+
+		this.meanXT[core] = new BigDecimal( 10.0f * Math.log10(xt)/Math.log10(10) );
+		
+		return this.meanXT[core];
 	}
 	
 	static class Graph
@@ -101,15 +112,14 @@ public class XTAwareResourceAllocation {
 		//create a graph based in 7-core (star)
 		if(numberOfCores == 7) 
 		{
-			for(int i = 0; i < numberOfCores; i++) {
+			for(int i = 1; i < numberOfCores; i++) {
 				Graph.addEdge(cores, 0, i);
 			}
 			
 			Graph.addEdge(cores, 1, numberOfCores-1);
 
-			for(int i = 2; i < numberOfCores-1; i++) {
+			for(int i = 1; i < numberOfCores-1; i++) {
 				
-				Graph.addEdge(cores, i-1, i);
 				Graph.addEdge(cores, i, i+1);
 			}
 		}
@@ -119,9 +129,10 @@ public class XTAwareResourceAllocation {
 				Graph.addEdge(cores, i-1, i);
 			}
 			
-			Graph.addEdge(cores, 0, numberOfCores-1);
+			Graph.addEdge(cores, 0, numberOfCores);
 		}
 		
+		Graph.printGraph(cores);
 	}
 	
 	protected LinkedList<Integer> getAdjacentsCores(int index) {
@@ -129,8 +140,8 @@ public class XTAwareResourceAllocation {
 		return cores.adjListArray[index];
 	}
 
-	public double getXT(int core) {
+	public BigDecimal getXT(int core) {
 		
-		return meanXT[core];
+		return this.meanXT[core];
 	}
 }
