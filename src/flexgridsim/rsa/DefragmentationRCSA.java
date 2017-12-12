@@ -4,14 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
-import com.sun.scenario.effect.light.Light;
-
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.Slot;
-import flexgridsim.util.JythonCaller;
-
 import flexgridsim.util.JythonCaller;
 
 /**
@@ -82,25 +77,6 @@ public class DefragmentationRCSA extends SCVCRCSA {
 	private int[] getCoreOfCluster(int demandInSlots) {
 		
 		return null;
-	}
-
-	private double[][]getFeatures(Map<Flow, LightPath> flows) {
-		
-		double[][] features = new double[flows.size()][2];
-		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
-		
-		int i = 0;
-		
-		for(Flow f: flows.keySet()) {
-			
-			features[i][0] = f.getDuration();
-			features[i][1] = f.getRate();
-			
-			listOfFlows.add(f);
-			i++;
-		}
-		
-		return features;
 	}
 
 	private void runKMeans(int k, Map<Flow, LightPath> flows) {

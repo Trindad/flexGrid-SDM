@@ -33,7 +33,12 @@ public class ControlPlane implements ControlPlaneForRSA {
     
     private EventScheduler eventScheduler;
     SetOfBatches batches;
-	/**
+    
+    private int nExceeds = 0;
+    private static double TH = 0.5;
+    private boolean DFR = false;
+	
+    /**
 	 * Creates a new ControlPlane object.
 	 *
 	 * @param xml the xml
@@ -43,7 +48,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param vt the network's virtual topology
 	 * @param traffic the traffic
 	 */
-    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String costMultipleKnapsackPloblem, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
+    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String defragmentation, String costMultipleKnapsackPloblem, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
         @SuppressWarnings("rawtypes")
 		Class RSAClass;
         mappedFlows = new HashMap<Flow, LightPath>();
@@ -57,6 +62,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         this.setRsaAlgorithm(rsaAlgorithm);
         if(costMultipleKnapsackPloblem.equals("true") == true) this.setCostMKP(true);
+        if(defragmentation.equals("true") == true) this.setDefragmentation(true);
 
         try {
             RSAClass = Class.forName(rsaModule);
@@ -68,7 +74,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     }
 
-    /**
+    private void setDefragmentation(boolean b) {
+		this.DFR = b;
+	}
+
+	/**
      * Deals with an Event from the event queue.
      * If it is of the FlowArrivalEvent kind, adds it to the list of active flows.
      * If it is from the FlowDepartureEvent, removes it from the list.
@@ -85,8 +95,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	if (rsa instanceof EarliestDeadlineFirst && (event instanceof FlowArrivalEvent || event instanceof DeadlineEvent))
         {
         	if(event instanceof DeadlineEvent)
-        	{	
-        		
+        	{		
         		try 
         		{	
             		( (EarliestDeadlineFirst) rsa).deadlineArrival( ((DeadlineEvent)event).getBatch() );	
@@ -123,15 +132,26 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
 	            rsa.flowDeparture(removedFlow);
+	            
+	            nExceeds++;      
+	            if(nExceeds > 1000 && this.DFR == true) {
+	            	
+	            	if(this.getFragmentationRatio() > TH) {
+	            		
+	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
+	            		eventScheduler.addEvent(defragmentationEvent);
+	            	}
+	            }
 	        }
-	        else if (event instanceof DefragmentationEvent) 
+	        else if (event instanceof DefragmentationArrivalEvent) 
 	        {
 	        	rsa.runDefragmentantion();
+	        	nExceeds = 0;
+	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	    }
     }
 
-    @SuppressWarnings("unused")
 	private double getFragmentationRatio() {
     	
     	int E = pt.getNumLinks();

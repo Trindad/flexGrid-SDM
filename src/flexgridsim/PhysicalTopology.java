@@ -28,7 +28,7 @@ public class PhysicalTopology {
     private FlexGridLink[] linkVector;
     private FlexGridLink[][] adjMatrix;
 
-	private int crosstalkThreshold = -32;//in db
+	private double crosstalkThreshold = -32;//in db
     
     /**
      * Creates a new PhysicalTopology object.
@@ -268,9 +268,10 @@ public class PhysicalTopology {
 		for(int i = 0; i < links.length; i++) {
 			
 			xt += this.getLink(i).getXT(this.cores-1);
+			System.out.println(xt);
 			
-			if(xt > crosstalkThreshold) {
-				return 1.0f;
+			if(xt < crosstalkThreshold) {
+				return 1;
 			}
 		}
 		

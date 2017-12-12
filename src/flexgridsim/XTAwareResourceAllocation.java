@@ -22,7 +22,7 @@ public class XTAwareResourceAllocation {
 		this.numberOfCores = numberOfCores;
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 		
-//		System.out.println("B= "+B+" R ="+R+" c= "+corePitch+" k= "+k);
+		this.meanXT = new double[this.numberOfCores];
 		this.createGraph();
 	}
 	
@@ -39,7 +39,7 @@ public class XTAwareResourceAllocation {
 		double h = (2.0f*Math.pow(k, 2) * R) / (Math.pow(B, 1) * corePitch);
 		double exponential = (-1.0f * (n + 1.0f)) * h * L;
 		double xt = ( ( n - n * Math.exp(exponential) ) / (1.0f + n * Math.exp(exponential) ) );
-		
+		this.meanXT[core] = xt;
 		return xt;
 	}
 	
@@ -130,7 +130,7 @@ public class XTAwareResourceAllocation {
 	}
 
 	public double getXT(int core) {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return meanXT[core];
 	}
 }

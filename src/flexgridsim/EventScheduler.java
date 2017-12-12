@@ -120,5 +120,17 @@ public class EventScheduler {
 			System.out.println(e);
 		}
 		
+	}
+
+	public void removeDefragmentationEvent(DefragmentationArrivalEvent event) {
+		
+		try 
+		{
+			this.eventQueue.remove(event);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println(e);
+		}
 	} 
 }

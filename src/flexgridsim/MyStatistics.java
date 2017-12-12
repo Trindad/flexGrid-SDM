@@ -231,9 +231,8 @@ public class MyStatistics {
      */
     public void acceptFlow(Flow flow, LightPath lightpath) {
         if (this.numberArrivals > this.minNumberArrivals){
-//        	System.out.println("will update: "+this.accepted);
         	if (flow == null) {
-        		System.out.println("NAO CREIO");
+        		return;
         	}
         	
         	if (flow.isBatchRequest) {
@@ -245,7 +244,7 @@ public class MyStatistics {
 //        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
         	
         	if (flow.getLinks() == null) {
-        		System.out.println("IMPOSSIBLE");
+        		return;
         	}
         	
         	int links =  flow.getLinks().length+1;

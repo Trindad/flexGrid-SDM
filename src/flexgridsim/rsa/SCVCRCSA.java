@@ -53,8 +53,9 @@ public class SCVCRCSA implements RSA{
 	 */
 	public void flowArrival(Flow flow) {
 		
+		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 3);
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
 		
 		if(kPaths.length >= 1)
 		{
@@ -91,6 +92,12 @@ public class SCVCRCSA implements RSA{
 				res[i][j] = s1[i][j] & s2[i][j];
 			}
 		}
+		
+//		for (int i = 0; i < res.length; i++) {
+//			for (int j = 0; j < res[0].length; j++) {
+//				System.out.println(res[i][j]);
+//			}
+//		}
 	}
 	
 
@@ -106,16 +113,20 @@ public class SCVCRCSA implements RSA{
 		
 		if (spectrum.length >= demandInSlots) {
 			
+			
 			for(int i = 0; i < spectrum.length; i++) {
 				
 				if(spectrum[i] == true) {
-					
+
+//					System.out.println("Here");
 					setOfSlots.add( new Slot(core,i) );
 				}
 				else
 				{
 					setOfSlots.clear();
 				}
+				
+				if(setOfSlots.size() == demandInSlots) return setOfSlots;
 			}
 	    }
 		
@@ -134,15 +145,17 @@ public class SCVCRCSA implements RSA{
 
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		double xt = pt.getSumOfMeanCrosstalk(links);//returns the sum of cross-talk
+		System.out.println("XT: "+xt);
 		
-		if(xt < 1) {
+		if(xt <= 0) {
 			
 			for (int i = 0; i < spectrum.length; i++) {
 				
 				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
 				
 				if(fittedSlotList.size() == demandInSlots) {
-					break;
+					
+					return fittedSlotList;
 				}
 				
 				fittedSlotList.clear();
@@ -162,17 +175,22 @@ public class SCVCRCSA implements RSA{
 	 */
 	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
 		
-		if(links == null) System.out.println("ERROR LINKS");
+		if(links == null || flow == null || slotList.isEmpty()) 
+		{
+			System.out.println("Invalid variables");
+			return false;
+		}
+		
 		long id = vt.createLightpath(links, slotList ,0);
 		
 		if (id >= 0) 
 		{
 			LightPath lps = vt.getLightpath(id);
-			
 			flow.setLinks(links);
 			flow.setSlotList(slotList);
-			cp.acceptFlow(flow.getID(), lps);
 			
+			cp.acceptFlow(flow.getID(), lps);
+			System.out.println("Connection accepted");
 			return true;
 		} 
 		else 

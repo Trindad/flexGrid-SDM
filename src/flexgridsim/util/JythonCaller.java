@@ -5,17 +5,12 @@ import org.python.core.PyArray;
 import org.python.core.PyClass;
 import org.python.core.PyInteger;
 import org.python.core.PyObject;
-import org.python.core.PyObjectDerived;
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
-import java.io.InputStream;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
 
 /**
- * 
+ * KMeans 
  * @author trindade
  *
  */
