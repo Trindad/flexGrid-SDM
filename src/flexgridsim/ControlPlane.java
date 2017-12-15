@@ -130,8 +130,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
-	            Flow removedFlow = removeFlow(((FlowDepartureEvent) event).getID());
-	            rsa.flowDeparture(removedFlow);
+	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
+	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
 	            nExceeds++;      
 	            if(nExceeds > 1000 && this.DFR == true) {
@@ -294,7 +294,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     public Flow removeFlow(long id) {
         Flow flow;
         LightPath lightpaths;
-
+ 
         if (activeFlows.containsKey(id)) {
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
@@ -305,6 +305,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             activeFlows.remove(id);
             return flow;
         }
+       
         return null;
     }
     

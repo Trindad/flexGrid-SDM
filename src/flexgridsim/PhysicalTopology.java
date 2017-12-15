@@ -4,7 +4,6 @@
  */
 package flexgridsim;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.w3c.dom.*;
@@ -28,8 +27,6 @@ public class PhysicalTopology {
     private OXC[] nodeVector;
     private FlexGridLink[] linkVector;
     private FlexGridLink[][] adjMatrix;
-
-	private BigDecimal crosstalkThreshold = new BigDecimal(-14);//in db
     
     /**
      * Creates a new PhysicalTopology object.
@@ -262,19 +259,16 @@ public class PhysicalTopology {
         return topo;
     }
     
-	public BigDecimal getSumOfMeanCrosstalk(int[] links, int coreIndex) {
+	public double getSumOfMeanCrosstalk(int[] links, int coreIndex) {
 
-		BigDecimal xt = new BigDecimal(0.0f);
+		double xt = 0.0f;
 		
 		for(int i = 0; i < links.length; i++) {
 			
-			xt = xt.add( this.getLink(i).getXT(coreIndex) );
-			
-			if(xt.compareTo(this.crosstalkThreshold) < 0) {
-				System.out.println("ULTRAPASSOU");
-				return new BigDecimal(1.0f);
-			}
+			xt += this.getLink(i).getXT(coreIndex);
 		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;
 		
 		return xt;
 	}

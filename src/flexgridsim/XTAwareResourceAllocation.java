@@ -1,33 +1,32 @@
 package flexgridsim;
 
-import java.math.BigDecimal;
 import java.util.LinkedList;
 
 public class XTAwareResourceAllocation {
 	
 	//parameters to calculate mean inter-core crosstalk
 	//Data: Resource Allocation for Space-Division Multiplexing: Optical White Box Versus Optical Black Box Networking
-	private static final double B = 4.0f*Math.pow(10.0f,6);//Propagation constant
+	private static final double B = Math.pow( 4 * Math.pow(10,6), 1);//Propagation constant
 	private static final double R = 0.05f;//Bending radius
-	private static final double corePitch = 4f * Math.pow(10.0f, -5);
-	private static final double k = 4f * Math.pow(10.0f, -4);//Coupling coefficient and modulation format is fixed
+	private static final double corePitch = 4 * Math.pow(10, -5);
+	private static final double k = 4 * Math.pow(10, -4);//Coupling coefficient and modulation format is fixed
 	
 	private Graph cores;
 	
 	protected int numberOfCores;
 	protected int numberOfCoresAvailable;
 	protected int []availableSlots;
-	protected BigDecimal []meanXT;
+	protected double []meanXT;
 	
 	public XTAwareResourceAllocation(int numberOfCores, int numberOfCoresAvailable) {
 
 		this.numberOfCores = numberOfCores;
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 		
-		this.meanXT = new BigDecimal[this.numberOfCores];
+		this.meanXT = new double[this.numberOfCores];
 		
 		for(int i = 0; i < this.numberOfCores; i++) {
-			this.meanXT[i] = new BigDecimal(0);
+			this.meanXT[i] = 0.0f;
 		}
 		
 		this.createGraph();
@@ -41,15 +40,16 @@ public class XTAwareResourceAllocation {
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 	}
 	
-	protected BigDecimal meanInterCoreCrosstalk(int core, double n, double L) {
-//		System.out.println("nAdj: "+ n);
-		double h = ((k * k) / B) * (R / corePitch);
-		double exponential = (-1 * (n + 1)) * 2 * h * L;
-		System.out.println(h + " " + exponential + " " + Math.exp(exponential));
-		
-		double xt = ( n - n * Math.exp(exponential) ) / ( 1.0f + n * Math.exp(exponential) );
+	protected double meanInterCoreCrosstalk(int core, double n, double L) {
 
-		this.meanXT[core] = new BigDecimal( 10.0f * Math.log10(xt)/Math.log10(10) );
+		double h = (Math.pow(k, 2) / B) * (R / corePitch);
+		L = (L*1000);
+		double exponential = (-1 * (n + 1)) * 2 * h * L;
+		
+		this.meanXT[core] = ( n - n * Math.exp(exponential) ) / ( 1.0f + n * Math.exp(exponential) );
+
+//		this.meanXT[core] = xt > 0 ? 10.0f * Math.log10(xt)/Math.log10(10) : 0.0f;
+//		System.out.println(""+core+" nCores: "+n+" db: "+10.0f * Math.log10(this.meanXT[core])/Math.log10(10)+" xt: "+this.meanXT[core]);
 		
 		return this.meanXT[core];
 	}
@@ -140,7 +140,7 @@ public class XTAwareResourceAllocation {
 		return cores.adjListArray[index];
 	}
 
-	public BigDecimal getXT(int core) {
+	public double getXT(int core) {
 		
 		return this.meanXT[core];
 	}

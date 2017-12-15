@@ -1,21 +1,27 @@
 package flexgridsim;
 
 /**
- * @author pedrom
+ * @author pedrom, trindade
  *
  */
 public class ModulationsMuticore {
 		/**
 		 * The Class Modulations.
 		 */
-		public static final int numberOfModulations = 4;
+		public static final int numberOfModulations = 6;
 		
 		/**
 		 * 
 		 */
 		public static final int numberOfSimbols[] = {1,2,4,6};
+		
+		/**
+		 * 
+		 */
+		public static final double subcarriersCapacity[] = {12.5,25,37.5,50,62.5,75};
+		
 		/** The Constant distance. */
-		public static final int maxDistance[] = {13851,13851,5937,2289};
+		public static final int maxDistance[] = {4000,2000,1000,500,250,125};
 		/**
 		 * SNR threshold for the correct 
 		 */
@@ -25,7 +31,7 @@ public class ModulationsMuticore {
 		/**
 		 * 
 		 */
-		public static final double inBandXT[] = {-14,-17,-23,-29};
+		public static final double inBandXT[] = {-14,-18.5,-21,-25,-27,-34};
 		/**
 		 * Number of modulations.
 		 *
@@ -53,6 +59,7 @@ public class ModulationsMuticore {
 		 * @return the max distance
 		 */
 		public static int getMaxDistance(int modulationLevel){
+			
 			if (modulationLevel >= 0 && modulationLevel <= 5){
 				return maxDistance[modulationLevel];
 			} else {
@@ -81,10 +88,14 @@ public class ModulationsMuticore {
 		 * @return the modulation by distance
 		 */
 		public static int getModulationByDistance(int givendistance){
+			
 			int i = numberOfModulations-1;
-			while (givendistance <= maxDistance[i] && i >= 0){
+			
+			while (givendistance <= maxDistance[i] && i >= 0) {
+				
 				i--;
 			}
+			System.out.println(" "+givendistance+" "+maxDistance[i]+" "+i);
 			return i;
 		}
 		
