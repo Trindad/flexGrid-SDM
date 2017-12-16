@@ -302,11 +302,4 @@ public class ShortestPathRSA implements RSA {
 		}
 		return sp;
 	}
-
-	@Override
-	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

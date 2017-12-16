@@ -146,11 +146,4 @@ public class DynamicModulation implements RSA {
 	public void flowDeparture(Flow flow) {
 
 	}
-
-	@Override
-	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

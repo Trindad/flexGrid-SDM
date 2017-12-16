@@ -1,0 +1,119 @@
+package flexgridsim.rsa;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import flexgridsim.Flow;
+import flexgridsim.LightPath;
+import flexgridsim.Slot;
+import flexgridsim.util.PythonCaller;
+
+/**
+ * Defragmentation approach using clustering (k-Means)
+ * @author trindade
+ *
+ */
+public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
+
+	private Map<Integer, ArrayList<Flow> > clusters;
+	private static int k = 2;//number of clusters
+	
+	public void runDefragmentantion() {
+		
+		Map<Flow, LightPath> flows = cp.getMappedFlows();
+		
+		this.runKMeans(k, flows);
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		pt.resetAllSpectrum();
+
+		//re-assigned resources in the same link, but using clustering
+		for(Integer key: clusters.keySet()) {
+			
+			for(Flow flow: clusters.get(key)) {
+				
+				int demandInSlots = (int) Math.ceil(flow.getRate() / (double) pt.getSlotCapacity());
+				
+				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+				
+				for (int j = 0; j < (flow.getLinks().length - 1); j++) {
+					
+					bitMap(pt.getLink(flow.getLinks()[j], flow.getLinks()[j+1]).getSpectrum(), spectrum, spectrum);
+				}
+				
+				ArrayList<Slot> slotList = fitConnection(spectrum, flow.getLinks(), demandInSlots, 0);
+				
+				if(establishConnection(flow.getLinks(), slotList, 0, flow)) {
+					return;
+				}
+			}
+		}
+	}
+	
+	public ArrayList<Slot> fitConnection(boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
+		
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		
+		int []cores = this.getCoreOfCluster(demandInSlots);
+		double xt = 0.0f;
+	
+		for(int i = 0; i < cores.length; i++) {
+			xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk
+			
+			if(xt <= 0) 
+			{	
+				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
+				
+				if(fittedSlotList.size() == demandInSlots) {
+						break;
+				}
+				
+				fittedSlotList.clear();
+			}
+		}
+		
+		return fittedSlotList;
+	}
+	
+	private int[] getCoreOfCluster(int demandInSlots) {
+		
+		return null;
+	}
+
+	private void runKMeans(int k, Map<Flow, LightPath> flows) {
+		
+		double[][] features = new double[flows.size()][2];
+		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
+		
+		int i = 0;
+		
+		for(Flow f: flows.keySet()) {
+			
+			features[i][0] = f.getDuration();
+			features[i][1] = f.getRate();
+			
+			listOfFlows.add(f);
+			i++;
+		}
+		
+		PythonCaller caller = new PythonCaller();
+		String []labels = caller.kmeans(features, k);
+		
+		System.out.println("------");
+		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
+		System.out.println("------");
+		
+		this.clusters = new HashMap<Integer, ArrayList<Flow> >();
+		
+		for(i = 0; i < k; i++) {
+			
+			clusters.put(i, new ArrayList<Flow>());
+			
+		}
+		
+		for(i = 0; i < labels.length; i++) {
+			clusters.get(Integer.parseInt(labels[i])).add(listOfFlows.get(i));
+		}
+	}
+}

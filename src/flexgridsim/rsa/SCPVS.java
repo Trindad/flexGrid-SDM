@@ -196,12 +196,5 @@ public class SCPVS implements RSA {
 		}
 		return result;
 	}
-
-	@Override
-	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
-	}
-
 }
 

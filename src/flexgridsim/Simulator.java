@@ -167,8 +167,8 @@ public class Simulator {
 	            
 	            String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
 	            String rsaAlgorithm = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("algorithm");
-	            String costMKP = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("costMKP");
-	            String defragmentation = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("defragmentation");
+	            String costMKP = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("costMKP");
+	            String defragmentation = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("defragmentation");
 	            
 	            if (Simulator.verbose) {
 	                System.out.println("RSA module: " + rsaModule);

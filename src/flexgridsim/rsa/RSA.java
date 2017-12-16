@@ -46,6 +46,4 @@ public interface RSA {
      */
     public void flowDeparture(Flow flow);
 
-	public void runDefragmentantion();
-
 }

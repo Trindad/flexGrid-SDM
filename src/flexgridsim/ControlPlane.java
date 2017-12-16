@@ -11,7 +11,9 @@ import java.util.Map;
 import org.w3c.dom.Element;
 
 import flexgridsim.rsa.EarliestDeadlineFirst;
+import flexgridsim.rsa.ClusterDefragmentationRCSA;
 import flexgridsim.rsa.ControlPlaneForRSA;
+import flexgridsim.rsa.DefragmentationRCSA;
 import flexgridsim.rsa.RSA;
 
 /**
@@ -21,6 +23,7 @@ import flexgridsim.rsa.RSA;
 public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
+    private DefragmentationRCSA defragmentation;
     private String rsaAlgorithm;
     private boolean costMKP = false;//used in batch requests 
     private double time = 0.0f;
@@ -34,6 +37,9 @@ public class ControlPlane implements ControlPlaneForRSA {
     private EventScheduler eventScheduler;
     SetOfBatches batches;
     
+    /**
+     * Defragmentation approaches
+     */
     private int nExceeds = 0;
     private static double TH = 0.5;
     private boolean DFR = false;
@@ -62,12 +68,18 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         this.setRsaAlgorithm(rsaAlgorithm);
         if(costMultipleKnapsackPloblem.equals("true") == true) this.setCostMKP(true);
-        if(defragmentation.equals("true") == true) this.setDefragmentation(true);
-
+      
+        if(defragmentation.equals("true") == true) {
+        	
+        	this.setDefragmentation(true);
+        	this.defragmentation = new ClusterDefragmentationRCSA();
+        	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
+        }
+  
         try {
             RSAClass = Class.forName(rsaModule);
             rsa = (RSA) RSAClass.newInstance();
-            rsa.simulationInterface(xml, pt, vt, this, traffic);
+            rsa.simulationInterface(xml, pt, vt, this, traffic);     
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -134,10 +146,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
 	            nExceeds++;      
-	            if(nExceeds > 1000 && this.DFR == true) {
+	           
+	            if(nExceeds >= 150 && this.DFR == true) {
 	            	
 	            	if(this.getFragmentationRatio() > TH) {
-	            		
+	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
 	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
 	            		eventScheduler.addEvent(defragmentationEvent);
 	            	}
@@ -145,13 +158,19 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
 	        {
-	        	rsa.runDefragmentantion();
+	        	System.out.println("Start defragmentation");
+
+	        	this.defragmentation.runDefragmentantion();
 	        	nExceeds = 0;
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	    }
     }
 
+    /**
+     * Fragmentation ratio 
+     * @return
+     */
 	private double getFragmentationRatio() {
     	
     	int E = pt.getNumLinks();

@@ -156,10 +156,4 @@ public class ImageRCSA implements RSA {
 		
 		return this.availableSlots;
 	}
-
-	@Override
-	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
-	}
 }

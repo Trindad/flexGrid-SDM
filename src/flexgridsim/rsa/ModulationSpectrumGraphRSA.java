@@ -315,10 +315,4 @@ public class ModulationSpectrumGraphRSA implements RSA {
 		}
 		return -1;
 	}
-
-	@Override
-	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
-	}
 }
