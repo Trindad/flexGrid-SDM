@@ -24,7 +24,7 @@ public class FlexGridLink {
 	private int distance;
 	private int cores;
 	private double[][] noise;
-	private double BFR; //Bandwidth Fragmentation Ration
+	private double BFR; //Bandwidth Fragmentation Ratio
 	private XTAwareResourceAllocation xt; //considering inter-core cross-talk 
 	private int reserved;
 	private boolean isBlocked = false;
@@ -150,6 +150,7 @@ public class FlexGridLink {
 				}
 			}
 		}
+		
 		return freeSlots;
 	}
 	

@@ -41,7 +41,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      * Defragmentation approaches
      */
     private int nExceeds = 0;
-    private static double TH = 0.5;
+    private static double TH = 0.8;
     private boolean DFR = false;
 	
     /**
@@ -142,19 +142,23 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
+//	        	System.out.println("Flow departure"+((FlowDepartureEvent) event).time);
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
 	            nExceeds++;      
 	           
-	            if(nExceeds >= 150 && this.DFR == true) {
-	            	
-	            	if(this.getFragmentationRatio() > TH) {
-	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
-	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
-	            		eventScheduler.addEvent(defragmentationEvent);
+//	            if(nExceeds >= 20 && this.DFR == true) {
+//	            	
+	            	if(this.activeFlows.size() >= 20) {
+	            		
+	            		if(this.getFragmentationRatio() > TH) {
+		            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
+		            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
+		            		eventScheduler.addEvent(defragmentationEvent);
+	            		}
 	            	}
-	            }
+//	            }
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
 	        {
@@ -163,6 +167,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	this.defragmentation.runDefragmentantion();
 	        	nExceeds = 0;
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
+	        	System.out.println("Defragmentation rate: "+this.getFragmentationRatio());
 	        }
 	    }
     }
@@ -191,6 +196,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	public void setTime(double time) {
 		this.time = time;
+	}
+	
+	public Map<Long, Flow> getActiveFlows() {
+		
+		return activeFlows;
 	}
 
 	/**
@@ -229,6 +239,25 @@ public class ControlPlane implements ControlPlaneForRSA {
             st.acceptFlow(flow, lightpath);
             flow.setAccepeted(true);
             return true;
+        }
+    }
+    
+    public void reacceptFlow(long id, LightPath lightpath) {
+        Flow flow;
+
+        if (id < 0) {
+            throw (new IllegalArgumentException());
+        } else {
+            if (!activeFlows.containsKey(id)) {
+            	throw (new IllegalArgumentException());
+            }
+            flow = activeFlows.get(id);
+            if (!canAddFlowToPT(flow, lightpath)) {
+                return;
+            } 
+            addFlowToPT(flow, lightpath);
+      
+            return;
         }
     }
 

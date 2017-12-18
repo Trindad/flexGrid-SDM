@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class Flow {
 
     private long id;
+    private long lightpathID;
     private int src;
     private int dst;
     private int bw;
@@ -143,6 +144,8 @@ public class Flow {
     
     
     public String getLinksInStringFormat() {
+    	for(int i = 0; i < links.length; i++) System.out.println(links[i]);
+    	
     	return  links.toString();
     }
 
@@ -311,5 +314,13 @@ public class Flow {
 
 	public int getNumberOfFlowsGroomed() {
 		return this.numberOfFlowsGroomed;
+	}
+
+	public long getLightpathID() {
+		return lightpathID;
+	}
+
+	public void setLightpathID(long lightpathID) {
+		this.lightpathID = lightpathID;
 	}
 }

@@ -65,7 +65,7 @@ public class SCVCRCSA implements RSA{
 		
 		int modulationLevel = ModulationsMuticore.getModulationByDistance(totalLength);
 		
-		System.out.println(" length: "+totalLength+" modulation: "+flow.getModulationLevel()+" "+links.length);
+//		System.out.println(" length: "+totalLength+" modulation: "+flow.getModulationLevel()+" "+links.length);
 		
 		return modulationLevel;
 	}
@@ -73,7 +73,7 @@ public class SCVCRCSA implements RSA{
 	protected boolean runRCSA(Flow flow) {
 		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 1);
 		
 		if(kPaths.length >= 1)
 		{
@@ -110,6 +110,7 @@ public class SCVCRCSA implements RSA{
 			return;
 		}
 		
+		System.out.println("Connection blocked:"+flow);
 		cp.blockFlow(flow.getID());
 	}
 	
@@ -185,7 +186,7 @@ public class SCVCRCSA implements RSA{
 				int demandInSlots = (int) Math.ceil(flow.getRate() / subcarrierCapacity);
 				
 				xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
-				System.out.println("XT: "+xt+" TH:"+ModulationsMuticore.inBandXT[modulation]);
+//				System.out.println("XT: "+xt+" TH:"+ModulationsMuticore.inBandXT[modulation]);
 				
 				if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
 	
@@ -225,21 +226,20 @@ public class SCVCRCSA implements RSA{
 			return false;
 		}
 		
-		long id = vt.createLightpath(links, slotList ,0);
+		long id = vt.createLightpath(links, slotList ,flow.getModulationLevel());
 		
 		if (id >= 0) 
 		{
 			LightPath lps = vt.getLightpath(id);
 			flow.setLinks(links);
+			flow.setLightpathID(id);
 			flow.setSlotList(slotList);
 			flow.setModulationLevel(modulation);
-			
-			//update cross-talk
+
 			cp.acceptFlow(flow.getID(), lps);
 			
-			for(int i = 0; i < links.length; i++) {
-				pt.getLink(links[i]).updateCrosstalk();
-			}
+			//update cross-talk
+			updateCrosstalk(links);
 			
 			System.out.println("Connection accepted:"+flow);
 			return true;
@@ -247,6 +247,13 @@ public class SCVCRCSA implements RSA{
 		else 
 		{
 			return false;
+		}
+	}
+	
+	public void updateCrosstalk(int []links) {
+		
+		for(int i = 0; i < links.length; i++) {
+			pt.getLink(links[i]).updateCrosstalk();
 		}
 	}
 

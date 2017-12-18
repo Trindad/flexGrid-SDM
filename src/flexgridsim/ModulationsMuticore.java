@@ -95,7 +95,7 @@ public class ModulationsMuticore {
 				
 				i--;
 			}
-			System.out.println(" "+givendistance+" "+maxDistance[i]+" "+i);
+//			System.out.println(" "+givendistance+" "+maxDistance[i]+" "+i);
 			return i;
 		}
 		

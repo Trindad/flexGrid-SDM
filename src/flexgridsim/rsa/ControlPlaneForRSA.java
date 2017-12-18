@@ -129,4 +129,8 @@ public interface ControlPlaneForRSA {
 
 	public boolean isCostMKP();
 
+	public Map<Long, Flow> getActiveFlows();
+
+	public void reacceptFlow(long id, LightPath lps);
+
 }

@@ -268,13 +268,14 @@ public class PhysicalTopology {
 			xt += this.getLink(i).getXT(coreIndex);
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
 		return xt;
 	}
 
 	public void resetAllSpectrum() {
 		
+		System.out.println("número de links: "+linkVector.length);
 		for(int i = 0; i < linkVector.length; i++) {
 			this.getLink(i).resetSpectrum();
 		}

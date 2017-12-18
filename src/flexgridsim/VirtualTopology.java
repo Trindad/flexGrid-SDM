@@ -239,7 +239,7 @@ public class VirtualTopology {
      * @param links list of integers that represent the links that form the lightpath
      * @param firstSlot list of wavelength values used in the lightpath links
      */
-    private void removeLightpathFromPT(int[] links, ArrayList<Slot> slotList) {
+    public void removeLightpathFromPT(int[] links, ArrayList<Slot> slotList) {
         for (int i = 0; i < links.length; i++) {
             pt.getLink(links[i]).releaseSlots(slotList);
         }

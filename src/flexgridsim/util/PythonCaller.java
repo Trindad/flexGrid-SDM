@@ -5,17 +5,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.python.core.Py;
-import org.python.core.PyArray;
-import org.python.core.PyClass;
-import org.python.core.PyInteger;
-import org.python.core.PyObject;
-import org.python.core.PySystemState;
-import org.python.util.PythonInterpreter;
-
 
 /**
  * KMeans 
