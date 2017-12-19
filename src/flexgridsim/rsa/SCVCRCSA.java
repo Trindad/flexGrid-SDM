@@ -28,6 +28,7 @@ public class SCVCRCSA implements RSA{
 	protected VirtualTopology vt;
 	protected ControlPlaneForRSA cp;
 	protected WeightedGraph graph;
+	protected ArrayList<int []> paths;
 	
 	public void simulationInterface(Element xml, PhysicalTopology pt,
 			VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic) {
@@ -73,23 +74,26 @@ public class SCVCRCSA implements RSA{
 	protected boolean runRCSA(Flow flow) {
 		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 1);
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
 		
 		if(kPaths.length >= 1)
 		{
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-
+			
 			for (int k = 0; k < kPaths.length; k++) {
 				
 				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
 				
 				int[] links = new int[kPaths[k].length - 1];
-				
 				for (int j = 0; j < kPaths[k].length - 1; j++) {
 					
 					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+//					System.out.print(" "+links[j]);
 					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
 				}
+				
+				
+//				System.out.println("\n**********");
 				
 				if( fitConnection(flow, spectrum, links) == true) {
 					return true;
@@ -98,6 +102,37 @@ public class SCVCRCSA implements RSA{
 		}
 		
 		return false;
+	}
+
+	public ArrayList<int[]> getkShortestPaths() {
+		
+		return this.paths;
+	}
+
+	public void setkShortestPaths(Flow flow) {
+		
+		KShortestPaths kShortestPaths = new KShortestPaths();
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
+		this.paths = new ArrayList<int[]> ();
+		System.out.println("KPATHS: "+kPaths.length);
+		if(kPaths.length >= 1)
+		{
+			for (int k = 0; k < kPaths.length; k++) {
+				
+				int[] links = new int[kPaths[k].length - 1];
+				
+				for (int v = 0; v < kPaths[k].length; v++) {
+					System.out.print(" - "+kPaths[k][v]);
+				}
+
+				for (int j = 0; j < kPaths[k].length - 1; j++) {
+					
+					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+				}
+				System.out.println();
+				this.paths.add(links);
+			}
+		}
 	}
 
 	/**

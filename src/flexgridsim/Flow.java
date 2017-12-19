@@ -29,9 +29,16 @@ public class Flow {
     private double time;
     private int modulationLevel;
     
+    //Batch requests
     boolean isBatchRequest;
     boolean isPostponeRequest;
     private int numberOfFlowsGroomed;
+    
+    //Multipath requests
+    private ArrayList<int[]> multipath; 
+    private ArrayList<Long> lightpathsID;
+    private boolean isMultipath = false;
+    private ArrayList<ArrayList<Slot>> multiSlotList;
 
 	/**
 	 * Creates a new Flow object.
@@ -63,6 +70,10 @@ public class Flow {
             this.isBatchRequest = false; //initialize with false a batch request
             this.numberOfFlowsGroomed = 0;
             this.isPostponeRequest = false;
+            
+            this.multipath = new  ArrayList<int[]>();
+            this.lightpathsID = new ArrayList<Long>();
+            
         }
     }
     
@@ -322,5 +333,26 @@ public class Flow {
 
 	public void setLightpathID(long lightpathID) {
 		this.lightpathID = lightpathID;
+	}
+
+	public ArrayList<int[]> getMultipath() {
+		return multipath;
+	}
+
+	public void setMultipath(ArrayList<int[]> multipath) {
+		this.multipath = multipath;
+	}
+
+	public void setLinks(ArrayList<int[]> paths) {
+		this.isMultipath = true;
+		this.multipath = paths;
+	}
+
+	public void setSlotListMultipath(ArrayList<ArrayList<Slot>> m) {
+		this.multiSlotList = m;
+	}
+
+	public void setLightpathID(ArrayList<Long> ids) {
+		this.lightpathsID = ids;
 	}
 }

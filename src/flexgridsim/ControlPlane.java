@@ -40,8 +40,9 @@ public class ControlPlane implements ControlPlaneForRSA {
     /**
      * Defragmentation approaches
      */
-    private int nExceeds = 0;
-    private static double TH = 0.8;
+    private int nExceeds = 0;//Zhang Defragmentation Method
+    private int nArrival = 0;
+    private static double TH = 0.85;
     private boolean DFR = false;
 	
     /**
@@ -72,7 +73,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         if(defragmentation.equals("true") == true) {
         	
         	this.setDefragmentation(true);
-        	this.defragmentation = new ClusterDefragmentationRCSA();
+        	this.defragmentation = new TridimensionalClusterDefragmentationRCSA();
         	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
         }
   
@@ -139,6 +140,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	            newFlow(((FlowArrivalEvent) event).getFlow());
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
+	            
+	            nArrival++;
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
@@ -146,25 +149,23 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
-	            nExceeds++;      
-	           
-//	            if(nExceeds >= 20 && this.DFR == true) {
-//	            	
-	            	if(this.activeFlows.size() >= 20) {
-	            		
-	            		if(this.getFragmentationRatio() > TH) {
-		            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
-		            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
-		            		eventScheduler.addEvent(defragmentationEvent);
-	            		}
-	            	}
-//	            }
+	            nExceeds++;          	
+	            
+            	if(this.activeFlows.size() >= 20 && this.DFR == true) {
+            		
+            		if(this.getFragmentationRatio() >= TH) {
+	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
+	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
+	            		eventScheduler.addEvent(defragmentationEvent);
+            		}
+            	}
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
 	        {
 	        	System.out.println("Start defragmentation");
 
 	        	this.defragmentation.runDefragmentantion();
+	        	
 	        	nExceeds = 0;
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        	System.out.println("Defragmentation rate: "+this.getFragmentationRatio());

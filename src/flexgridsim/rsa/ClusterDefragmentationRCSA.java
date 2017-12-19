@@ -19,8 +19,9 @@ import flexgridsim.util.PythonCaller;
  */
 public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
-	private Map<Integer, ArrayList<Flow> > clusters;
-	private static int k = 3;//number of clusters
+	protected Map<Integer, ArrayList<Flow> > clusters;
+	protected int k = 4;//number of clusters
+	protected int it = 2;
 	
 	public void runDefragmentantion() {
 		
@@ -35,29 +36,34 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		//re-assigned resources in the same link, but using clustering
 		for(Integer key: clusters.keySet()) {
 			
-			clusters.get(key).sort(Comparator.comparing(Flow::getDuration));
+			if(clusters.get(key).size() >= 1) {
 			
-			for(int c = clusters.size()-1; c >= 0; c--) {
+				clusters.get(key).sort(Comparator.comparing(Flow::getDuration));
 				
-				Flow flow = clusters.get(key).get(c);
-				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-				
-				for(int i = 0; i < flow.getLinks().length; i++) {
-					int src  = pt.getLink(flow.getLink(i)).getSource();
-					int dst = pt.getLink(flow.getLink(i)).getDestination();
+				for(int c = (clusters.get(key).size()-1); c >= 0; c--) {
 					
-					bitMap(pt.getLink(pt.getLink(src, dst).getDestination()).getSpectrum(), spectrum, spectrum);
+					Flow flow = clusters.get(key).get(c);
+					spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+					
+					for(int i = 0; i < flow.getLinks().length; i++) {
+						int src  = pt.getLink(flow.getLink(i)).getSource();
+						int dst = pt.getLink(flow.getLink(i)).getDestination();
+						
+						bitMap(pt.getLink(pt.getLink(src, dst).getDestination()).getSpectrum(), spectrum, spectrum);
+					}
+					
+					if(fitConnection(flow, spectrum, flow.getLinks(), index) == false) System.out.println("Something bad happened");
 				}
 				
-				if(fitConnection(flow, spectrum, flow.getLinks(), index) == false) System.out.println("Something bad happened");
+				
+				System.out.println("*************************");
 			}
 			
-			index+=2;
-			System.out.println("*************************");
+			index+=it;
 		}
 	}
 	
-	private void updateData(Flow flow, int []links, ArrayList<Slot> fittedSlotList, int modulation) {
+	protected void updateData(Flow flow, int []links, ArrayList<Slot> fittedSlotList, int modulation) {
 		
 		flow.setLinks(links);
 		flow.setSlotList(fittedSlotList);
@@ -86,7 +92,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		double xt = 0.0f;
 				
-		for (; i < spectrum.length; i+=2) {
+		for (; i < spectrum.length; i+=it) {
 			
 			int modulation = chooseModulationFormat(flow, links);
 			
@@ -121,7 +127,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		return false;
 	}
 
-	private void runKMeans(int k, Map<Long, Flow> flows) {
+	protected void runKMeans(int k, Map<Long, Flow> flows) {
 		
 		double[][] features = new double[flows.size()][2];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();

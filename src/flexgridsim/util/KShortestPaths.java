@@ -17,21 +17,53 @@ public class KShortestPaths {
 	 * @return the int[][]
 	 */
 	public int[][] dijkstraKShortestPaths(WeightedGraph graph, int s, int t, int K){
+		
 		ArrayList<CostedPath> P = new ArrayList<CostedPath>();
-		int count[] = new int[graph.getNumNodes()]; 
+		int count[] = new int[graph.getNumNodes()];
 		ArrayList<CostedPath> B = new ArrayList<CostedPath>();
 		CostedPath Ps = new CostedPath(graph);
 		Ps.add(s);
 		B.add(Ps);
+		
 		while (!B.isEmpty() && count[t] < K){
+			
 			CostedPath Pu = minCost(B);
 			int u = Pu.get(Pu.size()-1);
+//			System.out.print(" "+u);
+			
+//			System.out.println();
 			B.remove(Pu);
 			count[u]++;
-			if (u==t){
-				P.add(Pu);
+			
+			if (u == t) {
+				
+				boolean []nodes = new boolean[graph.getNumNodes()];
+				for(int i = 0; i < nodes.length; i++) nodes[i] = false;
+				boolean error = false;
+				
+				for(int i = 0; i < Pu.size(); i++) {
+					
+					if(nodes[Pu.get(i)] == true) {
+						error = true;
+						count[u]--;
+						break;
+					}
+					
+					nodes[Pu.get(i)] = true;
+				}
+				
+				if(!error) {
+
+//					for(int i = 0; i < Pu.size(); i++) {
+//						System.out.print(" "+Pu.get(i));
+//					}
+//					
+//					System.out.println();
+					P.add(Pu);
+				}
 			}
-			if (count[u]<=K){
+			if (count[u] <= K){
+				
 				final int[] n = graph.neighbors(u);
 				for (int v : n) {
 					CostedPath Pv = new CostedPath(graph, Pu);
@@ -40,11 +72,14 @@ public class KShortestPaths {
 				}
 			}
 		}
+		System.out.println("********************");
 		int[][] kPaths = new int[K][];
-		for (int i = 0; i < K; i++) {
-			kPaths[i] = new int[P.get(i).size()];
-			for (int j = 0; j < P.get(i).size(); j++) {
-				kPaths[i][j] = P.get(i).get(j);
+		for (int i = 0; i < P.size(); i++) {
+			if(!P.get(i).isEmpty()) {
+				kPaths[i] = new int[P.get(i).size()];
+				for (int j = 0; j < P.get(i).size(); j++) {
+					kPaths[i][j] = P.get(i).get(j);
+				}
 			}
 		}
 		return kPaths;
@@ -63,7 +98,7 @@ public class KShortestPaths {
 		}
 		CostedPath minCost = paths.get(0);
 		for (CostedPath p : paths) {
-			if (p.getCost()<minCost.getCost()){
+			if (p.getCost() < minCost.getCost()){
 				minCost = p;
 			}
 		}
