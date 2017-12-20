@@ -74,8 +74,8 @@ public class SCVCRCSA implements RSA{
 	protected boolean runRCSA(Flow flow) {
 		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
-		
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 3);
+
 		if(kPaths.length >= 1)
 		{
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
@@ -83,17 +83,13 @@ public class SCVCRCSA implements RSA{
 			for (int k = 0; k < kPaths.length; k++) {
 				
 				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-				
+
 				int[] links = new int[kPaths[k].length - 1];
 				for (int j = 0; j < kPaths[k].length - 1; j++) {
 					
 					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-//					System.out.print(" "+links[j]);
 					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
 				}
-				
-				
-//				System.out.println("\n**********");
 				
 				if( fitConnection(flow, spectrum, links) == true) {
 					return true;
@@ -114,22 +110,22 @@ public class SCVCRCSA implements RSA{
 		KShortestPaths kShortestPaths = new KShortestPaths();
 		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
 		this.paths = new ArrayList<int[]> ();
-		System.out.println("KPATHS: "+kPaths.length);
+//		System.out.println("KPATHS: "+kPaths.length);
 		if(kPaths.length >= 1)
 		{
 			for (int k = 0; k < kPaths.length; k++) {
 				
 				int[] links = new int[kPaths[k].length - 1];
 				
-				for (int v = 0; v < kPaths[k].length; v++) {
-					System.out.print(" - "+kPaths[k][v]);
-				}
+//				for (int v = 0; v < kPaths[k].length; v++) {
+//					System.out.print(" - "+kPaths[k][v]);
+//				}
 
 				for (int j = 0; j < kPaths[k].length - 1; j++) {
 					
 					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
 				}
-				System.out.println();
+//				System.out.println();
 				this.paths.add(links);
 			}
 		}
@@ -149,23 +145,25 @@ public class SCVCRCSA implements RSA{
 		cp.blockFlow(flow.getID());
 	}
 	
+	protected void printSpectrum(boolean [][]spectrum) {
+		
+		for (int u = 0; u < spectrum.length; u++) {
+			for (int w = 0; w < spectrum[u].length; w++) System.out.print(" "+spectrum[u][w]);
+			System.out.println();
+		}
+		System.out.println("-----------");
+	}
+
+	
 	protected void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] res) {
-			
+//		printSpectrum(s1);
+//		printSpectrum(s2);
 		for (int i = 0; i < res.length; i++) {
 			for (int j = 0; j < res[0].length; j++) {
 				res[i][j] = s1[i][j] & s2[i][j];
 			}
 		}
 
-	}
-	
-	protected void printSpectrum(boolean [][]spectrum) {
-		
-		for (int i = 0; i < spectrum.length; i++) {
-			for (int j = 0; j < spectrum[0].length; j++) {
-				System.out.println(spectrum[i][j]);
-			}
-		}
 	}
 	
 

@@ -1,5 +1,7 @@
 package flexgridsim;
 
+import java.util.ArrayList;
+
 /**
  * The Class MyStatistics.
  */
@@ -255,6 +257,45 @@ public class MyStatistics {
             	totalPowerConsumed += flow.getDuration() * flow.getSlotList().size() * Modulations.getPowerConsumption(flow.getModulationLevel());
             }
             numberOfUsedTransponders[flow.getSource()][flow.getDestination()]++;
+        }
+    }
+    
+    
+    /**
+     * Adds an accepted flow to the statistics.
+     * 
+     * @param flow the accepted Flow object
+     * @param lightpath lightpath of the flow
+     */
+    public void acceptFlow(Flow flow, ArrayList<LightPath> lightpath) {
+        if (this.numberArrivals > this.minNumberArrivals){
+        	if (flow == null) {
+        		return;
+        	}
+        	
+        	if (flow.isBatchRequest) {
+        		this.accepted += Math.max(flow.getNumberOfFlowsGroomed(), 1);
+        	} else {
+        		this.accepted++;
+        		
+        	}
+//        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
+        	
+        	if (flow.getLinks() == null) {
+        		return;
+        	}
+        	
+        	ArrayList<int[]> multipaths = flow.getMultipath();
+        	for(int k = 0; k < multipaths.size() ; k++) {
+	        	int links =  multipaths.get(k).length+1;
+	        	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
+	            plotter.addDotToGraph("hops", load, links);
+	            dataTransmitted += flow.getRate();
+	            for (int i = 0; i < pt.getCores(); i++) {
+	            	totalPowerConsumed += flow.getDuration() * flow.getSlotList().size() * Modulations.getPowerConsumption(flow.getModulationLevel());
+	            }
+	            numberOfUsedTransponders[flow.getSource()][flow.getDestination()]++;
+        	}
         }
     }
     

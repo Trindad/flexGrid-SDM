@@ -342,7 +342,7 @@ public class FlexGridLink {
 	}
 
 	/**
-	 * Gets the num free slots.
+	 * Gets the number of free slots.
 	 *
 	 * @return the num free slots
 	 */
@@ -350,7 +350,7 @@ public class FlexGridLink {
 		int numFreeSlots = 0;
 		for (int i = 0; i < cores; i++) {
 			for (int j = 0; j < slots; j++) {
-				if (reservedSlots[i][j]) {
+				if (!reservedSlots[i][j]) {
 					numFreeSlots++;
 				}
 			}

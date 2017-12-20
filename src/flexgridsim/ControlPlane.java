@@ -7,6 +7,7 @@ package flexgridsim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Element;
 
@@ -29,7 +30,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     private double time = 0.0f;
     private PhysicalTopology pt;
     private VirtualTopology vt;
-    private Map<Flow, LightPath> mappedFlows; // Flows that have been accepted into the network
+    private Map<Flow, ArrayList<LightPath> > mappedFlows; // Flows that have been accepted into the network
     private Map<Long, Flow> activeFlows; // Flows that have been accepted or that are waiting for a decision 
     private Tracer tr = Tracer.getTracerObject();
     private MyStatistics st = MyStatistics.getMyStatisticsObject();
@@ -40,8 +41,8 @@ public class ControlPlane implements ControlPlaneForRSA {
     /**
      * Defragmentation approaches
      */
-    private int nExceeds = 0;//Zhang Defragmentation Method
-    private int nArrival = 0;
+//    private int nExceeds = 0;//Zhang Defragmentation Method
+//    private int nArrival = 0;
     private static double TH = 0.85;
     private boolean DFR = false;
 	
@@ -58,7 +59,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String defragmentation, String costMultipleKnapsackPloblem, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
         @SuppressWarnings("rawtypes")
 		Class RSAClass;
-        mappedFlows = new HashMap<Flow, LightPath>();
+        mappedFlows = new HashMap<Flow, ArrayList<LightPath>>();
         activeFlows = new HashMap<Long, Flow>();
         this.eventScheduler = eventScheduler;
         
@@ -141,7 +142,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            newFlow(((FlowArrivalEvent) event).getFlow());
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
 	            
-	            nArrival++;
+//	            nArrival++;
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
@@ -149,7 +150,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
-	            nExceeds++;          	
+//	            nExceeds++;          	
 	            
             	if(this.activeFlows.size() >= 20 && this.DFR == true) {
             		
@@ -166,7 +167,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	        	this.defragmentation.runDefragmentantion();
 	        	
-	        	nExceeds = 0;
+//	        	nExceeds = 0;
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        	System.out.println("Defragmentation rate: "+this.getFragmentationRatio());
 	        }
@@ -234,10 +235,47 @@ public class ControlPlane implements ControlPlaneForRSA {
             if (!canAddFlowToPT(flow, lightpath)) {
                 return false;
             } 
+            
             addFlowToPT(flow, lightpath);
-            mappedFlows.put(flow, lightpath);
+            
+            ArrayList<LightPath> lp = new ArrayList<LightPath>();
+            lp.add(lightpath);
+            mappedFlows.put(flow, lp);
             tr.acceptFlow(flow, lightpath);
             st.acceptFlow(flow, lightpath);
+            flow.setAccepeted(true);
+            return true;
+        }
+    }
+    
+    /**
+     * Adds a given active Flow object to a determined Physical Topology.
+     * 
+     * @param id unique identifier of the Flow object
+     * @param lightpath the Path, or list of LighPath objects
+     * @return true if operation was successful, or false if a problem occurred
+     */
+    public boolean acceptFlow(long id, ArrayList<LightPath> lightpath) {
+        Flow flow;
+
+        if (id < 0) {
+            throw (new IllegalArgumentException());
+        } else {
+            if (!activeFlows.containsKey(id)) {
+            	throw (new IllegalArgumentException());
+            }
+            
+            flow = activeFlows.get(id);
+            for(int i = 0; i < lightpath.size(); i++) {
+            	if (!canAddFlowToPT(flow, lightpath.get(i))) {
+                    return false;
+                } 
+            	 addFlowToPT(flow, lightpath.get(i));
+            	 tr.acceptFlow(flow, lightpath.get(i));
+            }
+            st.acceptFlow(flow,lightpath);
+            mappedFlows.put(flow, lightpath);
+            
             flow.setAccepeted(true);
             return true;
         }
@@ -309,14 +347,16 @@ public class ControlPlane implements ControlPlaneForRSA {
             if (!mappedFlows.containsKey(flow)) {
                 return false;
             }
-            oldPath = mappedFlows.get(flow);
+            oldPath = mappedFlows.get(flow).get(0);
             removeFlowFromPT(flow, lightpath);
             if (!canAddFlowToPT(flow, lightpath)) {
                 addFlowToPT(flow, oldPath);
                 return false;
             }
             addFlowToPT(flow, lightpath);
-            mappedFlows.put(flow, lightpath);
+            ArrayList<LightPath> lp = new ArrayList<>();
+            lp.add(lightpath);
+            mappedFlows.put(flow, lp);
             //tr.flowRequest(id, true);
             return true;
         }
@@ -347,7 +387,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         if (activeFlows.containsKey(id)) {
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
-                lightpaths = mappedFlows.get(flow);
+                lightpaths = mappedFlows.get(flow).get(0);
                 removeFlowFromPT(flow, lightpaths);
                 mappedFlows.remove(flow);
             }
@@ -365,13 +405,36 @@ public class ControlPlane implements ControlPlaneForRSA {
      * @param lightpaths a list of LighPath objects
      */
     private void removeFlowFromPT(Flow flow, LightPath lightpath) {
-        int[] links;
-        links = lightpath.getLinks();
-        for (int j = 0; j < links.length; j++) {
-            pt.getLink(links[j]).releaseSlots(lightpath.getSlotList());
-            pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
+        
+        
+        if(flow.isMultipath()) {
+        	
+        	int[] links;
+        	for(int i = 0; i < flow.getMultipath().size(); i++) {	
+        		
+        		LightPath lp = mappedFlows.get(flow).get(i);
+        		links = lp.getLinks();
+                
+        		for (int j = 0; j < links.length; j++) {
+                    pt.getLink(links[j]).releaseSlots(lightpath.getSlotList());
+                    pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel(i));
+                }
+        		
+                vt.removeLightPath(lightpath.getID());
+        	}	 
         }
-        vt.removeLightPath(lightpath.getID());
+        else
+        {
+        	int[] links;
+            links = lightpath.getLinks();
+            
+        	for (int j = 0; j < links.length; j++) {
+                pt.getLink(links[j]).releaseSlots(lightpath.getSlotList());
+                pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
+            }
+            vt.removeLightPath(lightpath.getID());
+        }
+        
     }
     
     /**
@@ -424,7 +487,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      * @return Path object mapped to the given flow 
      */
     public LightPath getPath(Flow flow) {
-        return mappedFlows.get(flow);
+        return mappedFlows.get(flow).get(0);
     }
     
     /**
@@ -433,31 +496,31 @@ public class ControlPlane implements ControlPlaneForRSA {
      * 
      * @return the mappedFlows HashMap
      */
-    public Map<Flow, LightPath> getMappedFlows() {
-        return mappedFlows;
-    }
+//    public Map<Flow, ArrayList<LightPath> > getMappedFlows() {
+//        return mappedFlows;
+//    }
     
     public boolean canGroom(Flow flow){
-    	for (Map.Entry<Flow, LightPath> entry : mappedFlows.entrySet()){
-    		LightPath lp = entry.getValue();
-    		if (flow.getSource()==lp.getSource() && flow.getDestination() == lp.getDestination()){
-    			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(lp.getModulationLevel()));
-    			int slotCount = lp.getSlotList().get(lp.getSlotList().size()-1).s;
+    	for (Entry<Flow, ArrayList<LightPath>> entry : mappedFlows.entrySet()){
+    		ArrayList<LightPath> lp = entry.getValue();
+    		if (flow.getSource()==lp.get(0).getSource() && flow.getDestination() == lp.get(0).getDestination()){
+    			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(lp.get(0).getModulationLevel()));
+    			int slotCount = lp.get(0).getSlotList().get(lp.get(0).getSlotList().size()-1).s;
     			ArrayList<Slot> slotList = new ArrayList<Slot>();
     			for (int i = slotCount; i < slotCount+demandInSlots; i++) {
     				Slot p = new Slot(0,i);
     				slotList.add(p);
 				}
     			boolean contiguity = true;
-    			for (int j = 0; j < lp.getLinks().length; j++) {
-    				if (pt.getLink(lp.getLink(j)).areSlotsAvailable(slotList, flow.getModulationLevel())){
+    			for (int j = 0; j < lp.get(0).getLinks().length; j++) {
+    				if (pt.getLink(lp.get(0).getLink(j)).areSlotsAvailable(slotList, flow.getModulationLevel())){
     					contiguity = false;
     					break;
     				}
 				}
     			if (contiguity == true){
-    				for (int linkID : lp.getLinks()) {
-    		            pt.getLink(linkID).reserveSlots(lp.getSlotList());
+    				for (int linkID : lp.get(0).getLinks()) {
+    		            pt.getLink(linkID).reserveSlots(lp.get(0).getSlotList());
     		        }
     				flow.setSlotList(slotList);
     				st.groomedFlow(flow);
@@ -567,6 +630,12 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 */
 	public void setCostMKP(boolean costMKP) {
 		this.costMKP = costMKP;
+	}
+
+	@Override
+	public Map<Flow, LightPath> getMappedFlows() {
+		
+		return null;
 	}
 
 }

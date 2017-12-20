@@ -29,7 +29,7 @@ public class KShortestPaths {
 			
 			CostedPath Pu = minCost(B);
 			int u = Pu.get(Pu.size()-1);
-//			System.out.print(" "+u);
+//			System.out.println(" "+u);
 			
 //			System.out.println();
 			B.remove(Pu);
@@ -65,6 +65,7 @@ public class KShortestPaths {
 			if (count[u] <= K){
 				
 				final int[] n = graph.neighbors(u);
+				
 				for (int v : n) {
 					CostedPath Pv = new CostedPath(graph, Pu);
 					Pv.add(v);
@@ -72,8 +73,8 @@ public class KShortestPaths {
 				}
 			}
 		}
-		System.out.println("********************");
-		int[][] kPaths = new int[K][];
+//		System.out.println("********************");
+		int[][] kPaths = new int[P.size()][];
 		for (int i = 0; i < P.size(); i++) {
 			if(!P.get(i).isEmpty()) {
 				kPaths[i] = new int[P.get(i).size()];
@@ -82,6 +83,7 @@ public class KShortestPaths {
 				}
 			}
 		}
+		
 		return kPaths;
 	}
 	

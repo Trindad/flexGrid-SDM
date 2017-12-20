@@ -5,6 +5,7 @@
 
 package flexgridsim.rsa;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import flexgridsim.*;
@@ -132,5 +133,7 @@ public interface ControlPlaneForRSA {
 	public Map<Long, Flow> getActiveFlows();
 
 	public void reacceptFlow(long id, LightPath lps);
+
+	public boolean acceptFlow(long id, ArrayList<LightPath> lps);
 
 }

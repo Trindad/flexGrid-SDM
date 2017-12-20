@@ -36,6 +36,7 @@ public class Flow {
     
     //Multipath requests
     private ArrayList<int[]> multipath; 
+    private ArrayList<Integer> modulationLevels;
     private ArrayList<Long> lightpathsID;
     private boolean isMultipath = false;
     private ArrayList<ArrayList<Slot>> multiSlotList;
@@ -72,7 +73,8 @@ public class Flow {
             this.isPostponeRequest = false;
             
             this.multipath = new  ArrayList<int[]>();
-            this.lightpathsID = new ArrayList<Long>();
+            this.setLightpathsID(new ArrayList<Long>());
+            this.modulationLevels = new ArrayList<Integer>();
             
         }
     }
@@ -334,6 +336,8 @@ public class Flow {
 	public void setLightpathID(long lightpathID) {
 		this.lightpathID = lightpathID;
 	}
+	
+	
 
 	public ArrayList<int[]> getMultipath() {
 		return multipath;
@@ -344,15 +348,65 @@ public class Flow {
 	}
 
 	public void setLinks(ArrayList<int[]> paths) {
-		this.isMultipath = true;
+		
 		this.multipath = paths;
 	}
 
 	public void setSlotListMultipath(ArrayList<ArrayList<Slot>> m) {
-		this.multiSlotList = m;
+		this.setMultiSlotList(m);
 	}
 
-	public void setLightpathID(ArrayList<Long> ids) {
-		this.lightpathsID = ids;
+	public ArrayList<Integer> getModulationLevels() {
+		return modulationLevels;
+	}
+	
+	public int getModulationLevel(int index) {
+		return modulationLevels.get(index);
+	}
+
+	public void setModulationLevels(ArrayList<Integer> modulationLevels) {
+		this.modulationLevels = modulationLevels;
+	}
+
+	public void addModulationLevel(int modulation) {
+		this.modulationLevels.add(modulation);
+	}
+	
+	public void removeModulationLevel() {
+		this.modulationLevels.remove(modulationLevels.size()-1);
+	}
+
+	public boolean isMultipath() {
+		return isMultipath;
+	}
+
+	public void setMultipath(boolean isMultipath) {
+		this.isMultipath = isMultipath;
+	}
+
+	public int[] getLinks(int index) {
+
+		return multipath.get(index);
+	}
+
+	public ArrayList<Long> getLightpathsID() {
+		return lightpathsID;
+	}
+
+	public void setLightpathsID(ArrayList<Long> lightpathsID) {
+		this.lightpathsID = lightpathsID;
+	}
+
+	public ArrayList<ArrayList<Slot>> getMultiSlotList() {
+		return multiSlotList;
+	}
+
+	public void setMultiSlotList(ArrayList<ArrayList<Slot>> multiSlotList) {
+		this.multiSlotList = multiSlotList;
+	}
+
+	public long getLightpathID(int i) {
+		
+		return this.lightpathsID.get(i);
 	}
 }

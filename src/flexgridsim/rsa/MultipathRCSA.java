@@ -9,7 +9,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 70;
+	private int TH = 30;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
@@ -30,12 +30,10 @@ public class MultipathRCSA extends SCVCRCSA {
 			}
 		}
 		
-		paths.clear();
 		System.out.println("Connection blocked:"+flow);
 		cp.blockFlow(flow.getID());
 	}
 	
-
 	/**
 	 * 
 	 * @param flow
@@ -43,36 +41,59 @@ public class MultipathRCSA extends SCVCRCSA {
 	 */
 	protected boolean multipathEstablishConnection(Flow flow) {
 		
-		int nSlotsAvailable = 0;
+		
 		this.setkShortestPaths(flow);
 		ArrayList<int[]> paths = this.getkShortestPaths();
 
 		if(paths.size() >= 2)
 		{
-			//Check if there are available slots to assign the request
+			int sumOfAvailableSlots = 0;
+			ArrayList<int[]> selectedPaths = new ArrayList<int[]>();
+			
 			for(int i = 0; i < this.paths.size(); i++) {
+				
+				int sum = pt.getNumSlots();
 				
 				for(int j = 0; j < this.paths.get(i).length; j++) {
 					
-					nSlotsAvailable += pt.getLink(this.paths.get(i)[j]).getNumFreeSlots();
-//					System.out.println(pt.getLink(this.kPaths[i][j]).getNumFreeSlots());
-//					System.out.print(" "+this.paths.get(i)[j]);
+					int n = pt.getLink(this.paths.get(i)[j]).getNumFreeSlots();
+					
+					if(n <= 0 && paths.size() <= 2) 
+					{
+						return false;
+					}
+					
+					if(n == 0)
+					{
+						sum = 0;
+						break;
+					}
+					
+					if(sum > n) 
+					{
+						sum = n;
+					}
+//					System.out.println(" "+n);
 				}
 				
-//				System.out.println("\n************");
+				sumOfAvailableSlots += sum;
+				
+				if(sum > 0) {
+					selectedPaths.add(paths.get(i));
+				}
+//				System.out.println("************");
 			}
-			
 			
 			//suppose the high level of modulation fitted
 			int demandInSlots = (int) Math.ceil(flow.getRate() / ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1]);
 			
-			if(nSlotsAvailable >= demandInSlots) 
+			if(sumOfAvailableSlots >= demandInSlots) 
 			{
-				
+//				System.out.println("Conseguiu");
 				boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 				
-				for(int i = 2; i < this.paths.size(); i++) {
-					
+				for(int i = 2; i <=  selectedPaths.size(); i++) {
+				
 					ArrayList< ArrayList<Slot> > fittedSlotList = new ArrayList< ArrayList<Slot> >();
 					int totalRate = flow.getRate();
 					int rate = (int) Math.ceil(flow.getRate()/i);
@@ -81,18 +102,27 @@ public class MultipathRCSA extends SCVCRCSA {
 					for(int j = 0; j < i; j++) {
 						
 						spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+			
+						for (int v = 0; v < selectedPaths.get(j).length; v++) {
+							
+							int src = pt.getLink(selectedPaths.get(j)[v]).getSource();
+							int dst = pt.getLink(selectedPaths.get(j)[v]).getDestination();
+							bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
+						}
 						
-						ArrayList<Slot> temp = fitConnection(flow, spectrum, paths.get(j), rate);
+						
+						ArrayList<Slot> temp = fitConnection(flow, spectrum, selectedPaths.get(j), rate);
 						
 						if(!temp.isEmpty()) {
+							
 							fittedSlotList.add(temp);
-							paths.add(paths.get(j));
+							p.add(selectedPaths.get(j));
+							totalRate -= rate;
 						}
-						else {
-							break;
+						else
+						{
+							if(flow.getModulationLevels().size() >= 1) flow.removeModulationLevel();
 						}
-
-						totalRate -= rate;
 						
 						if(totalRate < rate) 
 						{
@@ -101,9 +131,10 @@ public class MultipathRCSA extends SCVCRCSA {
 					}
 					
 					if(fittedSlotList.size() == i) {
-							
-						if(establishConnection(paths, fittedSlotList, flow.getModulationLevel(), flow))
+						
+						if(this.establishConnection(selectedPaths, fittedSlotList, flow.getModulationLevels(), flow))
 						{
+							paths.clear();
 							return true;
 						}
 					}
@@ -111,30 +142,40 @@ public class MultipathRCSA extends SCVCRCSA {
 				}
 				
 			}
+			
+			paths.clear();
 		}
+		
 		
 		return false;
 	}
 
-	protected void updateData(Flow flow, ArrayList<int []> paths, ArrayList<Long> ids,  ArrayList< ArrayList<Slot> > fittedSlotList, int modulation) {
+	protected void updateData(Flow flow, ArrayList<int []> mpaths, ArrayList<Long> ids,  ArrayList< ArrayList<Slot> > fittedSlotList, ArrayList<Integer> modulation) {
 		
-		flow.setLinks(paths);
+		
+		flow.setMultipath(true);
+		flow.setLinks(mpaths);
 		flow.setSlotListMultipath(fittedSlotList);
-		flow.setModulationLevel(modulation);
-		flow.setLightpathID(ids);
+		flow.setModulationLevels(modulation);
+		flow.setLightpathsID(ids);
 		
-		for(int i = 0; i < paths.size(); i++) {
+		ArrayList<LightPath> lps = new ArrayList<LightPath>();
+		
+		for(int i = 0; i < mpaths.size(); i++) {
 			
-			LightPath lps = vt.getLightpath(ids.get(i));
-			cp.acceptFlow(flow.getID(), lps);
+			lps.add(vt.getLightpath(ids.get(i)));
 
-			for (int j = 0; j < paths.get(i).length; j++) {
+			for (int j = 0; j < mpaths.get(i).length; j++) {
 				
-	            pt.getLink(paths.get(i)[j]).reserveSlots(fittedSlotList.get(i));
+	            pt.getLink(mpaths.get(i)[j]).reserveSlots(fittedSlotList.get(i));
 	        }
 			
 			//update cross-talk
-			updateCrosstalk(paths.get(i));
+			updateCrosstalk(mpaths.get(i));
+		}
+		
+		if(!cp.acceptFlow(flow.getID(), lps)) {
+			throw (new IllegalArgumentException());
 		}
 	}
 	
@@ -146,7 +187,7 @@ public class MultipathRCSA extends SCVCRCSA {
 	 * @param core
 	 * @return
 	 */
-	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean []spectrum, int core) {
+	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean []spectrum, int core, int rate) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		double xt = 0.0f;
@@ -155,7 +196,7 @@ public class MultipathRCSA extends SCVCRCSA {
 		while(modulation >= 0)
 		{
 			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-			int demandInSlots = (int) Math.ceil(flow.getRate() / subcarrierCapacity);
+			int demandInSlots = (int) Math.ceil(rate / subcarrierCapacity);
 			
 			xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
 			
@@ -166,7 +207,7 @@ public class MultipathRCSA extends SCVCRCSA {
 				if(fittedSlotList.size() == demandInSlots) {
 					
 					if(fittedSlotList.size() == demandInSlots) {
-						
+						flow.addModulationLevel(modulation);
 						return fittedSlotList;
 					}
 				}
@@ -193,13 +234,13 @@ public class MultipathRCSA extends SCVCRCSA {
 				
 		for (int i = 1; i < spectrum.length; i++) {
 			
-			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i);
+			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, rate);
 			
 			if(!fittedSlotList.isEmpty()) return fittedSlotList;
 			
 		}
 		
-		fittedSlotList  = canBeFitConnection(flow, links, spectrum[0], 0);
+		fittedSlotList  = canBeFitConnection(flow, links, spectrum[0], 0, rate);
 		
 		if(!fittedSlotList.isEmpty()) return fittedSlotList;
 		
@@ -215,9 +256,9 @@ public class MultipathRCSA extends SCVCRCSA {
 	 * @param flow
 	 * @return
 	 */
-	public boolean establishConnection(ArrayList<int []> paths, ArrayList< ArrayList<Slot> > slotList, int modulation, Flow flow) {
+	public boolean establishConnection(ArrayList<int []> mpaths, ArrayList< ArrayList<Slot> > slotList, ArrayList<Integer> modulation, Flow flow) {
 		
-		if(paths == null || flow == null || slotList.isEmpty()) 
+		if(mpaths == null || flow == null || slotList.isEmpty()) 
 		{
 			System.out.println("Invalid variables");
 			return false;
@@ -225,23 +266,55 @@ public class MultipathRCSA extends SCVCRCSA {
 		
 		ArrayList<Long> ids = new ArrayList<Long>();
 		
-		for(int i = 0; i < paths.size(); i++) {
+		for(int i = 0; i < mpaths.size(); i++) {
 
-			long id = vt.createLightpath(paths.get(i), slotList.get(i) ,flow.getModulationLevel());
+			long id = vt.createLightpath(mpaths.get(i), slotList.get(i) ,flow.getModulationLevel(i));
 			
-			if(id < 0) return false;
+			if(id < 0) {
+				
+				System.out.println("Invalid ID");
+				return false;
+			}
 			
 			ids.add(id);
 		}
 			
-		if (ids.size() == paths.size()) 
+		if (ids.size() == mpaths.size()) 
 		{
-			this.updateData(flow, paths, ids, slotList, modulation);
-			
-			System.out.println("Connection accepted:"+flow);
+			this.updateData(flow, mpaths, ids, slotList, modulation);
 			return true;
 		} 
 		
 		return false;
+	}
+	
+
+	@Override
+	public void flowDeparture(Flow flow) {
+		
+		if(!flow.isAccepeted()) return;
+		
+		
+		if(flow.isMultipath()) {
+			ArrayList<int[]> mpaths = new ArrayList<int[]>();
+			
+			for(int j = 0; j < mpaths.size(); j++) {
+				
+				int []links = flow.getLinks(j);
+				
+				for(int i = 0; i < links.length; i++) {
+					pt.getLink(links[i]).updateCrosstalk();
+				}
+			}
+		}
+		else {
+			if(!flow.isAccepeted()) return;
+			
+			int []links = flow.getLinks();
+			
+			for(int i = 0; i < links.length; i++) {
+				pt.getLink(links[i]).updateCrosstalk();
+			}
+		}
 	}
 }
