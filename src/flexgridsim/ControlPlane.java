@@ -12,10 +12,10 @@ import java.util.Map.Entry;
 import org.w3c.dom.Element;
 
 import flexgridsim.rsa.EarliestDeadlineFirst;
-import flexgridsim.rsa.ClusterDefragmentationRCSA;
 import flexgridsim.rsa.ControlPlaneForRSA;
 import flexgridsim.rsa.DefragmentationRCSA;
 import flexgridsim.rsa.RSA;
+import flexgridsim.rsa.TridimensionalClusterDefragmentationRCSA;
 
 /**
  * The Control Plane is responsible for managing resources and
@@ -45,6 +45,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 //    private int nArrival = 0;
     private static double TH = 0.85;
     private boolean DFR = false;
+    private ArrayList<Cluster> clusters;
 	
     /**
 	 * Creates a new ControlPlane object.
@@ -634,8 +635,28 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	@Override
 	public Map<Flow, LightPath> getMappedFlows() {
+		Map<Flow, LightPath> map = new HashMap<Flow, LightPath>();
 		
-		return null;
+		for(Flow flow: mappedFlows.keySet()) {
+			
+			map.put(flow, mappedFlows.get(flow).get(0));
+		}
+		return map;
+	}
+
+	/**
+	 * 
+	 */
+	public ArrayList<Cluster> getClusters() {
+		return clusters;
+	}
+
+	/**
+	 * 
+	 * @param clusters
+	 */
+	public void setClusters(ArrayList<Cluster> clusters) {
+		this.clusters = clusters;
 	}
 
 }

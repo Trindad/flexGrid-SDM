@@ -1,10 +1,13 @@
-package flexgridsim;
+package flexgridsim.rsa;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import flexgridsim.rsa.ClusterDefragmentationRCSA;
+import flexgridsim.Cluster;
+import flexgridsim.Flow;
+import flexgridsim.ModulationsMuticore;
+import flexgridsim.Slot;
 import flexgridsim.util.PythonCaller;
 
 /**
@@ -33,6 +36,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		
 		PythonCaller caller = new PythonCaller();
 		String []labels = caller.kmeans(features, k);
+		double[][] centroids = caller.getCentroids();//two dimension
 		
 //		System.out.println("------");
 //		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
@@ -50,10 +54,28 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 			clusters.get(Integer.parseInt(labels[i])).add(listOfFlows.get(i));
 		}
 		
+		this.createClusters(centroids);
+		
 	}
 	
-	
-	
+
+	/**
+	 * 
+	 * @param centroids
+	 */
+	protected void createClusters(double [][]centroids) {
+		
+		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>(centroids.length);
+		
+		for(int i = 0; i < clustersStructure.size(); i++) {
+			
+			Cluster c = new Cluster((int)centroids[i][0], (int)centroids[i][1], centroids[i][2]);
+			clustersStructure.add(c);
+		}
+		
+		cp.setClusters(clustersStructure);
+		
+	}
 
 	/**
 	 * 

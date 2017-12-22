@@ -73,7 +73,6 @@ public class MultipathRCSA extends SCVCRCSA {
 					{
 						sum = n;
 					}
-//					System.out.println(" "+n);
 				}
 				
 				sumOfAvailableSlots += sum;
@@ -81,7 +80,6 @@ public class MultipathRCSA extends SCVCRCSA {
 				if(sum > 0) {
 					selectedPaths.add(paths.get(i));
 				}
-//				System.out.println("************");
 			}
 			
 			//suppose the high level of modulation fitted
@@ -89,7 +87,6 @@ public class MultipathRCSA extends SCVCRCSA {
 			
 			if(sumOfAvailableSlots >= demandInSlots) 
 			{
-//				System.out.println("Conseguiu");
 				boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 				
 				for(int i = 2; i <=  selectedPaths.size(); i++) {
@@ -180,46 +177,32 @@ public class MultipathRCSA extends SCVCRCSA {
 	}
 	
 	/**
-	 * 
-	 * @param flow
-	 * @param links
-	 * @param spectrum
-	 * @param core
-	 * @return
+	 * Search to a core that has available slots and considering the cross-talk threshold
+	 * @param links 
+	 * @param spectrum 
+	 * @return list of available slots
 	 */
-	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean []spectrum, int core, int rate) {
+	protected ArrayList<Slot> FirstFitPolicy(boolean []spectrum, int core, int[] links, int demandInSlots) {
 		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = 0.0f;
-		int modulation = chooseModulationFormat(flow, links);
+		ArrayList<Slot> setOfSlots = new ArrayList<Slot>();
 		
-		while(modulation >= 0)
-		{
-			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-			int demandInSlots = (int) Math.ceil(rate / subcarrierCapacity);
-			
-			xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
-			
-			if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
+		if (spectrum.length >= demandInSlots) {
 
-				fittedSlotList = this.FirstFitPolicy(spectrum, core, links, demandInSlots);
+			for(int i = 0; i < spectrum.length; i++) {
 				
-				if(fittedSlotList.size() == demandInSlots) {
+				if(spectrum[i] == true) {
 					
-					if(fittedSlotList.size() == demandInSlots) {
-						flow.addModulationLevel(modulation);
-						return fittedSlotList;
-					}
+					setOfSlots.add( new Slot(core,i) );
 				}
-				
-				fittedSlotList.clear();
-			}
 			
-			modulation--;
-		}
+				if(setOfSlots.size() == demandInSlots) return setOfSlots;
+			}
+	    }
 		
-		return fittedSlotList;
+		return setOfSlots;
 	}
+	
+	
 	
 	/**
 	 * 

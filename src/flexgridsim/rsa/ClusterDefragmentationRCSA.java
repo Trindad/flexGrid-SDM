@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import flexgridsim.Cluster;
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.ModulationsMuticore;
@@ -145,6 +146,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		PythonCaller caller = new PythonCaller();
 		String []labels = caller.kmeans(features, k);
+		double[][] centroids = caller.getCentroids();//two dimension
 		
 //		System.out.println("------");
 //		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
@@ -161,6 +163,26 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		for(i = 0; i < labels.length; i++) {
 			clusters.get(Integer.parseInt(labels[i])).add(listOfFlows.get(i));
 		}
+
+		this.createClusters(centroids);
+		
+	}
+	
+	/**
+	 * 
+	 * @param centroids
+	 */
+	protected void createClusters(double [][]centroids) {
+		
+		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>(centroids.length);
+		
+		for(int i = 0; i < clustersStructure.size(); i++) {
+			
+			Cluster c = new Cluster(1, (int)centroids[i][0], centroids[i][1]);
+			clustersStructure.add(c);
+		}
+		
+		cp.setClusters(clustersStructure);
 		
 	}
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
  */
 public class PythonCaller {
 
+	private double [][]centroids;
 
 	public String[] kmeans(double [][]features, int k) {
 		String path = this.getScriptsPath() + "kmeans.py";
@@ -79,5 +80,14 @@ public class PythonCaller {
 		json += "";
 		
 		return json;
+	}
+	
+	public void setCentroids() {
+		
+	}
+	
+	public double[][] getCentroids() {
+		
+		return this.centroids;
 	}
 }

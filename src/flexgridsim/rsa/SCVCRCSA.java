@@ -66,8 +66,6 @@ public class SCVCRCSA implements RSA{
 		
 		int modulationLevel = ModulationsMuticore.getModulationByDistance(totalLength);
 		
-//		System.out.println(" length: "+totalLength+" modulation: "+flow.getModulationLevel()+" "+links.length);
-		
 		return modulationLevel;
 	}
 	
@@ -110,22 +108,19 @@ public class SCVCRCSA implements RSA{
 		KShortestPaths kShortestPaths = new KShortestPaths();
 		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
 		this.paths = new ArrayList<int[]> ();
-//		System.out.println("KPATHS: "+kPaths.length);
+
 		if(kPaths.length >= 1)
 		{
 			for (int k = 0; k < kPaths.length; k++) {
 				
 				int[] links = new int[kPaths[k].length - 1];
-				
-//				for (int v = 0; v < kPaths[k].length; v++) {
-//					System.out.print(" - "+kPaths[k][v]);
-//				}
+
 
 				for (int j = 0; j < kPaths[k].length - 1; j++) {
 					
 					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
 				}
-//				System.out.println();
+
 				this.paths.add(links);
 			}
 		}
@@ -196,6 +191,48 @@ public class SCVCRCSA implements RSA{
 		
 		return setOfSlots;
 	}
+	
+	/**
+	 * 
+	 * @param flow
+	 * @param links
+	 * @param spectrum
+	 * @param core
+	 * @return
+	 */
+	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean []spectrum, int core, int rate) {
+		
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		double xt = 0.0f;
+		int modulation = chooseModulationFormat(flow, links);
+		
+		while(modulation >= 0)
+		{
+			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
+			int demandInSlots = (int) Math.ceil(rate / subcarrierCapacity);
+			
+			xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
+			
+			if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
+
+				fittedSlotList = this.FirstFitPolicy(spectrum, core, links, demandInSlots);
+				
+				if(fittedSlotList.size() == demandInSlots) {
+					
+					if(fittedSlotList.size() == demandInSlots) {
+						flow.addModulationLevel(modulation);
+						return fittedSlotList;
+					}
+				}
+				
+				fittedSlotList.clear();
+			}
+			
+			modulation--;
+		}
+		
+		return fittedSlotList;
+	}
 
 	/**
 	 * 
@@ -207,41 +244,22 @@ public class SCVCRCSA implements RSA{
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = 0.0f;
 				
-		for (int i = 0; i < spectrum.length; i++) {
+		for (int i = 1; i < spectrum.length; i++) {
 			
-			int modulation = chooseModulationFormat(flow, links);
+			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
 			
-			while(modulation >= 0)
-			{
-				double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-				int demandInSlots = (int) Math.ceil(flow.getRate() / subcarrierCapacity);
-				
-				xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
-//				System.out.println("XT: "+xt+" TH:"+ModulationsMuticore.inBandXT[modulation]);
-				
-				if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
-	
-					fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
-					
-					if(fittedSlotList.size() == demandInSlots) {
-						
-						if(fittedSlotList.size() == demandInSlots) {
-							
-							if(establishConnection(links, fittedSlotList, modulation, flow)) return true;
-						}
-					}
-					
-					fittedSlotList.clear();
-				}
-				
-				modulation--;
-			}
+			if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
+			
 		}
+		
+		fittedSlotList  = canBeFitConnection(flow, links, spectrum[0], 0, flow.getRate());
+		
+		if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
 		
 		return false;
 	}
+	
 	
 	/**
 	 * 

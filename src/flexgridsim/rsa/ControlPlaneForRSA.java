@@ -136,4 +136,8 @@ public interface ControlPlaneForRSA {
 
 	public boolean acceptFlow(long id, ArrayList<LightPath> lps);
 
+	public  ArrayList<Cluster> getClusters();
+
+	public void setClusters(ArrayList<Cluster> clustersStructure);
+
 }
