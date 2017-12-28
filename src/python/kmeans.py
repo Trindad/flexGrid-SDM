@@ -11,6 +11,9 @@ from sklearn.cluster import KMeans
 
 global str
 
+def arrayOfStrings(arr):
+    return list(map((lambda x: str(x)), arr))
+
 class MyKMeans:
     def runKMeans(self, data, k):
         X = np.array(data)
@@ -21,8 +24,9 @@ class MyKMeans:
         centroids = kmeans.cluster_centers_
         labels = kmeans.labels_
 
-        str_labels = '-'.join(list(map((lambda x: str(x)), labels)))
-        return str_labels
+        str_labels = '-'.join(arrayOfStrings(labels))
+        str_centroids = '/'.join(list(map((lambda x: str(','.join(arrayOfStrings(x)))), centroids)))
+        return (str_labels + '&' + str_centroids)
 
     #Plot graffic 
     def plotGraphic(self, labels, X, centroids):
@@ -46,5 +50,5 @@ for s in arr1:
     arr2 = s.split(",");
     data.append(list(map((lambda x: float(x)), arr2)))
 
-kk = MyKMeans()
-print(kk.runKMeans(data, k))
+result = MyKMeans()
+print(result.runKMeans(data, k))

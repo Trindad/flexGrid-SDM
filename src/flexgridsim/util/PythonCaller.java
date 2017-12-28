@@ -13,9 +13,10 @@ import java.util.ArrayList;
  */
 public class PythonCaller {
 
-	private double [][]centroids;
-
-	public String[] kmeans(double [][]features, int k) {
+	public KMeansResult kmeans(double [][]features, int k) {
+		
+		
+		
 		String path = this.getScriptsPath() + "kmeans.py";
 		
 		System.out.println(convertToJSON(features));
@@ -28,9 +29,11 @@ public class PythonCaller {
 		st.append(" ");
 		st.append('"' + convertToJSON(features) + '"');
 		
-		String output = executeCommand(st.toString());
 		
-		return output.split("-");
+		String output = executeCommand(st.toString());
+		KMeansResult result = new KMeansResult(output);
+		
+		return result;
 	}
 	
 	private String getScriptsPath() {
@@ -82,12 +85,4 @@ public class PythonCaller {
 		return json;
 	}
 	
-	public void setCentroids() {
-		
-	}
-	
-	public double[][] getCentroids() {
-		
-		return this.centroids;
-	}
 }

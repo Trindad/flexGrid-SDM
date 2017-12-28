@@ -183,6 +183,39 @@ public class SCVCRCSA implements RSA{
 				else
 				{
 					setOfSlots.clear();
+					
+					if(Math.abs(i-spectrum.length) < demandInSlots) return setOfSlots;
+				}
+				
+				if(setOfSlots.size() == demandInSlots) return setOfSlots;
+			}
+	    }
+		
+		return setOfSlots;
+	}
+	
+	
+	/**
+	 * Search to a core that has available slots and considering the cross-talk threshold
+	 * @param links 
+	 * @param spectrum 
+	 * @return list of available slots
+	 */
+	protected ArrayList<Slot> LastFitPolicy(boolean []spectrum, int core, int[] links, int demandInSlots) {
+		
+		ArrayList<Slot> setOfSlots = new ArrayList<Slot>();
+		
+		if (spectrum.length >= demandInSlots) {
+
+			for(int i = spectrum.length-1; i >= 0 ; i--) {
+				
+				if(spectrum[i] == true) {
+					
+					setOfSlots.add( new Slot(core,i) );
+				}
+				else
+				{
+					setOfSlots.clear();
 				}
 				
 				if(setOfSlots.size() == demandInSlots) return setOfSlots;
@@ -209,7 +242,7 @@ public class SCVCRCSA implements RSA{
 		while(modulation >= 0)
 		{
 			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-			int demandInSlots = (int) Math.ceil(rate / subcarrierCapacity);
+			int demandInSlots = (int) Math.ceil((double)rate / subcarrierCapacity);
 			
 			xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
 			
@@ -217,10 +250,12 @@ public class SCVCRCSA implements RSA{
 
 				fittedSlotList = this.FirstFitPolicy(spectrum, core, links, demandInSlots);
 				
-				if(fittedSlotList.size() == demandInSlots) {
+				if(!fittedSlotList.isEmpty()) {
 					
 					if(fittedSlotList.size() == demandInSlots) {
-						flow.addModulationLevel(modulation);
+						
+						if(!flow.isMultipath()) flow.setModulationLevel(modulation);
+						else flow.addModulationLevel(modulation);
 						return fittedSlotList;
 					}
 				}
@@ -231,6 +266,7 @@ public class SCVCRCSA implements RSA{
 			modulation--;
 		}
 		
+		fittedSlotList.clear();
 		return fittedSlotList;
 	}
 
@@ -245,17 +281,13 @@ public class SCVCRCSA implements RSA{
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 				
-		for (int i = 1; i < spectrum.length; i++) {
+		for (int i = spectrum.length-1; i >= 0; i--) {
 			
 			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
 			
 			if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
 			
 		}
-		
-		fittedSlotList  = canBeFitConnection(flow, links, spectrum[0], 0, flow.getRate());
-		
-		if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
 		
 		return false;
 	}

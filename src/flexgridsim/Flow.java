@@ -409,4 +409,8 @@ public class Flow {
 		
 		return this.lightpathsID.get(i);
 	}
+	
+	public int getSlotListSize() {
+		return slotList.size();
+	}
 }

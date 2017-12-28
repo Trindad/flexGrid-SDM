@@ -8,6 +8,7 @@ import flexgridsim.Cluster;
 import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
+import flexgridsim.util.KMeansResult;
 import flexgridsim.util.PythonCaller;
 
 /**
@@ -18,7 +19,7 @@ import flexgridsim.util.PythonCaller;
 public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmentationRCSA {
 	
 	protected void runKMeans(int k , Map<Long, Flow> flows) {
-		
+
 		double[][] features = new double[flows.size()][3];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
 		
@@ -35,9 +36,9 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		}
 		
 		PythonCaller caller = new PythonCaller();
-		String []labels = caller.kmeans(features, k);
-		double[][] centroids = caller.getCentroids();//two dimension
-		
+		KMeansResult result = caller.kmeans(features, k);
+		String []labels = result.getLabels();
+		double [][]centroids = result.getCentroids();
 //		System.out.println("------");
 //		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
 //		System.out.println("------");
@@ -84,12 +85,12 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 	 * @param links
 	 * @return
 	 */
-	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links, int i) {
+	public boolean  fitConnection(Flow flow, boolean [][]spectrum, int[] links, int n , int i) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		double xt = 0.0f;
 				
-		for (; i < spectrum.length; i+=2) {
+		for (; i >= n && i >= 0; i--) {
 			
 			int modulation = flow.getModulationLevel();
 			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];

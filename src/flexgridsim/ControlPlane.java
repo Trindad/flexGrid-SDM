@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import org.w3c.dom.Element;
 
 import flexgridsim.rsa.EarliestDeadlineFirst;
+import flexgridsim.rsa.ClusterDefragmentationRCSA;
 import flexgridsim.rsa.ControlPlaneForRSA;
 import flexgridsim.rsa.DefragmentationRCSA;
 import flexgridsim.rsa.RSA;
@@ -46,6 +47,8 @@ public class ControlPlane implements ControlPlaneForRSA {
     private static double TH = 0.85;
     private boolean DFR = false;
     private ArrayList<Cluster> clusters;
+	private int nExceeds = 0;
+	private int limited = 50;
 	
     /**
 	 * Creates a new ControlPlane object.
@@ -75,7 +78,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         if(defragmentation.equals("true") == true) {
         	
         	this.setDefragmentation(true);
-        	this.defragmentation = new TridimensionalClusterDefragmentationRCSA();
+        	this.defragmentation = new ClusterDefragmentationRCSA();
         	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
         }
   
@@ -151,14 +154,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
-//	            nExceeds++;          	
+	            this.nExceeds++;          	
 	            
-            	if(this.activeFlows.size() >= 20 && this.DFR == true) {
+            	if(this.activeFlows.size() >= 200 && this.DFR == true && nExceeds >= 150) {
             		
             		if(this.getFragmentationRatio() >= TH) {
 	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
 	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
 	            		eventScheduler.addEvent(defragmentationEvent);
+	            		this.nExceeds = 0;
+	            		this.limited = (int) (this.limited + Math.log(this.limited) * 10);
             		}
             	}
 	        }
