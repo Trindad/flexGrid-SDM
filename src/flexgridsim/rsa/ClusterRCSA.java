@@ -98,14 +98,16 @@ public class ClusterRCSA extends SCVCRCSA {
 					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
 				}
 				
-				if(cp.getClusters().size() <= 0)
+				if(cp.getClusters().isEmpty())
 				{
+					System.out.println("Normal way");
 					if( fitConnection(flow, spectrum, links) == true) {
-						return true;
+						return fitConnection(flow, spectrum, links);
 					}
 				}
 				else
 				{
+					System.out.println("Clustering way");
 					if( fitConnectionUsingClustering(flow, spectrum, links) == true) {
 						return true;
 					}

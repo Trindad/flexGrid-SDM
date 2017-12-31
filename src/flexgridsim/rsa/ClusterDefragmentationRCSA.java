@@ -1,7 +1,6 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,7 +15,7 @@ import flexgridsim.util.KMeansResult;
 import flexgridsim.util.PythonCaller;
 
 /**
- * Defragmentation approach using clustering (k-Means)
+ * De-fragmentation approach using clustering (k-Means)
  * 
  * @author trindade
  *
@@ -75,12 +74,12 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		return false;
 	}
 	
-	protected void lastChanceToAllocating(ArrayList<Flow> flows) {
+	protected boolean lastChanceToAllocating(ArrayList<Flow> flows) {
 	
 		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 		
 		flows.sort(Comparator.comparing(Flow::getRate));
-//		Collections.reverse(flows);
+		Collections.reverse(flows);
 		 
 		for(Flow flow: flows) {
 				
@@ -110,17 +109,17 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			}
 			
 			sortFreeCore.sort((a,b) -> coreSlots[a] - coreSlots[b]);
-			
-			
-//			for(int i = 0; i < spectrum.length; i++) System.out.println(sortFreeCore.get(i));
+
 			for(int i = 0; i < pt.getCores(); i++) {
 
-				if( fitConnection(flow, spectrum, flow.getLinks(), sortFreeCore.get(i), sortFreeCore.get(i) )) return;
+				if( fitConnection(flow, spectrum, flow.getLinks(), sortFreeCore.get(i), sortFreeCore.get(i) ) == true) return true;
 			}
 			
 			System.out.println("Flow "+flow+" modulation: "+flow.getModulationLevel());
 			this.printSpectrum(spectrum);
 		}
+		
+		return false;
 	}
 	
 	public void runDefragmentantion() {
@@ -174,8 +173,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		if(secondChance.size() >= 1)
 		{
-			System.out.println("Something bad happened "+secondChance.size());
-			lastChanceToAllocating(secondChance);
+			
+			if(!this.lastChanceToAllocating(secondChance)) System.out.println("Something bad happened ");
 			secondChance.clear();
 		}
 		
@@ -318,10 +317,6 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		String []labels = result.getLabels();
 		double [][]centroids = result.getCentroids();
 		
-//		System.out.println("------");
-//		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
-//		System.out.println("------");
-		
 		this.clusters = new HashMap<Integer, ArrayList<Flow> >();
 		
 		for(i = 0; i < this.k; i++) {
@@ -344,9 +339,9 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 	 */
 	protected void createClusters(double [][]centroids) {
 		
-		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>(centroids.length);
+		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>();
 		
-		for(int i = 0; i < clustersStructure.size(); i++) {
+		for(int i = 0; i < centroids.length; i++) {
 			
 			Cluster c = new Cluster(1, (int)centroids[i][0], centroids[i][1]);
 			clustersStructure.add(c);

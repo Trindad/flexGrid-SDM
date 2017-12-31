@@ -80,6 +80,8 @@ public class ControlPlane implements ControlPlaneForRSA {
         	this.setDefragmentation(true);
         	this.defragmentation = new ClusterDefragmentationRCSA();
         	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
+        	
+        	this.clusters = new ArrayList<Cluster>();
         }
   
         try {
@@ -96,7 +98,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 		this.DFR = b;
 	}
 
-	/**
+	/**this.clusters = new ArrayList<Cluster>();
      * Deals with an Event from the event queue.
      * If it is of the FlowArrivalEvent kind, adds it to the list of active flows.
      * If it is from the FlowDepartureEvent, removes it from the list.
@@ -660,8 +662,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * 
 	 * @param clusters
 	 */
-	public void setClusters(ArrayList<Cluster> clusters) {
-		this.clusters = clusters;
+	public void setClusters(ArrayList<Cluster> c) {
+		this.clusters = new ArrayList<Cluster>(c);
 	}
 
 }

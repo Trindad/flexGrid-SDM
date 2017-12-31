@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
@@ -18,13 +19,14 @@ public class MultipathRCSA extends SCVCRCSA {
 	public void flowArrival(Flow flow) {
 
 		//Try to assign in a normal way
-		if(this.runRCSA(flow)) {
+		if(this.runRCSA(flow)) 
+		{
 			return;
 		}
-		
-		if(flow.getRate() >= TH) {
-			
-			if(this.multipathEstablishConnection(flow)) {
+		if(flow.getRate() >= TH) 
+		{	
+			if(this.multipathEstablishConnection(flow) == true) 
+			{
 				System.out.println("Connection accepted using multipath:"+flow);
 				return;
 			}
@@ -34,113 +36,175 @@ public class MultipathRCSA extends SCVCRCSA {
 		cp.blockFlow(flow.getID());
 	}
 	
+	protected boolean[][]getAvaibleSlotsInLightpath(boolean[][] spectrum, int[] selectedPath) {
+		
+		spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+		
+		for (int v = 0; v < selectedPath.length; v++) {
+			
+			int src = pt.getLink(selectedPath[v]).getSource();
+			int dst = pt.getLink(selectedPath[v]).getDestination();
+			bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
+		}
+		
+		return spectrum;
+	}
+	
+	protected int getNewRate(Flow flow, int index, ArrayList<int[]> selectedPaths, double percentage) {
+		
+		return (int) Math.abs(flow.getRate() - ( (double)flow.getRate() * percentage) );
+	}
+	
+	protected boolean tryToSlitRateInMultipaths(Flow flow, int i, int rate, ArrayList<int[]> selectedPaths, ArrayList<Integer> indices) {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		int totalRate = flow.getRate();
+		ArrayList< ArrayList<Slot> > fittedSlotList = new ArrayList< ArrayList<Slot> >();
+		ArrayList<int[]> p = new ArrayList<int[]>();
+		
+		for(int j = 0; j < i; j++) {
+			
+			spectrum = this.getAvaibleSlotsInLightpath(spectrum, selectedPaths.get(indices.get(j)));
+			flow.setMultipath(true);
+			ArrayList<Slot> temp = this.fitConnection(flow, spectrum, selectedPaths.get(indices.get(j)), rate);
+//			this.printSpectrum(spectrum);
+			
+			if(!temp.isEmpty()) {
+				
+				fittedSlotList.add(temp);
+				p.add(selectedPaths.get(indices.get(j)));
+				
+				if(totalRate < rate) 
+				{
+					rate = totalRate;
+				}
+				else 
+				{
+					totalRate -= rate;
+				}
+			}
+			else
+			{
+				if(flow.getModulationLevels().size() >= 1) 
+				{
+					flow.removeModulationLevel();
+					flow.setMultipath(false);
+				}
+			}
+		}
+		
+		if(fittedSlotList.size() == i) {
+			
+			if(this.establishConnection(p, fittedSlotList, flow.getModulationLevels(), flow))
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected boolean tryToAssign(Flow flow, ArrayList<int[]> selectedPaths, ArrayList<Integer> nSlotsAvailable ) {
+		
+		ArrayList<Integer> indices = new ArrayList<Integer>();
+		for(int i = 0; i < selectedPaths.size(); i++) {
+			indices .add(i);
+		}
+				
+		indices.sort((a,b) -> nSlotsAvailable.get(a) - nSlotsAvailable.get(b));
+		Collections.reverse(indices);
+		
+		for(int i = 2; i <= indices.size(); i++) {
+
+			double y = 10;
+
+			while(y >= 2) {
+				
+				y--;
+				double percentage = 1.0/y;
+				int rate = this.getNewRate(flow, i, selectedPaths, percentage);
+				
+				if(rate <= 0) continue;
+				
+				if( this.tryToSlitRateInMultipaths(flow, i, rate, selectedPaths, indices)) return true;
+			}
+		}
+			
+		return false;
+	}
+	
+
+	/**
+	 * 
+	 * @param sumOfAvailableSlots
+	 * @return
+	 */
+	private int getPathsCandidates(ArrayList<int[]> selectedPaths, int demandInSlots, ArrayList<Integer> nSlotsAvailable) {
+
+		int sumOfAvailableSlots = 0;
+		
+		for(int i = 0; i < this.paths.size(); i++) {
+			
+			int sum = pt.getNumSlots();
+			
+			for(int j = 0; j < this.paths.get(i).length; j++) {
+				
+				int n = pt.getLink(this.paths.get(i)[j]).getNumFreeSlots();
+				
+				if(n <= 0)
+				{
+					sum = 0;
+					break;
+				}
+				else if(sum > n) 
+				{
+					sum = n;
+				}
+			}
+			
+			sumOfAvailableSlots += sum;
+			
+			if(sum > 0 && sum >= demandInSlots) 
+			{
+				nSlotsAvailable.add(sum);
+				selectedPaths.add(this.paths.get(i));
+				
+				if(Math.abs(this.paths.size()-i) <= 1 && selectedPaths.size() < 1) return 0;
+			}
+		}
+		
+		return sumOfAvailableSlots;
+	}
+	
 	/**
 	 * 
 	 * @param flow
 	 * @return
 	 */
 	protected boolean multipathEstablishConnection(Flow flow) {
-		
-		
+
 		this.setkShortestPaths(flow);
 		ArrayList<int[]> paths = this.getkShortestPaths();
 
 		if(paths.size() >= 2)
 		{
-			int sumOfAvailableSlots = 0;
+			
+			//suppose the high level of modulation fitted, ignoring the distance between source and destination
+			int demandInSlots = (int) Math.ceil( ( (double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1])/(double)paths.size());
+			
+			ArrayList<Integer> nSlotsAvailable = new ArrayList<Integer>();
 			ArrayList<int[]> selectedPaths = new ArrayList<int[]>();
+			int sumOfAvailableSlots = this.getPathsCandidates(selectedPaths, demandInSlots, nSlotsAvailable);
 			
-			for(int i = 0; i < this.paths.size(); i++) {
-				
-				int sum = pt.getNumSlots();
-				
-				for(int j = 0; j < this.paths.get(i).length; j++) {
-					
-					int n = pt.getLink(this.paths.get(i)[j]).getNumFreeSlots();
-					
-					if(n <= 0 && paths.size() <= 2) 
-					{
-						return false;
-					}
-					
-					if(n == 0)
-					{
-						sum = 0;
-						break;
-					}
-					
-					if(sum > n) 
-					{
-						sum = n;
-					}
-				}
-				
-				sumOfAvailableSlots += sum;
-				
-				if(sum > 0) {
-					selectedPaths.add(paths.get(i));
-				}
-			}
 			
-			//suppose the high level of modulation fitted
-			int demandInSlots = (int) Math.ceil(flow.getRate() / ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1]);
 			
-			if(sumOfAvailableSlots >= demandInSlots) 
+			if(sumOfAvailableSlots >= demandInSlots && selectedPaths.size() >= 2) 
 			{
-				boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-				
-				for(int i = 2; i <=  selectedPaths.size(); i++) {
-				
-					ArrayList< ArrayList<Slot> > fittedSlotList = new ArrayList< ArrayList<Slot> >();
-					int totalRate = flow.getRate();
-					int rate = (int) Math.ceil(flow.getRate()/i);
-					ArrayList<int[]> p = new ArrayList<int[]>();
-					
-					for(int j = 0; j < i; j++) {
-						
-						spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-			
-						for (int v = 0; v < selectedPaths.get(j).length; v++) {
-							
-							int src = pt.getLink(selectedPaths.get(j)[v]).getSource();
-							int dst = pt.getLink(selectedPaths.get(j)[v]).getDestination();
-							bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
-						}
-						
-						
-						ArrayList<Slot> temp = fitConnection(flow, spectrum, selectedPaths.get(j), rate);
-						
-						if(!temp.isEmpty()) {
-							
-							fittedSlotList.add(temp);
-							p.add(selectedPaths.get(j));
-							totalRate -= rate;
-						}
-						else
-						{
-							if(flow.getModulationLevels().size() >= 1) flow.removeModulationLevel();
-						}
-						
-						if(totalRate < rate) 
-						{
-							rate = totalRate;
-						}
-					}
-					
-					if(fittedSlotList.size() == i) {
-						
-						if(this.establishConnection(selectedPaths, fittedSlotList, flow.getModulationLevels(), flow))
-						{
-							paths.clear();
-							return true;
-						}
-					}
-					
-				}
+				return this.tryToAssign(flow, selectedPaths, nSlotsAvailable);
 				
 			}
 			
-			paths.clear();
+			this.paths.clear();
 		}
 		
 		
