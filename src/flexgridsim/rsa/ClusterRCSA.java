@@ -16,33 +16,29 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @param flow
 	 * @return
 	 */
-	private int identifyCluster(Flow flow) {
+	private ArrayList<Integer>identifyCluster(Flow flow, int nHops) {
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		int  []distances = new int[this.clusters.size()];
+		ArrayList<Integer> sortClusters = new ArrayList<Integer>();
 		
-		int cluster = 0;
-		
-		for(int i = 0; i < clusters.size(); i++) {
+		for(int i = 0; i < this.clusters.size(); i++) {
 			
-			distances.add(this.euclidianDistance(clusters.get(i).getModulationLevel(), clusters.get(i).getRate(), clusters.get(i).getDuration(),
-					flow.getModulationLevel(), flow.getRate(), flow.getDuration()));
-		}
-		
-		double lastDistance = Double.MAX_VALUE;
-		double newDistance = Double.MAX_VALUE;
-		
-		for(int i = 1; i < distances.size(); i++) {
-			
-			newDistance = distances.get(i);
-			
-			if(newDistance < lastDistance) {
+			if(clusters.get(i).getNumberOfFeatures() == 3) {
 				
-				lastDistance = newDistance;
-				cluster = i;
+				distances[i] = (int)( (this.euclidianDistance(clusters.get(i).getX() * 100, clusters.get(i).getY(), clusters.get(i).getZ(),
+						nHops, flow.getRate(), flow.getDuration())*100 ) * 100);
 			}
+			else
+			{
+				distances[i] = (int)( this.euclidianDistanceTwoFeatures(clusters.get(i).getX(), clusters.get(i).getY(),flow.getRate(), nHops)*100 );
+			}
+
+			sortClusters.add(i);
 		}
 		
-		return cluster;
+		sortClusters.sort((a,b) -> distances[a] - distances[b]);
+		
+		return sortClusters;
 	}
 	
 	/**
@@ -58,6 +54,21 @@ public class ClusterRCSA extends SCVCRCSA {
 	private double euclidianDistance(int p1, int p2, double p3, int q1, int q2, double q3) {
 		
 		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2) + Math.pow(p3 - q3,2);
+		
+		return Math.sqrt(t);
+	}
+	
+	/**
+	 * Two dimensions
+	 * @param p1
+	 * @param p2
+	 * @param q1
+	 * @param q2
+	 * @return
+	 */
+	private double euclidianDistanceTwoFeatures(int p1, int p2, int q1, int q2) {
+		
+		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2);
 		
 		return Math.sqrt(t);
 	}
@@ -100,15 +111,16 @@ public class ClusterRCSA extends SCVCRCSA {
 				
 				if(cp.getClusters().isEmpty())
 				{
-					System.out.println("Normal way");
 					if( fitConnection(flow, spectrum, links) == true) {
-						return fitConnection(flow, spectrum, links);
+						System.out.println("Connection accepted: "+flow);
+						return true;
 					}
 				}
 				else
 				{
-					System.out.println("Clustering way");
-					if( fitConnectionUsingClustering(flow, spectrum, links) == true) {
+					if( fitConnectionUsingClustering(flow, spectrum, links) == true) 
+					{
+						System.out.println("Connection accepted using clusterRCSA: "+flow);
 						return true;
 					}
 				}
@@ -120,21 +132,72 @@ public class ClusterRCSA extends SCVCRCSA {
 	
 	public boolean fitConnectionUsingClustering(Flow flow, boolean [][]spectrum, int[] links) {
 		
-		int idCluster = identifyCluster(flow);
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		this.clusters = cp.getClusters();
 		
-		if(idCluster >= 0) 
-		{
-			int []cores = this.clusters.get(idCluster).getCores();
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		this.clusters = new ArrayList<Cluster>(cp.getClusters());
+		ArrayList<Integer> sortClusters = identifyCluster(flow, links.length);
 			
-			for(int i = 0; i < cores.length; i++) {
-				
-				fittedSlotList = canBeFitConnection(flow, links, spectrum[i] , i, flow.getRate());
+		int []cores = this.clusters.get(sortClusters.get(0)).getCores();
+		
+		for(int i = 0; i < cores.length; i++) {
+			
+			fittedSlotList = canBeFitConnection(flow, links, spectrum[cores[i]] , cores[i], flow.getRate());
+			if(!fittedSlotList.isEmpty()) 
+			{
+				return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
+			}
+		}
+		
+		return this.lastChanceToAssign(flow, spectrum, links, cores);
+	}
+
+	/**
+	 * 
+	 * @param flow
+	 * @param spectrum
+	 * @param links
+	 * @param coreFull
+	 * @return
+	 */
+	private boolean lastChanceToAssign(Flow flow, boolean[][] spectrum, int[] links, int []coreFull) {
+		
+		ArrayList<Integer> sortFreeCore = new ArrayList<Integer>();
+		int  []coreSlots = new int[pt.getCores()];
+
+		for(int i = 0; i < pt.getCores(); i++) {
+			sortFreeCore.add(i);
+			int n = 0;
+			
+			for(int j = 0; j < spectrum[i].length; j++) {
+				if(spectrum[i][j]) n++;
+			}
+			
+			coreSlots[i] = n;
+		}
+		
+		sortFreeCore.sort((a,b) -> coreSlots[a] - coreSlots[b]);
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		
+		for(int i = 0; i < pt.getCores(); i++) {
+
+			if(!this.isFull(sortFreeCore.get(i), coreFull)) 
+			{
+				fittedSlotList = canBeFitConnection(flow, links, spectrum[sortFreeCore.get(i)] , sortFreeCore.get(i), flow.getRate());
 				if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
 			}
 		}
 		
+		return false;
+	}
+
+	private boolean isFull(int core, int[] coreFull) {
+		
+		for(int i = 0; i < coreFull.length; i++) {
+			
+			if(core == coreFull[i]) {
+				return true;
+			}
+		}
 		return false;
 	}
 }

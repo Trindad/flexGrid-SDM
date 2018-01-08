@@ -140,4 +140,8 @@ public interface ControlPlaneForRSA {
 
 	public void setClusters(ArrayList<Cluster> clustersStructure);
 
+	public boolean blockFlow(long id, boolean b);
+
+	public void updateControlPlane(PhysicalTopology pt, VirtualTopology vt);
+
 }

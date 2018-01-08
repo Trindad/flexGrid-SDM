@@ -79,6 +79,16 @@ public class VirtualTopology {
         }
     }
     
+    
+    public VirtualTopology(VirtualTopology vt) {
+    	
+    	nextLightpathID = vt.nextLightpathID;
+    	adjMatrix = vt.adjMatrix.clone();
+    	adjMatrixSize = vt.adjMatrixSize;
+    	lightPaths = new HashMap<Long, LightPath>(vt.lightPaths);
+    	this.pt = new PhysicalTopology(vt.pt);
+    	Tracer.getTracerObject();
+    }
     /**
      * First, creates a lightpath in the Physical Topology through the createLightpathInPT
      * function. Then, gets the lightpath's source and destination nodes, so a new

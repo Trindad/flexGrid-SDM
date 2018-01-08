@@ -169,11 +169,12 @@ public class Simulator {
 	            String rsaAlgorithm = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("algorithm");
 	            String costMKP = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("costMKP");
 	            String defragmentation = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("defragmentation");
+	            String reroute = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("reroute");
 	            
 	            if (Simulator.verbose) {
 	                System.out.println("RSA module: " + rsaModule);
 	            }
-	            ControlPlane cp = new ControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, rsaAlgorithm, defragmentation, costMKP, pt, vt, traffic);
+	            ControlPlane cp = new ControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, rsaAlgorithm, defragmentation, costMKP, reroute, pt, vt, traffic);
 	
 	            if (Simulator.verbose) {
 	                System.out.println("(4) Done. (" + Float.toString((float) ((float) (System.currentTimeMillis() - begin) / (float) 1000)) + " sec)\n");

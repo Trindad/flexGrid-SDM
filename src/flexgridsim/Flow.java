@@ -22,6 +22,7 @@ public class Flow {
     private double duration;
     private int cos;
     private int[] links;
+    private int core;
     private ArrayList<Slot> slotList;
     private double deadline;
     private boolean accepeted;
@@ -412,5 +413,13 @@ public class Flow {
 	
 	public int getSlotListSize() {
 		return slotList.size();
+	}
+
+	public int getCore() {
+		return core;
+	}
+
+	public void setCore(int core) {
+		this.core = core;
 	}
 }

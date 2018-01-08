@@ -1,17 +1,8 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
-
-import org.w3c.dom.Element;
-
 import flexgridsim.Flow;
-import flexgridsim.LightPath;
-import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
-import flexgridsim.TrafficGenerator;
-import flexgridsim.VirtualTopology;
-import flexgridsim.util.KShortestPaths;
-import flexgridsim.util.WeightedGraph;
 
 /**
  * Paper: Crosstalk-aware cross-core virtual concatenation in spatial division multiplexing elastic optical networks

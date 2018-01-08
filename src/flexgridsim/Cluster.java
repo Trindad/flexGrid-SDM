@@ -8,41 +8,38 @@ package flexgridsim;
 public class Cluster {
 	
 	//Centroid of x, y and z dimension
-	private int modulationLevel = 1;
-	private int rate = 0;//in Gb
-	private double duration = 0;
+	private int x = 1;
+	private int y = 0;//in Gb
+	private int z = 0;
 	private int []cores;
+	int nFeatures = 2;
 	
-	public Cluster(int modulationLevel, int rate, double duration) {
+	public Cluster(int x, int y) {
 	
-		this.modulationLevel = modulationLevel;
-		this.rate = rate;
-		this.duration = duration;
+		this.x = x;
+		this.y = y;
 	}
 	
-	public int getModulationLevel() {
-		return modulationLevel;
+	public Cluster(int x, int y, int z, int n) {
+		
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.nFeatures = n;
 	}
 	
-	public void setModulationLevel(int m) {
-		this.modulationLevel = m;
+	public int getX() {
+		return x;
 	}
 	
-	public int getRate() {
-		return rate;
+	public int getY() {
+		return y;
 	}
 	
-	public void setRate(int r) {
-		this.rate = r;
+	public int getZ() {
+		return z;
 	}
 	
-	public double getDuration() {
-		return duration;
-	}
-	
-	public void setDuration(double d) {
-		this.duration = d;
-	}
 
 	public int [] getCores() {
 		return cores;
@@ -50,5 +47,9 @@ public class Cluster {
 
 	public void setCores(int [] cores) {
 		this.cores = cores;
+	}
+	
+	public int getNumberOfFeatures() {
+		return nFeatures;
 	}
 }

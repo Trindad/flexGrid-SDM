@@ -17,6 +17,7 @@ import flexgridsim.rsa.ControlPlaneForRSA;
 import flexgridsim.rsa.DefragmentationRCSA;
 import flexgridsim.rsa.RSA;
 import flexgridsim.rsa.TridimensionalClusterDefragmentationRCSA;
+import flexgridsim.rsa.ZhangDefragmentationRCSA;
 
 /**
  * The Control Plane is responsible for managing resources and
@@ -26,6 +27,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 
     private RSA rsa;
     private DefragmentationRCSA defragmentation;
+    private DefragmentationRCSA rerouting;
     private String rsaAlgorithm;
     private boolean costMKP = false;//used in batch requests 
     private double time = 0.0f;
@@ -42,13 +44,12 @@ public class ControlPlane implements ControlPlaneForRSA {
     /**
      * Defragmentation approaches
      */
-//    private int nExceeds = 0;//Zhang Defragmentation Method
-//    private int nArrival = 0;
-    private static double TH = 0.85;
+    private static double TH = 0.55;
     private boolean DFR = false;
     private ArrayList<Cluster> clusters;
 	private int nExceeds = 0;
-	private int limited = 50;
+	private int limited = 60;
+	private boolean RR = false;
 	
     /**
 	 * Creates a new ControlPlane object.
@@ -60,7 +61,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param vt the network's virtual topology
 	 * @param traffic the traffic
 	 */
-    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String defragmentation, String costMultipleKnapsackPloblem, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
+    public ControlPlane(Element xml, EventScheduler eventScheduler, String rsaModule, String rsaAlgorithm, String defragmentation, String costMultipleKnapsackPloblem, String reroute, PhysicalTopology pt, VirtualTopology vt, TrafficGenerator traffic) {
         @SuppressWarnings("rawtypes")
 		Class RSAClass;
         mappedFlows = new HashMap<Flow, ArrayList<LightPath>>();
@@ -68,20 +69,34 @@ public class ControlPlane implements ControlPlaneForRSA {
         this.eventScheduler = eventScheduler;
         
         batches = new SetOfBatches();
+        this.clusters = new ArrayList<Cluster>();
         
         this.pt = pt;
         this.vt = vt;
         
         this.setRsaAlgorithm(rsaAlgorithm);
-        if(costMultipleKnapsackPloblem.equals("true") == true) this.setCostMKP(true);
-      
-        if(defragmentation.equals("true") == true) {
-        	
-        	this.setDefragmentation(true);
+        if(costMultipleKnapsackPloblem.equals("true") == true) 
+        {
+        	this.setCostMKP(true);
+        }
+        
+        if(defragmentation.equals("TridimensionalClusterDefragmentationRCSA") == true) 
+        {
+        	this.DFR = true;
+        	this.defragmentation = new TridimensionalClusterDefragmentationRCSA();
+        	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
+        }
+        else if(defragmentation.equals("ClusterDefragmentationRCSA") == true) 
+        {
+        	this.DFR = true;
         	this.defragmentation = new ClusterDefragmentationRCSA();
         	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
-        	
-        	this.clusters = new ArrayList<Cluster>();
+        }
+        else if(reroute.equals("true") == true) 
+        {
+        	this.RR = true;
+        	this.rerouting = new ZhangDefragmentationRCSA();
+        	this.rerouting.simulationInterface(xml, pt, vt, this, traffic); 
         }
   
         try {
@@ -93,10 +108,6 @@ public class ControlPlane implements ControlPlaneForRSA {
         }
 
     }
-
-    private void setDefragmentation(boolean b) {
-		this.DFR = b;
-	}
 
 	/**this.clusters = new ArrayList<Cluster>();
      * Deals with an Event from the event queue.
@@ -147,8 +158,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	            newFlow(((FlowArrivalEvent) event).getFlow());
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
-	            
-//	            nArrival++;
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
@@ -158,15 +167,26 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            
 	            this.nExceeds++;          	
 	            
-            	if(this.activeFlows.size() >= 200 && this.DFR == true && nExceeds >= 150) {
+            	if(this.activeFlows.size() >= 150 && this.DFR == true && nExceeds >= 150) {
             		
-            		if(this.getFragmentationRatio() >= TH) {
+            		if(this.getFragmentationRatio() >= TH) 
+            		{
 	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
 	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
 	            		eventScheduler.addEvent(defragmentationEvent);
 	            		this.nExceeds = 0;
 	            		this.limited = (int) (this.limited + Math.log(this.limited) * 10);
             		}
+            		
+            		nExceeds = 0;
+            	}
+            	
+            	else if(nExceeds >= 50 && this.RR  == true && this.activeFlows.size() >= 50 && this.getFragmentationRatio() >= 0.5) {
+            		
+            		ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
+            		eventScheduler.addEvent(reroutingnEvent);
+            		System.out.println("Before defragmentation rate: "+this.getFragmentationRatio());
+            		this.nExceeds = 0;
             	}
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
@@ -175,9 +195,20 @@ public class ControlPlane implements ControlPlaneForRSA {
 
 	        	this.defragmentation.runDefragmentantion();
 	        	
-//	        	nExceeds = 0;
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        	System.out.println("Defragmentation rate: "+this.getFragmentationRatio());
+	        }
+	        else if(event instanceof ReroutingArrivalEvent) {
+	        	
+	        	
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"MFUSF", this, this.pt, this.vt);
+	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
+	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures();
+	        	System.out.println("Start Reroute "+connections.size()+" of the "+this.activeFlows.size()+" connections");
+	        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
+	        	
+	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
+	        	System.out.println("After defragmentation rate: "+this.getFragmentationRatio());
 	        }
 	    }
     }
@@ -300,8 +331,12 @@ public class ControlPlane implements ControlPlaneForRSA {
             }
             flow = activeFlows.get(id);
             if (!canAddFlowToPT(flow, lightpath)) {
+            	System.out.println("Error while reaccepting");
                 return;
             } 
+            
+           this.mappedFlows.get(flow).remove(0);
+           this.mappedFlows.get(flow).add(lightpath);
             addFlowToPT(flow, lightpath);
       
             return;
@@ -321,15 +356,49 @@ public class ControlPlane implements ControlPlaneForRSA {
             throw (new IllegalArgumentException());
         } else {
             if (!activeFlows.containsKey(id)) {
+            	//System.out.println("Active flow");
                 return false;
             }
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
+            	//System.out.println("Mapped flow");
                 return false;
             }
             activeFlows.remove(id);
             tr.blockFlow(flow);
             st.blockFlow(flow);
+            return true;
+        }
+    }
+    
+    
+    /**
+     * Removes a given Flow object from the list of active flows.
+     * 
+     * @param id unique identifier of the Flow object
+     * @return true if operation was successful, or false if a problem occurred
+     */
+    public boolean blockFlow(long id, boolean disrupted) {
+        Flow flow;
+
+        if (id < 0) {
+            throw (new IllegalArgumentException());
+        } else {
+            if (!activeFlows.containsKey(id)) {
+            	//System.out.println("Active flow");
+                return false;
+            }
+            flow = activeFlows.get(id);
+            if (mappedFlows.containsKey(flow) && !disrupted) {
+            	//System.out.println("Mapped flow");
+                return false;
+            }
+            else if(mappedFlows.containsKey(flow) && disrupted) {
+            	removeFlowFromPT(flow, mappedFlows.get(flow).get(0));
+            }
+            activeFlows.remove(id);
+            tr.blockFlow(flow);
+           if(!disrupted) st.blockFlow(flow);
             return true;
         }
     }
@@ -395,6 +464,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         if (activeFlows.containsKey(id)) {
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
+            	//System.out.println("removeFlow "+flow);
                 lightpaths = mappedFlows.get(flow).get(0);
                 removeFlowFromPT(flow, lightpaths);
                 mappedFlows.remove(flow);
@@ -497,16 +567,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     public LightPath getPath(Flow flow) {
         return mappedFlows.get(flow).get(0);
     }
-    
-    /**
-     * Retrieves the complete set of Flow/Path pairs listed on the
-     * mappedFlows HashMap.
-     * 
-     * @return the mappedFlows HashMap
-     */
-//    public Map<Flow, ArrayList<LightPath> > getMappedFlows() {
-//        return mappedFlows;
-//    }
+   
     
     public boolean canGroom(Flow flow){
     	for (Entry<Flow, ArrayList<LightPath>> entry : mappedFlows.entrySet()){
@@ -663,7 +724,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param clusters
 	 */
 	public void setClusters(ArrayList<Cluster> c) {
-		this.clusters = new ArrayList<Cluster>(c);
+		this.clusters = c;
 	}
 
+	public void updateControlPlane(PhysicalTopology newPT, VirtualTopology newVT) {
+		
+		this.pt = newPT;
+		this.vt = newVT;
+		
+		for(int i = 0; i < pt.getNumLinks(); i++) {
+				pt.getLink(i).updateCrosstalk();
+		}
+	}
 }

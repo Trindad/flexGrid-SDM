@@ -10,7 +10,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 30;
+	private int TH = 5;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 

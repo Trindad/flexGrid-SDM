@@ -24,7 +24,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
 	protected Map<Integer, ArrayList<Flow> > clusters;
 	protected int cores[];
-	protected int k = 7;//number of clusters
+	protected int k = 4;//number of clusters
 	
 	protected int nextLimit(int index, int key) {
 		return (key > 0 ? (index - cores[key-1] ) : index-1);
@@ -93,7 +93,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
 			}
 			
-			ArrayList<Integer> sortFreeCore = new ArrayList<>();
+			ArrayList<Integer> sortFreeCore = new ArrayList<Integer>();
 			int  []coreSlots = new int[pt.getCores()];
 	
 			for(int i = 0; i < pt.getCores(); i++) {
@@ -133,7 +133,6 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 		int index = pt.getCores();
 		
-		this.distributeCores();
 		int next = index;
 
 		//re-assigned resources in the same link, but using clustering
@@ -181,7 +180,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		clusters.clear();
 	}
 	
-	private void distributeCores() {
+	protected void distributeCores() {
 		
 		this.cores = new int[this.clusters.size()];
 		
@@ -198,7 +197,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			nRequest[key] = slots;
 		}
 		
-		int nCores = pt.getCores();
+		int nCores = pt.getCores()-1;
 
 		for(int i = 0; i < cores.length; i++) {
 			
@@ -305,8 +304,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		for(Long f: flows.keySet()) {
 			
-			features[i][0] = flows.get(f).getLinks().length;
-			features[i][1] = flows.get(f).getRate();
+			features[i][1] = flows.get(f).getLinks().length;
+			features[i][0] = flows.get(f).getRate();
 			
 			listOfFlows.add(flows.get(f));
 			i++;
@@ -339,11 +338,26 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 	 */
 	protected void createClusters(double [][]centroids) {
 		
+		this.distributeCores();
 		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>();
 		
+		int index = pt.getCores();
+		int next = index;
+
 		for(int i = 0; i < centroids.length; i++) {
 			
-			Cluster c = new Cluster(1, (int)centroids[i][0], centroids[i][1]);
+			Cluster c = new Cluster((int)centroids[i][0], (int)centroids[i][1]);
+			
+			int []temp = new int[cores[i]];
+			index = nextLimit(index, i);
+			next = (next - cores[i]);
+			int k = 0;
+			for (int j = index; j >= next && j >= 0; j--) {
+
+				temp[k] = j;
+				k++;
+			}
+			c.setCores(temp);
 			clustersStructure.add(c);
 		}
 		

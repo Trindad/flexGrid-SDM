@@ -6,8 +6,6 @@ import java.util.Map;
 
 import flexgridsim.Cluster;
 import flexgridsim.Flow;
-import flexgridsim.ModulationsMuticore;
-import flexgridsim.Slot;
 import flexgridsim.util.KMeansResult;
 import flexgridsim.util.PythonCaller;
 
@@ -18,6 +16,8 @@ import flexgridsim.util.PythonCaller;
  */
 public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmentationRCSA {
 	
+	//k = 4 for three dimensions 
+	//k = 3 for two dimensions
 	protected void runKMeans(int k , Map<Long, Flow> flows) {
 
 		double[][] features = new double[flows.size()][3];
@@ -27,9 +27,9 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		
 		for(Long f: flows.keySet()) {
 			
-			features[i][0] = flows.get(f).getDuration();
-			features[i][1] = flows.get(f).getRate();
-			features[i][2] = flows.get(f).getModulationLevel();
+			features[i][1] = flows.get(f).getTime()*100;
+			features[i][0] = flows.get(f).getRate();
+			features[i][2] = flows.get(f).getDuration()*100;
 			
 			listOfFlows.add(flows.get(f));
 			i++;
@@ -39,13 +39,10 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		KMeansResult result = caller.kmeans(features, k);
 		String []labels = result.getLabels();
 		double [][]centroids = result.getCentroids();
-//		System.out.println("------");
-//		for( i = 0; i < labels.length; i++) System.out.println(labels[i]);
-//		System.out.println("------");
 		
 		this.clusters = new HashMap<Integer, ArrayList<Flow> >();
 		
-		for(i = 0; i < k; i++) {
+		for(i = 0; i < this.k; i++) {
 			
 			clusters.put(i, new ArrayList<Flow>());
 			
@@ -54,70 +51,41 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		for(i = 0; i < labels.length; i++) {
 			clusters.get(Integer.parseInt(labels[i])).add(listOfFlows.get(i));
 		}
-		
+
 		this.createClusters(centroids);
 		
 	}
 	
-
 	/**
 	 * 
 	 * @param centroids
 	 */
 	protected void createClusters(double [][]centroids) {
 		
-		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>(centroids.length);
+		distributeCores();
+		ArrayList<Cluster> clustersStructure = new ArrayList<Cluster>();
 		
-		for(int i = 0; i < clustersStructure.size(); i++) {
+		int index = pt.getCores();
+		int next = index;
+
+		for(int i = 0; i < centroids.length; i++) {
 			
-			Cluster c = new Cluster((int)centroids[i][0], (int)centroids[i][1], centroids[i][2]);
+			Cluster c = new Cluster((int)(centroids[i][0]*100), (int)centroids[i][1], (int)(centroids[i][2]*100), 3);
+			
+			int []temp = new int[cores[i]];
+			index = nextLimit(index, i);
+			next = (next - cores[i]);
+			int k = 0;
+			for (int j = index; j >= next && j >= 0; j--) {
+
+				temp[k] = j;
+				k++;
+			}
+			c.setCores(temp);
 			clustersStructure.add(c);
 		}
 		
 		cp.setClusters(clustersStructure);
 		
 	}
-
-	/**
-	 * 
-	 * @param flow
-	 * @param spectrum
-	 * @param links
-	 * @return
-	 */
-	public boolean  fitConnection(Flow flow, boolean [][]spectrum, int[] links, int n , int i) {
-		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = 0.0f;
-				
-		for (; i >= n && i >= 0; i--) {
-			
-			int modulation = flow.getModulationLevel();
-			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-			int demandInSlots = (int) Math.ceil(flow.getRate() / subcarrierCapacity);
-			
-			xt = pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
-			
-			if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
-
-				fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
-				
-				if(fittedSlotList.size() == demandInSlots) {
-					
-					if(fittedSlotList.size() == demandInSlots) {
-						System.out.println(" Re-accepted "+flow+ " core: "+i+" "+fittedSlotList);
-						
-						this.updateData(flow, links, fittedSlotList, modulation);
-						return true;
-					}
-				}
-				
-				fittedSlotList.clear();
-			}
-			
-		}
-		
-		return false;
-	}
-
 }

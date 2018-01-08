@@ -132,5 +132,17 @@ public class EventScheduler {
 		{
 			System.out.println(e);
 		}
+	}
+
+	public void removeReroutingEvent(ReroutingArrivalEvent event) {
+		try 
+		{
+			this.eventQueue.remove(event);
+		} 
+		catch (Exception e) 
+		{
+			System.out.println(e);
+		}
+		
 	} 
 }
