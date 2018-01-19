@@ -90,8 +90,8 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			this.flowArrival(flows.get(key));
 		}
 		
-		BestEffortTrafficMigration bf = new BestEffortTrafficMigration(cp, pt, vt, flows, listOfFlows, connectionDisruption);
-		flows = bf.run();
+		BestEffortTrafficMigration bf = new BestEffortTrafficMigration(cp, pt, vt, flows, listOfFlows);
+		flows = bf.runBestEffort();
 		
 		updateControlPlane(flows);
 		
@@ -121,13 +121,6 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			}
 		}
 		
-		
-		
-//		for(Long key: flows.keySet()) {
-//			
-//			cp.reacceptFlow(flows.get(key).getID(), listOfFlows.get(flows.get(key)));
-//		}
-//		
 		connectionDisruption.clear();
 	}
 	
@@ -215,8 +208,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		
 		boolean [][]spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 		spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-//		System.out.println(flow.getSource() + " " + flow.getDestination()+" "+links.length);
-		
+
 		for(int i = 0; i < links.length; i++) {
 			int src = pt.getLink(links[i]).getSource(), dst = pt.getLink(links[i]).getDestination();
 			this.bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
@@ -263,8 +255,8 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		
 		if(!this.establishConnection(flow.getLinks(), flow.getSlotList(), flow.getModulationLevel(), flow)) 
 		{
-//			System.out.println("Connection Disruption occurred "+flow);
 			connectionDisruption.add(flow);
+			flow.setConnectionDisruption(true);
 			this.nConnectionDisruption++;
 		}
 		

@@ -41,6 +41,9 @@ public class Flow {
     private ArrayList<Long> lightpathsID;
     private boolean isMultipath = false;
     private ArrayList<ArrayList<Slot>> multiSlotList;
+    
+    //Rerouting
+    private boolean connectionDisruption = false;
 
 	/**
 	 * Creates a new Flow object.
@@ -158,7 +161,7 @@ public class Flow {
     
     
     public String getLinksInStringFormat() {
-    	for(int i = 0; i < links.length; i++) System.out.println(links[i]);
+//    	for(int i = 0; i < links.length; i++) System.out.println(links[i]);
     	
     	return  links.toString();
     }
@@ -421,5 +424,13 @@ public class Flow {
 
 	public void setCore(int core) {
 		this.core = core;
+	}
+
+	public boolean isConnectionDisruption() {
+		return connectionDisruption;
+	}
+
+	public void setConnectionDisruption(boolean connectionDisruption) {
+		this.connectionDisruption = connectionDisruption;
 	}
 }

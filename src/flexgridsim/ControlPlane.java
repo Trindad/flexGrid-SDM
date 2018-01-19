@@ -161,7 +161,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
-//	        	System.out.println("Flow departure"+((FlowDepartureEvent) event).time);
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
@@ -201,7 +200,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        else if(event instanceof ReroutingArrivalEvent) {
 	        	
 	        	
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"MFUSF", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"HUSIF", this, this.pt, this.vt);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
 	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures();
 	        	System.out.println("Start Reroute "+connections.size()+" of the "+this.activeFlows.size()+" connections");
