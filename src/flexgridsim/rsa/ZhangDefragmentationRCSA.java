@@ -23,10 +23,10 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	private ArrayList<Flow> connectionDisruption = new ArrayList<Flow>();
 	
 	private Map<Long, Flow> allflows;
-	private Map<Flow, LightPath> listOfFlows = new HashMap<Flow, LightPath>();
+	private Map<Flow, LightPath> accepted = new HashMap<Flow, LightPath>();
 
 	
-	public void copyStrutures() {
+	public void copyStrutures(PhysicalTopology pt, VirtualTopology vt) {
 
 		this.pt = new PhysicalTopology(pt);
 		this.vt = new VirtualTopology(vt);
@@ -38,26 +38,19 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		this.allflows = new HashMap<Long, Flow>(cp.getActiveFlows());
 		
 		for(Long key: flows.keySet()) {
-			
-			//System.out.println("before: " + cp.getMappedFlows().containsKey(flows.get(key)) + " size: " + cp.getMappedFlows().size());
 			this.allflows.remove(key);
-			this.vt.removeLightPath((int)flows.get(key).getLightpathID());
-			//System.out.println("after: " + cp.getMappedFlows().containsKey(flows.get(key)) + " size: " + cp.getMappedFlows().size());
-			
-			int []links = flows.get(key).getLinks();
-			for(int i = 0; i < links.length; i++) {
-				pt.getLink(links[i]).updateCrosstalk();
-			}
+			System.out.println("Removing " + flows.get(key).getLightpathID());
+			cp.removeFlowFromPT(flows.get(key), this.vt.getLightpath(flows.get(key).getLightpathID()), this.pt, this.vt);	
 		}
 		
-		
+		this.nConnectionDisruption = 0;
 	}
 	
 	protected ArrayList<int[]>findKPaths(Flow flow) {
 		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 2);
-		ArrayList<int[]> p = new ArrayList<int[]> ();
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(this.graph, flow.getSource(), flow.getDestination(), 2);
+		ArrayList<int[]> p = new ArrayList<int[]>();
 
 		if(kPaths.length >= 1)
 		{
@@ -65,10 +58,9 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 				
 				int[] links = new int[kPaths[k].length - 1];
 
-
 				for (int j = 0; j < kPaths[k].length - 1; j++) {
 					
-					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
+					links[j] = this.pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
 				}
 				p.add(links);
 			}
@@ -80,46 +72,51 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	/**
 	 * De-fragmentation based routing, core and spectrum assignment
 	 */
-	public void runDefragmentantion(Map<Long, Flow> flows) {
+	public void runDefragmentantion(Map<Long, Flow> flowsToReroute) {
 		
-		releaseResourcesAssigned(flows);
-		
-		//in descending order
-		for(Long key: flows.keySet()) {
+		try {
 			
-			this.flowArrival(flows.get(key));
+			releaseResourcesAssigned(flowsToReroute);
+			ArrayList<Flow> flows = new ArrayList<Flow>();
+			
+			for(Long key: flowsToReroute.keySet()) flows.add(flowsToReroute.get(key));
+			
+//			flows.sort(Comparator.comparing(Flow::getRate));
+//			Collections.reverse(flows);
+			//in descending order
+			for(Flow f: flows) {
+				
+				this.flowArrival(f);
+				this.changeFlowStatus(f, flowsToReroute);
+			}
+			
+			BestEffortTrafficMigration bf = new BestEffortTrafficMigration(cp, this.pt, this.vt,flowsToReroute);
+			flowsToReroute = bf.runBestEffort();
+			updateControlPlane(flowsToReroute);
 		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}	
 		
-		BestEffortTrafficMigration bf = new BestEffortTrafficMigration(cp, pt, vt, flows, listOfFlows);
-		flows = bf.runBestEffort();
-		
-		updateControlPlane(flows);
-		
+		if(this.nConnectionDisruption >= 1) System.out.println(" disruption: "+this.nConnectionDisruption);
 	}
 	
 	
-	private void updateControlPlane(Map<Long, Flow> flows) {
+	private void changeFlowStatus(Flow f, Map<Long, Flow> flows) {
 		
-		cp.updateControlPlane(pt, vt);
-		
-		for(Flow f: connectionDisruption)
-		{
-			if(!cp.blockFlow(f.getID(), true)) {
-				System.out.println("Error while blocking");
-			}
-			else
-			{
-				for(Long key: flows.keySet()) {
-					
-					if(f.getID() == flows.get(key).getID()) {
-						flows.remove(key);
-						break;
-					}
-				}
+		for(Long key: flows.keySet()) {
+			
+			if(flows.get(key).equals(f)) {
 				
-				System.out.println("Connection blocked:: "+f);
+				flows.remove(key);
+				flows.put(key, f);
+				return;
 			}
 		}
+	}
+
+	private void updateControlPlane(Map<Long, Flow> flows) {
+		cp.updateControlPlane(this.pt, this.vt, flows);
 		
 		connectionDisruption.clear();
 	}
@@ -132,29 +129,33 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			return false;
 		}
 		
-		long id = vt.createLightpath(links, slotList ,modulation);
+		long id = this.vt.createLightpath(links, slotList ,modulation);
 		
 		if (id >= 0) 
 		{
+			
 			flow.setLinks(links);
 			flow.setSlotList(slotList);
 			flow.setModulationLevel(modulation);
 			
-			LightPath lps = vt.getLightpath(id);
+			LightPath lps = this.vt.getLightpath(id);
 			flow.setLinks(links);
 			flow.setLightpathID(id);
 			
-			listOfFlows.put(flow, lps);
+			accepted.put(flow, lps);
 			
 			for (int j = 0; j < links.length; j++) {
 				
-	            pt.getLink(links[j]).reserveSlots(slotList);
+	            this.pt.getLink(links[j]).reserveSlots(slotList);
+	            this.pt.getLink(links[j]).updateNoise(lps.getSlotList(), flow.getModulationLevel());
 	        }
 			
 			//update cross-talk
-			updateCrosstalk(links);
+			for(int i = 0; i < links.length; i++) {
+				this.pt.getLink(links[i]).updateCrosstalk();
+			}
 			
-			System.out.println("Connection reaccepted:"+flow);
+			System.out.println("Connection reaccepted: "+flow);
 			return true;
 		} 
 		
@@ -179,7 +180,8 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		
 	}
 	
-	protected void orderedMostfrequencyUsed(ArrayList<Slot> slots, Map<Long, Flow> flows, ArrayList<int[]> setOfPaths, Flow flow, ArrayList< ArrayList<Slot> > candidateSlotLists) {
+	protected int orderedMostfrequencyUsed(ArrayList<Slot> slots, Map<Long, Flow> flows, ArrayList<int[]> setOfPaths, 
+			Flow flow, ArrayList< ArrayList<Slot> > candidateSlotLists, ArrayList<Slot> slotList) {
 		
 		slots.sort((a,b) -> slotFrequency(flows, a) - slotFrequency(flows, b));
 		int index = 0;
@@ -189,12 +191,14 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			if(s.contains(slots.get(0))) 
 			{
 				flow.setLinks(setOfPaths.get(index));
-				flow.setSlotList(s);
-				return;
+				slotList.addAll(s);
+				return index;
 			}
 			
 			index++;
 		}
+		
+		return index;
 	}
 	
 	protected Slot mostfrequencyUsed(ArrayList<Slot> slots, Map<Long, Flow> flows) {
@@ -206,12 +210,15 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 
 	protected ArrayList<Slot> canBeProvided(Flow flow, int[] links) {
 		
-		boolean [][]spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-		spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+		boolean [][]spectrum = new boolean[this.pt.getCores()][this.pt.getNumSlots()];
+		spectrum = initMatrix(spectrum, this.pt.getCores(),this.pt.getNumSlots());
 
 		for(int i = 0; i < links.length; i++) {
-			int src = pt.getLink(links[i]).getSource(), dst = pt.getLink(links[i]).getDestination();
-			this.bitMap(pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
+			
+			int src = this.pt.getLink(links[i]).getSource();
+			int dst = this.pt.getLink(links[i]).getDestination();
+			
+			this.bitMap(this.pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
 		}
 		
 		return preFitConnection(flow, spectrum, links);
@@ -220,8 +227,10 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	public ArrayList<Slot> preFitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		
+		printSpectrum(spectrum);
 				
-		for (int i = spectrum.length-1; i >= 0; i--) {
+		for (int i = 0; i < spectrum.length; i++) {
 			
 			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
 			
@@ -238,11 +247,12 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		ArrayList<int[]> kPaths = findKPaths(flow);
 		ArrayList<int[]> p = new ArrayList<int[]>();
 		ArrayList<Slot> candidateMostFrequencySlot = new ArrayList<Slot>();
-		ArrayList<ArrayList<Slot>> candidateSlotLists = new ArrayList<ArrayList<Slot>>();
+		ArrayList<ArrayList<Slot>> candidateSlotLists = new ArrayList< ArrayList<Slot> >();
 
 		for(int[] pi: kPaths)
 		{
 			ArrayList<Slot> slotList = canBeProvided(flow, pi); 
+			
 			if(!slotList.isEmpty()) 
 			{
 				candidateMostFrequencySlot.add(mostfrequencyUsed(slotList, allflows));
@@ -251,19 +261,36 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			}
 		}
 		
-		this.orderedMostfrequencyUsed(candidateMostFrequencySlot, allflows, p, flow, candidateSlotLists);
-		
-		if(!this.establishConnection(flow.getLinks(), flow.getSlotList(), flow.getModulationLevel(), flow)) 
-		{
-			connectionDisruption.add(flow);
-			flow.setConnectionDisruption(true);
-			this.nConnectionDisruption++;
+		System.out.println("old: "+ flow.getSlotList()+" n: "+candidateMostFrequencySlot.size()+ ": "+kPaths.size());
+
+		if(!candidateMostFrequencySlot.isEmpty()) {
+			
+			while(candidateMostFrequencySlot.size() >= 1) {
+				
+				ArrayList<Slot> slotList = new ArrayList<Slot>();
+				int i = this.orderedMostfrequencyUsed(candidateMostFrequencySlot, allflows, p, flow, candidateSlotLists, slotList);
+				
+				if(this.establishConnection(flow.getLinks(), slotList, flow.getModulationLevel(), flow)) 
+				{
+					System.out.println("new "+flow.getID()+" "+flow.getSlotList());
+					return;
+				}
+				
+				candidateMostFrequencySlot.remove(i);
+				candidateSlotLists.remove(i);
+				p.remove(i);
+			}
 		}
+		
+		System.out.println("not-accepted "+flow);
+		connectionDisruption.add(flow);
+		flow.setConnectionDisruption(true);
+		this.nConnectionDisruption++;
 		
 	}
 	
 	public int getConnectionDisruption() {
-		return nConnectionDisruption;
+		return this.nConnectionDisruption;
 	}
 	
 	@Override
@@ -274,7 +301,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		int []links = flow.getLinks();
 		
 		for(int i = 0; i < links.length; i++) {
-			pt.getLink(links[i]).updateCrosstalk();
+			this.pt.getLink(links[i]).updateCrosstalk();
 		}
 	}
 

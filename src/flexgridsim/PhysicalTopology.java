@@ -227,6 +227,7 @@ public class PhysicalTopology {
                 }
             }
         }
+        
         return g;
     }
     
@@ -301,5 +302,26 @@ public class PhysicalTopology {
 		for(int i = 0; i < linkVector.length; i++) {
 			this.getLink(i).resetSpectrum();
 		}
+	}
+
+	public void updateEverything(PhysicalTopology p) {
+		this.nodes = p.nodes;
+        this.links = p.links;
+        this.cores = p.cores;
+        this.slots = p.slots;
+        this.slotBw = p.slotBw;
+        
+        this.nodeVector = p.nodeVector.clone();
+        this.linkVector = p.linkVector.clone();
+        
+        this.adjMatrix = new FlexGridLink[this.nodes][this.nodes];
+        for(int i = 0; i < p.adjMatrix.length; i++) {
+        	this.adjMatrix[i] = p.adjMatrix[i].clone();
+        	
+//        	for (int j = 0; j < p.adjMatrix[i].length; j++) {
+//        		System.out.print(i + " " + j + ": " + this.adjMatrix[i][j] + " || ");
+//        	}
+//        	System.out.println();
+        }
 	}
 }

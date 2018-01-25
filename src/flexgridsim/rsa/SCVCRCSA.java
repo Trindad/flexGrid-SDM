@@ -285,7 +285,10 @@ public class SCVCRCSA implements RSA{
 			
 			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
 			
-			if(!fittedSlotList.isEmpty()) return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
+			if(!fittedSlotList.isEmpty()) {
+//				printSpectrum(spectrum);
+				return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
+			}
 			
 		}
 		

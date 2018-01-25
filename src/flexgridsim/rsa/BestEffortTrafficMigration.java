@@ -2,7 +2,6 @@ package flexgridsim.rsa;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -16,86 +15,127 @@ import flexgridsim.util.MinimumFeedbackVertexSet;
 public class BestEffortTrafficMigration {
 
 	private Map<Long, Flow> flows;
-	private Map<Flow, LightPath> mappedFlows;
 	private ControlPlaneForRSA cp;
 	private PhysicalTopology pt;
-	private VirtualTopology vt;
-	
+//	private VirtualTopology vt;
 	
 	public BestEffortTrafficMigration(ControlPlaneForRSA cp, PhysicalTopology pt, VirtualTopology vt,
-			Map<Long, Flow> flowsIndex, Map<Flow, LightPath> flowsAccepted) {
+			Map<Long, Flow> f) {
 		
-		this.flows = flowsIndex;
-		this.mappedFlows = flowsAccepted;
-		this.vt = vt;
+		this.flows = f;
+//		this.vt = vt;
 		this.cp = cp;
 		this.pt = pt;
 	}
 
-	public Map<Long, Flow> runBestEffort() {
+	public Map<Long, Flow> runBestEffort() throws Exception {
 		
-//		Map<Long, Flow> lastStatus = cp.getActiveFlows();
+		Map<Long, Flow> lastStatus = cp.getActiveFlows();
 
-		MinimumFeedbackVertexSet mfvs = new MinimumFeedbackVertexSet(flows.size(), flows); //dependency graph
+		MinimumFeedbackVertexSet mfvs = new MinimumFeedbackVertexSet(flows); //dependency graph
+		ArrayList< Long[] > temp = new ArrayList< Long[] >();
+		
+		for(Long key: flows.keySet()) {
+			
+			if(!flows.get(key).isConnectionDisruption()) {
+				for(Long k: lastStatus.keySet()) {
+					
+					if( flows.get(key).getID() != lastStatus.get(k).getID() && this.isAccepted(flows, lastStatus.get(k).getID()) )
+					{
+						
+						if(this.isNewEdge( flows.get(key).getID(),  lastStatus.get(k).getID(), temp)) {
+							
+							if(this.dependency(flows.get(key), lastStatus.get(k)) >= 1 ) {
+								
+								System.out.println("old "+lastStatus.get(k) +"\n"+"new "+flows.get(key));
+								try {
+									
+									mfvs.getGraph().addEdge(mfvs.getNodeIndex(flows.get(key).getID()),  mfvs.getNodeIndex(lastStatus.get(k).getID()));
+									temp.add(new Long[] { flows.get(key).getID(),  lastStatus.get(k).getID() });
+								}
+								catch (Exception e) {
+									e.printStackTrace();
+								}
+								System.out.println("**********************************************************");
+							}
+						}
+					}
+					
+				}
+			}
+		}
 		
 		
-//		for(Long key: flows.keySet()) {
-//			
-//			if(!flows.get(key).isConnectionDisruption()) {
-//				
-//				for(Long k: flows.keySet()) {
-//					
-//					if(key != k)
-//					{
-//						if(this.dependency(flows.get(key), lastStatus.get(k)))
-//						{
-//							mfvs.getGraph().addEdge(mfvs.getGraph(), mfvs.getNodeIndex(flows.get(key).getID()),  mfvs.getNodeIndex(lastStatus.get(k).getID()));
-//						}
-//					}
-//					
-//				}
-//			}
-//		}
+		return flows;
+//		mfvs.getGraph().print(true);
 //		
-//		//It is not a DAG
-//		if(mfvs.getGraph().isCyclic()) {
+//		if(!mfvs.getGraph().isAcyclic()) {
 //			
+//			ArrayList<Flow> result = mfvs.runMFVS();
+//			
+//			moveToVacancy(result);
 //			System.out.println("There is a cycle");
 //		}
 //		
 //		Map<Long, Flow> v = new HashMap<Long, Flow>();
 //		
-//		while(mfvs.getGraph().V >= 1)
+//		while(mfvs.getGraph().numberOfVertices() >= 1)
 //		{
-//			LinkedList<Integer> adjListArray[] = mfvs.getGraph().getAdjacentListArray() ;
-//			
-//			for(LinkedList<Integer> it: adjListArray) {
+//			for(Long key: flows.keySet()) {
 //				
-//				int i = it.element();
-//				if(mfvs.getGraph().getOutDegree(mfvs.getGraph(), i) == 0)
+//				int u =  mfvs.getNodeIndex(flows.get(key).getID());
+//				ArrayList<Integer> out = mfvs.getGraph().getOutgoingNeighbors(u) ;
+//				
+//				if(out.size() == 0)
 //				{
-//					v.put((long) i, flows.get((long)i));
-//					mfvs.getGraph().deleteNode(mfvs.getGraph(), i);
+//					v.put(key, flows.get(key));
+//					mfvs.getGraph().deleteVertex(u);
 //				}
 //			}
+//			
 //		}
-		
-		
+//	
 //		return v;
+	
+	}
+
+	private boolean isNewEdge(long l, long b, ArrayList<Long[]> array) {
 		
-		return flows;
+		for(int i = 0; i < array.size(); i++) {
+			
+			if( (array.get(i)[0] == l && array.get(i)[1] == b) || (array.get(i)[0] == b && array.get(i)[1] == l)) {
+				
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	private boolean isAccepted(Map<Long, Flow> f, long id) {
+		
+		for(Long key: f.keySet()) {
+			
+			if(f.get(key).getID() == id) return !f.get(key).isConnectionDisruption();
+		}
+		
+		return false;
+	}
+
+	private void moveToVacancy(ArrayList<Flow> flows) {
+		
 	}
 	
 	//There is intersection between paths;
 	private boolean intersectionBetweenPaths(int[] l1, int[] l2) {
-		
+	
 		if(l1.equals(l2)) return true;
 		
 		int n = l1.length < l2.length ? l1.length : l2.length;
 		
-		for(int i = 0; i < n; i++) {
+		for(int i = 0; i < n-1; i++) {
 			
-			if(l1[i] == l2[i]) 
+			if(l1[i] == l2[i] && l1[i+1] == l2[i+1]) 
 			{
 				return true;
 			}	
@@ -110,19 +150,38 @@ public class BestEffortTrafficMigration {
 		int []s1 = new int[pt.getNumSlots()];
 		int []s2 = new int[pt.getNumSlots()];
 		
-		for(int i = 0; i < s1.length; i++) {
+		
+		
+		for(int i = 0; i < pt.getNumSlots(); i++) {
 			s1[i] = s2[i] = 0;
 		}
 		
-		for(int i = 0; i < sl1.size(); i++) s1[sl1.get(i).s] = 1;
-		for(int i = 0; i < sl2.size(); i++) s1[sl2.get(i).s] = 1;
+		for(int i = 0; i < sl1.size(); i++) {
+			
+			s1[sl1.get(i).s] = 1;
+		}
 		
-		int result = 0;
-		for(int i = 0; i < s1.length; i++) {
-			result += (s1[i]  * s2[i]);
+		for(int i = 0; i < sl2.size(); i++) {
+			s2[sl2.get(i).s] = 1;
 		}
 		
 		
+		int result = 0;
+		for(int i = 0; i < s1.length; i++) {
+			result += (s1[i] * s2[i]);
+		}
+		
+//		for(int i = 0; i < sl1.size(); i++) {
+//			System.out.print(sl1.get(i).s);
+//		}
+//		
+//		System.out.println();
+//		for(int i = 0; i < sl2.size(); i++) {
+//			System.out.print(sl2.get(i).s);
+//		}
+//		
+//		System.out.println();
+
 		return result;
 	}
 
@@ -132,7 +191,7 @@ public class BestEffortTrafficMigration {
 	 * @param f2
 	 * @return
 	 */
-	private boolean dependency(Flow f1, Flow f2) {
+	private int dependency(Flow f1, Flow f2) {
 		
 		int []l1 = f1.getLinks();
 		int []l2 = f2.getLinks();
@@ -140,21 +199,14 @@ public class BestEffortTrafficMigration {
 		if(intersectionBetweenPaths(l1, l2)) 
 		{
 			ArrayList<Slot> sl1 = f1.getSlotList(); 
-			ArrayList<Slot> sl2 = f1.getSlotList(); 
+			ArrayList<Slot> sl2 = f2.getSlotList(); 
 			
 			if(sl1.get(0).c == sl2.get(0).c)
 			{
-				if(this.tensorProduct(sl1, sl2) >= 1) 
-				{
-						return true;
-				}
-				
+				return this.tensorProduct(sl1, sl2);
 			}
 		}
 		
-		return false;
+		return 0;
 	}
-	
-	
-
 }

@@ -1,6 +1,7 @@
 package flexgridsim.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -22,79 +23,68 @@ import flexgridsim.Flow;
 public class MinimumFeedbackVertexSet {
 
 	protected Graph graph;
-	protected Map<Long, Integer> associationBetweenNodes;//association between vertices and flows
-	
+	protected Map<Integer, Long> associationBetweenNodes;//association between vertices and flows
+	protected Map<Long, Integer> associationBetweenFlows;
+	Map<Long, Flow> flows;
 	
 	public Graph getGraph() {
 		return graph;
 	}
 
-	public Map<Long, Integer> getAssociationBetweenNodes() {
-		return associationBetweenNodes;
+	
+	public MinimumFeedbackVertexSet(Map<Long, Flow> f) {
+		
+		
+		this.associationBetweenNodes = new HashMap<Integer, Long>();
+		this.associationBetweenFlows = new HashMap<Long, Integer>();
+		
+		Integer node = 0;
+		flows = f;
+		for(Long key: flows.keySet()) {
+			
+			associationBetweenNodes.put(node, key);
+			associationBetweenFlows.put(flows.get(key).getID(), node);
+			node++;
+		}
+		
+		this.graph = new Graph(flows.size());	
 	}
 	
-	public MinimumFeedbackVertexSet(int V, Map<Long, Flow> flows) {
+	
+	public ArrayList<Flow> runMFVS() {
 		
-//		this.graph = new Graph(V);
-//		this.associationBetweenNodes = new HashMap<Long, Integer>();
-//		
-//		int node = 0;
-//		for(Long key: flows.keySet()) {
-//			
-//			associationBetweenNodes.put(key, node);
-//			node++;
-//		}
-//		
-		
+		ArrayList<Integer> mfvs = new ArrayList<Integer>();
+		ArrayList<Flow> flowsToVacancy = new ArrayList<Flow>();
 		
 		try {
 			
-//			test 1
-//			this.graph = new Graph(3);
-//			graph.addEdge(0, 1);
-//			graph.addEdge(1, 2);
-//			graph.addEdge(2, 0);
-			
-			this.graph = new Graph(5);
-			graph.addEdge(0, 3);//1
-			graph.addEdge(0, 1);//2
-			graph.addEdge(3, 4);//3
-			graph.addEdge(1, 4);//4
-			graph.addEdge(1, 2);//5
-			graph.addEdge(2, 0);//6
-			graph.addEdge(1, 3);//7
-			
-//			test 2
-//			this.graph = new Graph(8);
-//			graph.addEdge(0, 1);//1
-//			graph.addEdge(1, 0);//2
-//			graph.addEdge(0, 3);//3
-//			graph.addEdge(3, 0);//4
-//			graph.addEdge(0, 2);//5
-//			graph.addEdge(1, 2);//6
-//			graph.addEdge(2, 3);//7
-//			graph.addEdge(3, 7);//8
-//			graph.addEdge(2, 4);//9
-//			graph.addEdge(4, 5);//10
-//			graph.addEdge(5, 4);//11
-//			graph.addEdge(5, 6);//12
-//			graph.addEdge(6, 5);//13
-//			graph.addEdge(6, 7);//14
-//			graph.addEdge(7, 6);//15
-//			graph.addEdge(7, 4);//16
-//			graph.addEdge(4, 6);//17
-			ArrayList<Integer> mfvs = graph.minimumFeedbackVertexSet(true);
+			mfvs = graph.minimumFeedbackVertexSet(false);
 			System.out.println("A minimum feedback vertex set : "+mfvs);
-		} catch (Exception e) {
-			System.out.println("Error occurred");
+			
+			for(int i = 0; i < mfvs.size(); i++) {
+				
+				flowsToVacancy.add( flows.get( associationBetweenNodes.get(mfvs.get(i)) ) );
+			}
+		} 
+		catch (Exception e) 
+		{
 			e.printStackTrace();
 		}
+		
+		return flowsToVacancy;
 	}
 	
-	public int getNodeIndex(long id) {
+	
+	public int getNodeIndex(Long key) {
 		
-		return associationBetweenNodes.get(id);
+		return this.associationBetweenFlows.get(key);
 	}
+	
+	public long getNodeIndex(int key) {
+		
+		return this.associationBetweenNodes.get(key);
+	}
+	
 	
 	static class Edge {
 		public int source;
@@ -219,7 +209,7 @@ public class MinimumFeedbackVertexSet {
         /*
          * Basic accessors *
         */
-        protected int numberOfVertices() {
+        public int numberOfVertices() {
             return numVertices;
         }
 
@@ -278,7 +268,7 @@ public class MinimumFeedbackVertexSet {
             }
         }
 
-       protected ArrayList<Integer> getOutgoingNeighbors(int vertex) throws Exception {
+       public ArrayList<Integer> getOutgoingNeighbors(int vertex) throws Exception {
             if (hasVertex(vertex)) 
             {
             	return this.outgoingNeighbors.get(vertex);
@@ -288,7 +278,7 @@ public class MinimumFeedbackVertexSet {
             }
         }
 
-       protected void print(boolean edges) throws Exception{
+       public void print(boolean edges) throws Exception{
             
             if (edges) 
             {
@@ -305,20 +295,20 @@ public class MinimumFeedbackVertexSet {
             }
         }
 
-      protected void deleteVertex(int vertex) throws Exception {
+      public void deleteVertex(int vertex) throws Exception {
     	  	
     	  	if (hasVertex(vertex)) 
           	{
-    	  		System.out.println("Delete: "+vertex);  
+    	  		//System.out.println("Delete: "+vertex);  
     	  		ArrayList<Integer> outN = getOutgoingNeighbors(vertex);
-    	  		System.out.println("out "+outN);
+    	  		//System.out.println("out "+outN);
     	  		int n = outN.size();
     	  		for (int i = n-1; i >= 0; i--) {
             	   deleteEdge(vertex, outN.get(i));
     	  		}
     	  		
     	  		ArrayList<Integer> inN  = incomingNeighbors(vertex);
-    	  		System.out.println("in "+inN);
+    	  		//System.out.println("in "+inN);
     	  		n = inN.size();
     	  		for (int i = n-1; i >= 0 ;  i--) {
             	   deleteEdge(inN.get(i), vertex);
@@ -344,9 +334,10 @@ public class MinimumFeedbackVertexSet {
             }
         }
        
-       protected void addEdge(int source, int target) throws Exception {
+       public void addEdge(int source, int target) throws Exception {
 
     	    if (hasVertex(source) && hasVertex(target) && !hasEdge(source, target)) {
+    	    	System.out.println(source +" - "+target);
     	        outgoingNeighbors.get(source).add(target);
     	        incomingNeighbors.get(target).add(source);
     	        numEdges++;
@@ -567,7 +558,7 @@ public class MinimumFeedbackVertexSet {
             	   v.add(i);
                }
             }
-           System.out.println(v);
+           //System.out.println(v);
             return v;
         }
 
@@ -771,7 +762,7 @@ public class MinimumFeedbackVertexSet {
         */
         protected ArrayList<Integer> in0() throws Exception {
            ArrayList<Integer> in0Vertices = sources();
-           System.out.println(in0Vertices);
+           //System.out.println(in0Vertices);
            if(!in0Vertices.isEmpty()) deleteVertices(in0Vertices);
            
            return in0Vertices;
@@ -1165,13 +1156,13 @@ public class MinimumFeedbackVertexSet {
             if (applyPie) 
             {
             	ArrayList<Edge> pieEdges = pie();
-               	for(int i = 0; i < pieEdges.size(); i++) System.out.println(" "+pieEdges.get(i).source+" "+ pieEdges.get(i).target);
+               	//for(int i = 0; i < pieEdges.size(); i++) System.out.println(" "+pieEdges.get(i).source+" "+ pieEdges.get(i).target);
                	
                 if (verbose) {
                 	System.out.println("PIE  : " +pieEdges.size()+" edge(s) has(have) been removed." );
                 }
             	reduce(true, true, true, true, true, false, false, false, verbose, solution);
-        		System.out.println("*****************************************************");
+        		//System.out.println("*****************************************************");
             }
             if (applyCore) 
             {
@@ -1185,7 +1176,7 @@ public class MinimumFeedbackVertexSet {
             	   	System.out.println( "CORE : " +coreVertices.size()+" vertex(vertices) has(have) been removed.");
             	}
            		reduce(true, true, true, true, true, false, false, false, verbose, solution);
-        		System.out.println("*****************************************************");
+        		//System.out.println("*****************************************************");
             }
             if (applyDome) 
             {
@@ -1194,7 +1185,7 @@ public class MinimumFeedbackVertexSet {
                 	System.out.println( "DOME : " +domeEdges.size()+" edge(s) has(have) been removed.");
                 }
             	reduce(true, true, true, true, true, false, false, false, verbose, solution);
-        		System.out.println("*****************************************************");
+        		//System.out.println("*****************************************************");
             }
             
             return solution;
@@ -1209,9 +1200,8 @@ public class MinimumFeedbackVertexSet {
               n = numberOfVertices();
               m = numberOfEdges();
               ArrayList<Integer> partialSolution = new ArrayList<Integer>();
-              partialSolution = reduce(false, false, false, false, false, true, false, false, verbose, partialSolution);
+              partialSolution = reduce(false, false, false, false, false, true, true, true, verbose, partialSolution);
               
-              System.out.println(" n:" +partialSolution.size());
               solution.addAll(partialSolution);              
               
             } while (n != numberOfVertices() || m != numberOfEdges());
@@ -1297,7 +1287,7 @@ public class MinimumFeedbackVertexSet {
           return cycle;
         }
 
-       protected boolean isAcyclic() throws Exception {
+       public boolean isAcyclic() throws Exception {
             return loops().size() == 0 && stronglyConnectedComponents().size() == numberOfVertices();
         }
 
@@ -1390,7 +1380,7 @@ public class MinimumFeedbackVertexSet {
             if (reducible) 
             {
                 // Reducing the graph
-                partialSolution = h.reduce(true);
+                partialSolution = h.reduce(verbose);
                 Iterator<Integer> it = partialSolution.iterator();
                 while(it.hasNext()) 
                 {
@@ -1408,8 +1398,6 @@ public class MinimumFeedbackVertexSet {
                        ArrayList<Integer> sccSolution = scc.mfvs(new ArrayList<Integer>(), temp, 0, 0, false, verbose);
                        solution.addAll(sccSolution);
                     }
-                   
-                   	System.out.println("RETURN "+solution);
                     return solution;
                 }
             }
@@ -1439,12 +1427,10 @@ public class MinimumFeedbackVertexSet {
             // Bounding the search
             if (h.numberOfVertices() == 0) 
             {
-            	System.out.println("RETURN "+solution);
             	return solution;
             }
             else if (solution.size() + lb > bestSolution.size()) 
             {
-            	System.out.println("RETURN "+bestSolution);
             	return bestSolution;
             }
             
@@ -1463,7 +1449,6 @@ public class MinimumFeedbackVertexSet {
             // Rebounding the search
             if (lb == bestSolution.size()) 
             {
-            	System.out.println("RETURN "+bestSolution);
             	return bestSolution;
             }
             
@@ -1477,8 +1462,6 @@ public class MinimumFeedbackVertexSet {
             	bestSolution = rightSolution;
             }
             
-
-        	System.out.println("RETURN "+bestSolution);
             return bestSolution;
         }
     }

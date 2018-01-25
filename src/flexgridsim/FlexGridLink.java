@@ -376,6 +376,7 @@ public class FlexGridLink {
 			for (Slot slot: slotList) {
 				reservedSlots[slot.c][slot.s] = true;
 			}
+			
 			return true;
 		} catch (IllegalArgumentException e) {
 			System.out.println("Illegal argument for reserveSlots");

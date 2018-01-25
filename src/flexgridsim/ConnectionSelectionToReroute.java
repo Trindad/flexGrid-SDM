@@ -55,15 +55,14 @@ public class ConnectionSelectionToReroute {
 		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
 			
 			Map<Long, Flow> connections = new HashMap<Long, Flow>();
-			Map<Long, Flow> allconnections = cp.getActiveFlows();
 
 			int k = 0;
 			
-			ArrayList<Slot> Slotfrequencies = this.calculateUsageFrequency(allconnections);
+			ArrayList<Slot> slotFrequencies = this.calculateUsageFrequency(cp.getActiveFlows());
 			
-			for(Slot s: Slotfrequencies) {
+			for(Slot s: slotFrequencies) {
 					
-				Map<Long, Flow> temp = this.getherAllConnectionWithSlot(allconnections, s);
+				Map<Long, Flow> temp = this.getherAllConnectionWithSlot(cp.getActiveFlows(), s);
 				
 				for (Long key: temp.keySet()) {
 					
@@ -109,10 +108,15 @@ public class ConnectionSelectionToReroute {
 			
 			for(Long key: flows.keySet()) 
 			{
-				
-				if(flows.get(key).getSlotList().contains(slot)) {
-					n++;
+				for(int i = 0; i < flows.get(key).getSlotList().size(); i++) {
+					
+					int c = flows.get(key).getSlotList().get(i).c;
+					int s = flows.get(key).getSlotList().get(i).s;
+					if(slot.s == s && c == slot.c) {
+						n++;
+					}
 				}
+				
 			}
 			
 			return n;
@@ -131,7 +135,19 @@ public class ConnectionSelectionToReroute {
 				}
 			}
 			
-			slots.sort((a,b) -> slotFrequency(flows, b) - slotFrequency(flows, a));
+			
+			slots.sort((a,b) -> {
+				int fb = slotFrequency(flows, b);
+				int fa = slotFrequency(flows, a);
+				
+				if (fb == fa) {
+					return b.c - a.c;
+				} else if (fb > fa) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
 			
 			return slots;
 		}
@@ -229,7 +245,18 @@ public class ConnectionSelectionToReroute {
 				}
 			}
 			
-			slots.sort((a, b) -> slotIndex(b) - slotIndex(a));
+			slots.sort((a,b) -> {
+				int fb = slotIndex(b);
+				int fa = slotIndex(a);
+				
+				if (fb == fa) {
+					return b.c - a.c;
+				} else if (fb > fa) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
 			
 			return slots;
 		}

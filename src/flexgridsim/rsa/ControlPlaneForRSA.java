@@ -142,6 +142,8 @@ public interface ControlPlaneForRSA {
 
 	public boolean blockFlow(long id, boolean b);
 
-	public void updateControlPlane(PhysicalTopology pt, VirtualTopology vt);
+	public void updateControlPlane(PhysicalTopology pt, VirtualTopology vt, Map<Long, Flow> flows);
+
+	public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology pt, VirtualTopology vt);
 
 }

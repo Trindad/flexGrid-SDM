@@ -164,11 +164,12 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	            rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            
-	            this.nExceeds++;          	
+	            this.nExceeds++;   
+            	double dfIndex = this.getFragmentationRatio();
 	            
             	if(this.activeFlows.size() >= 150 && this.DFR == true && nExceeds >= 150) {
             		
-            		if(this.getFragmentationRatio() >= TH) 
+            		if(dfIndex >= TH) 
             		{
 	            		System.out.println("Defragmentation approach: "+this.getFragmentationRatio());
 	            		DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
@@ -179,8 +180,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             		
             		nExceeds = 0;
             	}
-            	
-            	else if(nExceeds >= 50 && this.RR  == true && this.activeFlows.size() >= 50 && this.getFragmentationRatio() >= 0.5) {
+            	else if(nExceeds >= 60 && this.RR  == true && this.activeFlows.size() >= 50 && dfIndex >= 0.7 && dfIndex <= 0.85) {
             		
             		ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
             		eventScheduler.addEvent(reroutingnEvent);
@@ -199,10 +199,9 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) {
 	        	
-	        	
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"HUSIF", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"MFUSF", this, this.pt, this.vt);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures();
+	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 	        	System.out.println("Start Reroute "+connections.size()+" of the "+this.activeFlows.size()+" connections");
 	        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
 	        	
@@ -224,7 +223,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	
     	for(int i = 0; i < E; i++) {
     		double nSlots = (pt.getLink(i).getSlots()*pt.getLink(i).getCores());
-    		FRi += (nSlots - pt.getLink(i).getNumFreeSlots()) / nSlots;
+    		FRi += (double)(nSlots - (double)pt.getLink(i).getNumFreeSlots()) / nSlots;
     	}
     	
     	return (FRi/E);
@@ -336,7 +335,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             
            this.mappedFlows.get(flow).remove(0);
            this.mappedFlows.get(flow).add(lightpath);
-            addFlowToPT(flow, lightpath);
+           addFlowToPT(flow, lightpath);
       
             return;
         }
@@ -355,12 +354,10 @@ public class ControlPlane implements ControlPlaneForRSA {
             throw (new IllegalArgumentException());
         } else {
             if (!activeFlows.containsKey(id)) {
-            	//System.out.println("Active flow");
                 return false;
             }
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
-            	//System.out.println("Mapped flow");
                 return false;
             }
             activeFlows.remove(id);
@@ -384,20 +381,20 @@ public class ControlPlane implements ControlPlaneForRSA {
             throw (new IllegalArgumentException());
         } else {
             if (!activeFlows.containsKey(id)) {
-            	//System.out.println("Active flow");
                 return false;
             }
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow) && !disrupted) {
-            	//System.out.println("Mapped flow");
                 return false;
             }
             else if(mappedFlows.containsKey(flow) && disrupted) {
             	removeFlowFromPT(flow, mappedFlows.get(flow).get(0));
             }
+            
             activeFlows.remove(id);
             tr.blockFlow(flow);
-           if(!disrupted) st.blockFlow(flow);
+            if(!disrupted) st.blockFlow(flow);  
+            
             return true;
         }
     }
@@ -463,7 +460,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         if (activeFlows.containsKey(id)) {
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
-            	//System.out.println("removeFlow "+flow);
+            	
                 lightpaths = mappedFlows.get(flow).get(0);
                 removeFlowFromPT(flow, lightpaths);
                 mappedFlows.remove(flow);
@@ -482,8 +479,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      * @param lightpaths a list of LighPath objects
      */
     private void removeFlowFromPT(Flow flow, LightPath lightpath) {
-        
-        
+
         if(flow.isMultipath()) {
         	
         	int[] links;
@@ -514,6 +510,28 @@ public class ControlPlane implements ControlPlaneForRSA {
         
     }
     
+    
+    /**
+     * Removes a given Flow object from a Physical Topology. 
+     * 
+     * @param flow the Flow object that will be removed from the PT
+     * @param lightpaths a list of LighPath objects
+     */
+    public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology ptTemp, VirtualTopology vtTemp) {
+
+    	int[] links;
+        links = lightpath.getLinks();
+        
+    	for (int j = 0; j < links.length; j++) {
+    		ptTemp.getLink(links[j]).releaseSlots(lightpath.getSlotList());
+    		ptTemp.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
+    		ptTemp.getLink(links[j]).updateCrosstalk();
+        }
+    	
+    	vtTemp.removeLightPath(lightpath.getID());
+    }
+    
+    
     /**
      * Says whether or not a given Flow object can be added to a 
      * determined Physical Topology, based on the amount of bandwidth the
@@ -536,6 +554,7 @@ public class ControlPlane implements ControlPlaneForRSA {
         
         return true;
     }
+    
     
     /**
      * Adds a Flow object to a Physical Topology.
@@ -633,15 +652,8 @@ public class ControlPlane implements ControlPlaneForRSA {
     	if(batch.isEmpty()) return;
     	
     	try 
-    	{
-//    		if(batch.getSource() == batches.getEarliestDeadline().getSource() && batch.getDestination() == 
-//    				batches.getEarliestDeadline().getDestination())
-//    		{
-//    			batches.resetEarliestDeadline();
-//    		}
-    		
+    	{	
     		eventScheduler.removeDeadlineEvent(batch.getEarliestDeadline());
-//    		batches.remove(batch);
     		batch.clear();
 		} 
     	catch (Exception e) 
@@ -726,13 +738,39 @@ public class ControlPlane implements ControlPlaneForRSA {
 		this.clusters = c;
 	}
 
-	public void updateControlPlane(PhysicalTopology newPT, VirtualTopology newVT) {
+	public void updateControlPlane(PhysicalTopology newPT, VirtualTopology newVT, Map<Long, Flow> flows) {
 		
-		this.pt = newPT;
-		this.vt = newVT;
+		for(Long key: flows.keySet()) {
+			
+			if(activeFlows.get(key).getID() == flows.get(key).getID()) {
+//				System.out.println(key + ", " + activeFlows.get(key).getID() + ", " +  activeFlows.get(key).getLightpathID() + ", " + flows.get(key).getLightpathID());
+//				
+				ArrayList<LightPath> t = new ArrayList<LightPath>();
+				t.add(newVT.getLightpath(flows.get(key).getLightpathID()));
+				
+				if(!flows.get(key).isConnectionDisruption())
+				{
+					activeFlows.replace(flows.get(key).getID(), flows.get(key));
+					
+					mappedFlows.remove(flows.get(key));
+					mappedFlows.put(flows.get(key), t);
+				}
+				else
+				{
+					activeFlows.remove(key);
+					mappedFlows.remove(flows.get(key));
+				}
+				
+				
+			}
+			
+		}
+		
+		this.pt.updateEverything(newPT);
+		this.vt.updateEverything(newVT);
 		
 		for(int i = 0; i < pt.getNumLinks(); i++) {
-				pt.getLink(i).updateCrosstalk();
+			this.pt.getLink(i).updateCrosstalk();
 		}
 	}
 }

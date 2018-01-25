@@ -82,13 +82,15 @@ public class VirtualTopology {
     
     public VirtualTopology(VirtualTopology vt) {
     	
-    	nextLightpathID = vt.nextLightpathID;
-    	adjMatrix = vt.adjMatrix.clone();
-    	adjMatrixSize = vt.adjMatrixSize;
-    	lightPaths = new HashMap<Long, LightPath>(vt.lightPaths);
+    	this.nextLightpathID = vt.nextLightpathID;
+    	this.adjMatrix = vt.adjMatrix.clone();
+    	this.adjMatrixSize = vt.adjMatrixSize;
+    	this.lightPaths = new HashMap<Long, LightPath>();
+    	this.lightPaths.putAll(vt.lightPaths);
     	this.pt = new PhysicalTopology(vt.pt);
     	Tracer.getTracerObject();
     }
+    
     /**
      * First, creates a lightpath in the Physical Topology through the createLightpathInPT
      * function. Then, gets the lightpath's source and destination nodes, so a new
@@ -140,6 +142,10 @@ public class VirtualTopology {
             throw (new IllegalArgumentException());
         } else {
             if (!lightPaths.containsKey(id)) {
+            	System.out.println("This ID "+ id+" doesn't exist.");
+            	
+//            	for(Long i: lightPaths.keySet()) System.out.print(i+" ");
+//            	System.out.println();
                 return false;
             }
             lp = lightPaths.get(id);
@@ -148,6 +154,7 @@ public class VirtualTopology {
             dst = lp.getDestination();
 
             lightPaths.remove(id);
+            
             adjMatrix[src][dst].remove(lp);
             tr.removeLightpath(lp);
 
@@ -169,7 +176,7 @@ public class VirtualTopology {
             if (lightPaths.containsKey(id)) {
                 return lightPaths.get(id);
             } else {
-            	System.out.println("Something bad occured...");
+            	System.out.println("Something bad occured... ID: "+id);
                 return null;
             }
         }
@@ -277,4 +284,20 @@ public class VirtualTopology {
         }
         return vtopo;
     }
+
+
+	public Map<Long, LightPath> getLightpaths() {
+		return this.lightPaths;
+	}
+
+
+	public void updateEverything(VirtualTopology vt) {
+		this.nextLightpathID = vt.nextLightpathID;
+    	this.adjMatrix = vt.adjMatrix.clone();
+    	this.adjMatrixSize = vt.adjMatrixSize;
+    	this.lightPaths = new HashMap<Long, LightPath>();
+    	this.lightPaths.putAll(vt.lightPaths);
+    	this.pt = new PhysicalTopology(vt.pt);
+    	Tracer.getTracerObject();
+	}
 }
