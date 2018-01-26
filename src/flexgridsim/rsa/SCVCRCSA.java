@@ -64,7 +64,10 @@ public class SCVCRCSA implements RSA{
 			totalLength += (pt.getLink(links[i]).getDistance());
 		}
 		
-		int modulationLevel = ModulationsMuticore.getModulationByDistance(totalLength);
+		int modulationLevel = ((double)flow.getRate()/pt.getSlotCapacity()) >= 1.5 ? ModulationsMuticore.getModulationByDistance(totalLength) : 0;
+		double p = Math.ceil( (double)flow.getRate()/ModulationsMuticore.subcarriersCapacity[modulationLevel]) * ModulationsMuticore.subcarriersCapacity[modulationLevel];
+		
+		modulationLevel = (double)flow.getRate()/p > 0.75 ? modulationLevel : modulationLevel-1;
 		
 		return modulationLevel;
 	}
@@ -216,6 +219,8 @@ public class SCVCRCSA implements RSA{
 				else
 				{
 					setOfSlots.clear();
+					
+					if(Math.abs(i-spectrum.length) < demandInSlots) return setOfSlots;
 				}
 				
 				if(setOfSlots.size() == demandInSlots) return setOfSlots;

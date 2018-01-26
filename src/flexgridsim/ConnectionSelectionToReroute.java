@@ -126,6 +126,16 @@ public class ConnectionSelectionToReroute {
 		private ArrayList<Slot> calculateUsageFrequency(Map<Long, Flow> flows) {
 			
 			ArrayList<Slot> slots = new ArrayList<Slot>();
+			Map<Long, Flow> flowWithHighCore = new HashMap<Long, Flow>();
+			
+			int limit = (pt.getCores()-1)/2;
+			
+			for(Long key: flows.keySet()) {
+				
+				if(flows.get(key).getSlotList().get(0).getC() < limit) {
+					flowWithHighCore.put(key, flows.get(key));
+				}
+			}
 			
 			for(int i = 0; i < pt.getCores(); i++) {
 				
@@ -137,9 +147,9 @@ public class ConnectionSelectionToReroute {
 			
 			
 			slots.sort((a,b) -> {
-				int fb = slotFrequency(flows, b);
-				int fa = slotFrequency(flows, a);
-				
+				int fb = slotFrequency(flowWithHighCore, b);
+				int fa = slotFrequency(flowWithHighCore, a);
+//				System.out.println(fa + " * "+fb);
 				if (fb == fa) {
 					return b.c - a.c;
 				} else if (fb > fa) {
@@ -209,6 +219,8 @@ public class ConnectionSelectionToReroute {
 				
 				 ArrayList<Slot> slotList = flows.get(key).getSlotList();
 				 
+				 if(flows.get(key).getRate() <= 12 || (flows.get(key).getRate() == 125 && flows.get(key).getModulationLevel() >= 4) ) continue;
+				 
 				 for(Slot s: slotList)
 				 {
 					 if(s.c == slot.c && s.s == slot.s) {
@@ -220,6 +232,7 @@ public class ConnectionSelectionToReroute {
 			return c;
 		}
 		
+		@SuppressWarnings("unused")
 		private int slotIndex(Slot s) {
 			return (s.s + ( pt.getCores() - s.c ) );
 		}
@@ -228,15 +241,25 @@ public class ConnectionSelectionToReroute {
 		private ArrayList<Slot> calculateUsageFrequency(Map<Long, Flow> flows) {
 			
 			ArrayList<Slot> slots = new ArrayList<Slot>();
+			Map<Long, Flow> flowWithHighCore = new HashMap<Long, Flow>();
+			
+			int limit = (pt.getCores()-1)/2;
+			
+			for(Long key: flows.keySet()) {
+				
+//				if(flows.get(key).getRate() >= 13) {
+					flowWithHighCore.put(key, flows.get(key));
+//				}
+			}
 			
 			for(int i = 0; i < pt.getCores(); i++) {
 				
 				for(int j = 0; j < pt.getNumSlots(); j++) {
 					
-					for(Long key: flows.keySet()) {
+					for(Long key: flowWithHighCore.keySet()) {
 						
 						Slot s = new Slot(i,  j);
-						if(containsSlot( flows.get(key).getSlotList(), s ) && !slots.contains(s))
+						if(containsSlot( flowWithHighCore.get(key).getSlotList(), s ) && !slots.contains(s))
 						{
 							slots.add(s);
 						}
@@ -244,19 +267,32 @@ public class ConnectionSelectionToReroute {
 					
 				}
 			}
+//			
+//			slots.sort((a,b) -> {
+//				int fb = slotIndex(b);
+//				int fa = slotIndex(a);
+////				System.out.println(fa + " * "+fb+" "+a.c+" "+b.c);
+//				if (fb == fa) {
+//					return b.c - a.c;
+//				} else 
+//					if (fb > fa) {
+//					return 1;
+//				} else {
+//					return -1;
+//				}
+//			});
 			
-			slots.sort((a,b) -> {
-				int fb = slotIndex(b);
-				int fa = slotIndex(a);
-				
-				if (fb == fa) {
-					return b.c - a.c;
-				} else if (fb > fa) {
-					return 1;
-				} else {
-					return -1;
-				}
-			});
+//			slots.sort((a, b) -> b.c - a.c);
+			slots.sort((a, b) -> b.s - a.s);
+			
+//			slots.sort((a, b) -> {
+//				
+//				if(a.c == b.c) {
+//					return b.s - a.s;
+//				}
+//				
+//				return b.c - a.c;
+//			});
 			
 			return slots;
 		}

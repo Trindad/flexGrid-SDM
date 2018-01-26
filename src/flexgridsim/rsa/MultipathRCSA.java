@@ -190,7 +190,7 @@ public class MultipathRCSA extends SCVCRCSA {
 		{
 			
 			//suppose the high level of modulation fitted, ignoring the distance between source and destination
-			int demandInSlots = (int) Math.ceil( ( (double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1])/(double)paths.size());
+			int demandInSlots = (int) Math.ceil( ( (double)flow.getRate() / (double)ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1])/(double)paths.size());
 			
 			ArrayList<Integer> nSlotsAvailable = new ArrayList<Integer>();
 			ArrayList<int[]> selectedPaths = new ArrayList<int[]>();

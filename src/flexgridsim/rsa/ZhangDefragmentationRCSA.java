@@ -1,6 +1,8 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +41,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		
 		for(Long key: flows.keySet()) {
 			this.allflows.remove(key);
-			System.out.println("Removing " + flows.get(key).getLightpathID());
+//			System.out.println("Removing " + flows.get(key).getLightpathID());
 			cp.removeFlowFromPT(flows.get(key), this.vt.getLightpath(flows.get(key).getLightpathID()), this.pt, this.vt);	
 		}
 		
@@ -81,7 +83,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			
 			for(Long key: flowsToReroute.keySet()) flows.add(flowsToReroute.get(key));
 			
-//			flows.sort(Comparator.comparing(Flow::getRate));
+//			flows.sort(Comparator.comparing(Flow::getModulationLevel));
 //			Collections.reverse(flows);
 			//in descending order
 			for(Flow f: flows) {

@@ -167,7 +167,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            this.nExceeds++;   
             	double dfIndex = this.getFragmentationRatio();
 	            
-            	if(this.activeFlows.size() >= 150 && this.DFR == true && nExceeds >= 150) {
+            	if(this.activeFlows.size() >= 150 && this.DFR == true && nExceeds >= 150 ) {
             		
             		if(dfIndex >= TH) 
             		{
@@ -180,7 +180,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             		
             		nExceeds = 0;
             	}
-            	else if(nExceeds >= 60 && this.RR  == true && this.activeFlows.size() >= 50 && dfIndex >= 0.7 && dfIndex <= 0.85) {
+            	else if(nExceeds >= 50 && this.RR  == true && this.activeFlows.size() >= 150 && dfIndex > 0.75 && dfIndex < 0.85) {
             		
             		ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
             		eventScheduler.addEvent(reroutingnEvent);
@@ -199,7 +199,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) {
 	        	
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) (this.activeFlows.size()*0.3),"MFUSF", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.3),"HUSIF", this, this.pt, this.vt);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
 	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 	        	System.out.println("Start Reroute "+connections.size()+" of the "+this.activeFlows.size()+" connections");
@@ -745,11 +745,12 @@ public class ControlPlane implements ControlPlaneForRSA {
 			if(activeFlows.get(key).getID() == flows.get(key).getID()) {
 //				System.out.println(key + ", " + activeFlows.get(key).getID() + ", " +  activeFlows.get(key).getLightpathID() + ", " + flows.get(key).getLightpathID());
 //				
-				ArrayList<LightPath> t = new ArrayList<LightPath>();
-				t.add(newVT.getLightpath(flows.get(key).getLightpathID()));
 				
 				if(!flows.get(key).isConnectionDisruption())
 				{
+					ArrayList<LightPath> t = new ArrayList<LightPath>();
+					t.add(newVT.getLightpath(flows.get(key).getLightpathID()));
+					
 					activeFlows.replace(flows.get(key).getID(), flows.get(key));
 					
 					mappedFlows.remove(flows.get(key));
@@ -760,8 +761,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 					activeFlows.remove(key);
 					mappedFlows.remove(flows.get(key));
 				}
-				
-				
 			}
 			
 		}

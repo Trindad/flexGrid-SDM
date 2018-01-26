@@ -177,6 +177,12 @@ public class VirtualTopology {
                 return lightPaths.get(id);
             } else {
             	System.out.println("Something bad occured... ID: "+id);
+                try {
+                    throw new Exception("why");
+                }
+                catch(Exception e) {
+                    e.printStackTrace();
+                }
                 return null;
             }
         }

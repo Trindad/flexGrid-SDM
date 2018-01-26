@@ -298,7 +298,7 @@ public class PhysicalTopology {
 
 	public void resetAllSpectrum() {
 		
-		System.out.println("número de links: "+linkVector.length);
+//		System.out.println("número de links: "+linkVector.length);
 		for(int i = 0; i < linkVector.length; i++) {
 			this.getLink(i).resetSpectrum();
 		}
