@@ -6,6 +6,9 @@ package flexgridsim;
 
 import java.util.ArrayList;
 
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
 import org.w3c.dom.*;
 
 import flexgridsim.util.WeightedGraph;
@@ -27,6 +30,8 @@ public class PhysicalTopology {
     private OXC[] nodeVector;
     private FlexGridLink[] linkVector;
     private FlexGridLink[][] adjMatrix;
+    
+    private SimpleWeightedGraph<Integer, DefaultWeightedEdge> graph;
     
     /**
      * Creates a new PhysicalTopology object.
@@ -98,14 +103,11 @@ public class PhysicalTopology {
         this.nodeVector = p.nodeVector.clone();
         this.linkVector = p.linkVector.clone();
         
+        this.graph = p.graph;
+        
         this.adjMatrix = new FlexGridLink[this.nodes][this.nodes];
         for(int i = 0; i < p.adjMatrix.length; i++) {
         	this.adjMatrix[i] = p.adjMatrix[i].clone();
-        	
-//        	for (int j = 0; j < p.adjMatrix[i].length; j++) {
-//        		System.out.print(i + " " + j + ": " + this.adjMatrix[i][j] + " || ");
-//        	}
-//        	System.out.println();
         }
     }
     
@@ -219,7 +221,8 @@ public class PhysicalTopology {
      * @return      an WeightedGraph class object 
      */
     public WeightedGraph getWeightedGraph() {
-        WeightedGraph g = new WeightedGraph(nodes);
+       
+    	WeightedGraph g = new WeightedGraph(nodes);
         for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
                 if (hasLink(i, j)) {
@@ -229,6 +232,31 @@ public class PhysicalTopology {
         }
         
         return g;
+    }
+    
+    public void setGraph() {
+    	
+    	graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+    			
+    	for(int i = 0; i < nodes; i++) graph.addVertex(i);
+    	
+    	for (int i = 0; i < nodes-1; i++) {
+            
+    		for (int j = i+1; j < nodes; j++) {
+               
+            	if (hasLink(i, j)) 
+            	{
+//            		System.out.println(" src: "+i+" dst: "+j);
+                	DefaultWeightedEdge edge = graph.addEdge(i, j);
+                	graph.setEdgeWeight(edge, getLink(i, j).getWeight());
+                }
+            }
+        }
+    }
+    
+    
+    public Graph<Integer, DefaultWeightedEdge> getGraph() {
+    	return graph;
     }
     
 
@@ -297,10 +325,11 @@ public class PhysicalTopology {
 	}
 
 	public void resetAllSpectrum() {
-		
-//		System.out.println("número de links: "+linkVector.length);
+
 		for(int i = 0; i < linkVector.length; i++) {
 			this.getLink(i).resetSpectrum();
+			this.getLink(i).resetNoises();
+			this.getLink(i).resetCrosstalk();
 		}
 	}
 

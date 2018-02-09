@@ -29,9 +29,7 @@ public class KShortestPaths {
 			
 			CostedPath Pu = minCost(B);
 			int u = Pu.get(Pu.size()-1);
-//			System.out.println(" "+u);
-			
-//			System.out.println();
+
 			B.remove(Pu);
 			count[u]++;
 			
@@ -53,12 +51,6 @@ public class KShortestPaths {
 				}
 				
 				if(!error) {
-
-//					for(int i = 0; i < Pu.size(); i++) {
-//						System.out.print(" "+Pu.get(i));
-//					}
-//					
-//					System.out.println();
 					P.add(Pu);
 				}
 			}

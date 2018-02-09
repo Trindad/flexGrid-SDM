@@ -15,95 +15,129 @@ import flexgridsim.util.MinimumFeedbackVertexSet;
 public class BestEffortTrafficMigration {
 
 	private Map<Long, Flow> flows;
+	private Map<Long, Flow> allFlowsToReroute;
+	private int nTrafficDisruption = 0;
 	private ControlPlaneForRSA cp;
 	private PhysicalTopology pt;
-//	private VirtualTopology vt;
+	private VirtualTopology vt;
 	
 	public BestEffortTrafficMigration(ControlPlaneForRSA cp, PhysicalTopology pt, VirtualTopology vt,
-			Map<Long, Flow> f) {
+			Map<Long, Flow> f, Map<Long, Flow> all) {
 		
 		this.flows = f;
-//		this.vt = vt;
+		this.vt = vt;
 		this.cp = cp;
 		this.pt = pt;
+		this.allFlowsToReroute = all;
 	}
-
-	public Map<Long, Flow> runBestEffort() throws Exception {
+	
+	public int getNumberOfTrafficDisruption() {
 		
-		Map<Long, Flow> lastStatus = cp.getActiveFlows();
-
+		return this.nTrafficDisruption;
+	}
+	
+	public MinimumFeedbackVertexSet constructDependencyGraph() {
+		
 		MinimumFeedbackVertexSet mfvs = new MinimumFeedbackVertexSet(flows); //dependency graph
 		ArrayList< Long[] > temp = new ArrayList< Long[] >();
 		
 		for(Long key: flows.keySet()) {
 			
-			if(!flows.get(key).isConnectionDisruption()) {
-				for(Long k: lastStatus.keySet()) {
-					
-					if( flows.get(key).getID() != lastStatus.get(k).getID() && this.isAccepted(flows, lastStatus.get(k).getID()) )
-					{
+			for(Long k: allFlowsToReroute.keySet()) {
+				
+				if( flows.get(key).getID() != allFlowsToReroute.get(k).getID() && this.isAccepted(flows, allFlowsToReroute.get(k).getID()) )
+				{
+					if(this.isNewEdge( flows.get(key).getID(),  allFlowsToReroute.get(k).getID(), temp)) {
 						
-						if(this.isNewEdge( flows.get(key).getID(),  lastStatus.get(k).getID(), temp)) {
+						if(this.dependency(flows.get(key), allFlowsToReroute.get(k)) >= 1 ) {
 							
-							if(this.dependency(flows.get(key), lastStatus.get(k)) >= 1 ) {
+							try {
 								
-								System.out.println("old "+lastStatus.get(k) +"\n"+"new "+flows.get(key));
-								try {
-									
-									mfvs.getGraph().addEdge(mfvs.getNodeIndex(flows.get(key).getID()),  mfvs.getNodeIndex(lastStatus.get(k).getID()));
-									temp.add(new Long[] { flows.get(key).getID(),  lastStatus.get(k).getID() });
-								}
-								catch (Exception e) {
-									e.printStackTrace();
-								}
-								System.out.println("**********************************************************");
+								mfvs.getGraph().addEdge(mfvs.getNodeIndex(flows.get(key).getID()),  mfvs.getNodeIndex(allFlowsToReroute.get(k).getID()));
+								temp.add(new Long[] { flows.get(key).getID(),  allFlowsToReroute.get(k).getID() });
+							}
+							catch (Exception e) {
+								e.printStackTrace();
 							}
 						}
+					}
+				}
+				
+			}
+		}
+		
+		return mfvs;
+	}
+
+	public Map<Long, Flow> runBestEffort() throws Exception {
+
+		MinimumFeedbackVertexSet mfvs = constructDependencyGraph();
+		
+		if(mfvs.getGraph().numberOfVertices() >= 1 ) {
+			
+			ArrayList< ArrayList<Flow> > flowsToRestore = new ArrayList< ArrayList<Flow> >();
+			if(!mfvs.getGraph().isAcyclic()) {
+				mfvs.getGraph().print(true);
+				System.out.println("There is a cycle");
+				ArrayList<Flow> resultMFVS = mfvs.runMFVS();
+				this.nTrafficDisruption = 0;
+				
+				flowsToRestore = moveToVacancy(resultMFVS);
+				mfvs = constructDependencyGraph();//construct a new graph
+			}
+			
+			
+			Map<Long, Flow> newOrderFlows = new HashMap<Long, Flow>();
+			
+			while(mfvs.getGraph().numberOfVertices() >= 1)
+			{
+				for(Long key: flows.keySet()) {
+					
+					int u =  mfvs.getNodeIndex(flows.get(key).getID());
+					
+					if(mfvs.getGraph().hasVertex(u)) {
+						
+						ArrayList<Integer> out = mfvs.getGraph().getOutgoingNeighbors(u);
+						
+						if(out.size() == 0)
+						{
+							mfvs.getGraph().deleteVertex(u);
+							newOrderFlows.put(key, flows.get(key));
+						}
+					}
+					else
+					{
+						newOrderFlows.put(key, flows.get(key));
 					}
 					
 				}
 			}
+			
+			if(cp.isRerouting()) {
+				cp.updateControlPlane(pt, vt, newOrderFlows);
+			}
+			
+			restoreFlows(flowsToRestore);
+			
+			return new HashMap<Long, Flow>();
 		}
 		
-		
 		return flows;
-//		mfvs.getGraph().print(true);
-//		
-//		if(!mfvs.getGraph().isAcyclic()) {
-//			
-//			ArrayList<Flow> result = mfvs.runMFVS();
-//			
-//			moveToVacancy(result);
-//			System.out.println("There is a cycle");
-//		}
-//		
-//		Map<Long, Flow> v = new HashMap<Long, Flow>();
-//		
-//		while(mfvs.getGraph().numberOfVertices() >= 1)
-//		{
-//			for(Long key: flows.keySet()) {
-//				
-//				int u =  mfvs.getNodeIndex(flows.get(key).getID());
-//				ArrayList<Integer> out = mfvs.getGraph().getOutgoingNeighbors(u) ;
-//				
-//				if(out.size() == 0)
-//				{
-//					v.put(key, flows.get(key));
-//					mfvs.getGraph().deleteVertex(u);
-//				}
-//			}
-//			
-//		}
-//	
-//		return v;
-	
+	}
+
+	private void restoreFlows(ArrayList<ArrayList<Flow>> flowsToRestore) {
+		
+		for(ArrayList<Flow> f: flowsToRestore) {
+			
+			cp.updateControlPlane(pt, vt, f.get(0));
+		}
 	}
 
 	private boolean isNewEdge(long l, long b, ArrayList<Long[]> array) {
 		
 		for(int i = 0; i < array.size(); i++) {
 			
-			if( (array.get(i)[0] == l && array.get(i)[1] == b) || (array.get(i)[0] == b && array.get(i)[1] == l)) {
+			if( (array.get(i)[0] == l && array.get(i)[1] == b) || (array.get(i)[0] == b && array.get(i)[1] == l) ) {
 				
 				return false;
 			}
@@ -116,35 +150,84 @@ public class BestEffortTrafficMigration {
 		
 		for(Long key: f.keySet()) {
 			
-			if(f.get(key).getID() == id) return !f.get(key).isConnectionDisruption();
+			if(f.get(key).getID() == id) {
+				return !f.get(key).isConnectionDisruption();
+			}
 		}
 		
 		return false;
 	}
 
-	private void moveToVacancy(ArrayList<Flow> flows) {
+	
+	public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology ptTemp, VirtualTopology vtTemp) {
+
+    	int[] links;
+        links = lightpath.getLinks();
+        
+    	for (int j = 0; j < links.length; j++) {
+    		ptTemp.getLink(links[j]).releaseSlots(lightpath.getSlotList());
+    		ptTemp.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
+    		ptTemp.getLink(links[j]).updateCrosstalk();
+        }
+    	
+    	vtTemp.removeLightPath(lightpath.getID());
+    }
+	
+	private ArrayList< ArrayList<Flow> >  moveToVacancy(ArrayList<Flow> flows) {
 		
+		ArrayList< ArrayList<Flow> > flowsToRestore = new ArrayList< ArrayList<Flow> >();
+		
+		for(Flow flow: flows) {
+			
+			SCVCRCSA rcsa = new SCVCRCSA();
+			rcsa.simulationInterface(null, pt, vt, cp, null);
+			
+			ArrayList<Flow> tmp = new ArrayList<Flow>();
+			Flow oldFlow = flow.copy();
+			tmp.add(oldFlow);
+			
+			
+			removeFlowFromPT(flow, vt.getLightpath(flow.getLightpathID()), pt, vt);
+			rcsa.runRCSA(flow, oldFlow.getLinks(), oldFlow.getSlotList());
+			
+			tmp.add(flow);
+			flowsToRestore.add(tmp);
+		}
+		
+		return flowsToRestore;
 	}
 	
-	//There is intersection between paths;
+	/**
+	 * There is intersection between paths
+	 * @param l1
+	 * @param l2
+	 * @return
+	 */
 	private boolean intersectionBetweenPaths(int[] l1, int[] l2) {
 	
 		if(l1.equals(l2)) return true;
-		
-		int n = l1.length < l2.length ? l1.length : l2.length;
-		
-		for(int i = 0; i < n-1; i++) {
+
+		 
+		for(int i = 0; i < l1.length; i++) {
 			
-			if(l1[i] == l2[i] && l1[i+1] == l2[i+1]) 
-			{
-				return true;
+			for(int j = 0; j < l2.length; j++) {
+				
+				if(l1[i] == l2[j]) 
+				{
+					return true;
+				}
 			}	
 		}
 		
 		return false;
 	}
 	
-	
+	/**
+	 * Tensor product between two sets of slots
+	 * @param sl1
+	 * @param sl2
+	 * @return
+	 */
 	private int tensorProduct(ArrayList<Slot> sl1, ArrayList<Slot> sl2) {
 		
 		int []s1 = new int[pt.getNumSlots()];

@@ -19,7 +19,7 @@ public class PythonCaller {
 		
 		String path = this.getScriptsPath() + "kmeans.py";
 		
-		System.out.println(convertToJSON(features));
+//		System.out.println(convertToJSON(features));
 		
 		StringBuilder st = new StringBuilder();
 		st.append("python3 ");

@@ -146,4 +146,8 @@ public interface ControlPlaneForRSA {
 
 	public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology pt, VirtualTopology vt);
 
+	public void updateControlPlane(PhysicalTopology pt, VirtualTopology vt, Flow flow);
+
+	public boolean isRerouting();
+
 }

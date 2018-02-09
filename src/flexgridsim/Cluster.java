@@ -8,9 +8,9 @@ package flexgridsim;
 public class Cluster {
 	
 	//Centroid of x, y and z dimension
-	private int x = 1;
-	private int y = 0;//in Gb
-	private int z = 0;
+	private double x = 0;
+	private double y = 0;//in Gb
+	private double z = 0;
 	private int []cores;
 	int nFeatures = 2;
 	
@@ -20,7 +20,7 @@ public class Cluster {
 		this.y = y;
 	}
 	
-	public Cluster(int x, int y, int z, int n) {
+	public Cluster(double x, double y, double z, int n) {
 		
 		this.x = x;
 		this.y = y;
@@ -28,24 +28,26 @@ public class Cluster {
 		this.nFeatures = n;
 	}
 	
-	public int getX() {
+	public double getX() {
 		return x;
 	}
 	
-	public int getY() {
+	public double getY() {
 		return y;
 	}
 	
-	public int getZ() {
+	public double getZ() {
 		return z;
 	}
 	
 
-	public int [] getCores() {
+	public int []getCores() {
 		return cores;
 	}
 
-	public void setCores(int [] cores) {
+	public void setCores(int []cores) {
+//		for(int i = 0; i < cores.length; i++) System.out.print(" "+cores[i]);
+//		System.out.println("");
 		this.cores = cores;
 	}
 	

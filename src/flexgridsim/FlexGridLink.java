@@ -86,7 +86,17 @@ public class FlexGridLink {
 	 */
 	public void updateNoise(ArrayList<Slot> slotList, int modulation){
 		for (Slot s : slotList) {
-			this.noise[s.c][s.s]=Decibel.add( ModulationsMuticore.interCoreXT(modulation), ModulationsMuticore.inBandXT[modulation]);
+			this.noise[s.c][s.s] = Decibel.add( ModulationsMuticore.interCoreXT(modulation), ModulationsMuticore.inBandXT[modulation]);
+		}
+	}
+	
+	public void resetNoises() {
+		for (int i = 0; i < cores; i++) {
+			this.modulationLevel[i] = 0;
+			for (int j = 0; j < slots; j++) {
+				this.reservedSlots[i][j] = false;
+				this.noise[i][j]=-100;
+			}
 		}
 	}
 	
@@ -105,6 +115,15 @@ public class FlexGridLink {
 	public double getXT(int core) {
 
 		return this.xt.getXT(core);
+	}
+	
+	public void resetCrosstalk() {
+		for(int k = 0; k < this.cores; k++) {
+		
+			this.xt.meanInterCoreCrosstalk(k, 0, 0);
+			
+		}
+		
 	}
 	
 	/**

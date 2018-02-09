@@ -219,7 +219,7 @@ public class ConnectionSelectionToReroute {
 				
 				 ArrayList<Slot> slotList = flows.get(key).getSlotList();
 				 
-				 if(flows.get(key).getRate() <= 12 || (flows.get(key).getRate() == 125 && flows.get(key).getModulationLevel() >= 4) ) continue;
+				 if(flows.get(key).getRate() <= 12 || (flows.get(key).getRate() == 125 && flows.get(key).getModulationLevel() <= 2) ) continue;
 				 
 				 for(Slot s: slotList)
 				 {
@@ -241,25 +241,15 @@ public class ConnectionSelectionToReroute {
 		private ArrayList<Slot> calculateUsageFrequency(Map<Long, Flow> flows) {
 			
 			ArrayList<Slot> slots = new ArrayList<Slot>();
-			Map<Long, Flow> flowWithHighCore = new HashMap<Long, Flow>();
-			
-			int limit = (pt.getCores()-1)/2;
-			
-			for(Long key: flows.keySet()) {
-				
-//				if(flows.get(key).getRate() >= 13) {
-					flowWithHighCore.put(key, flows.get(key));
-//				}
-			}
 			
 			for(int i = 0; i < pt.getCores(); i++) {
 				
 				for(int j = 0; j < pt.getNumSlots(); j++) {
 					
-					for(Long key: flowWithHighCore.keySet()) {
+					for(Long key: flows.keySet()) {
 						
 						Slot s = new Slot(i,  j);
-						if(containsSlot( flowWithHighCore.get(key).getSlotList(), s ) && !slots.contains(s))
+						if(containsSlot( flows.get(key).getSlotList(), s ) && !slots.contains(s))
 						{
 							slots.add(s);
 						}

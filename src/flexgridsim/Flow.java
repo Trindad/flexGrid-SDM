@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * The Flow class defines an object that can be thought of as a flow
  * of data, going from a source node to a destination node. 
  * 
- * @author andred, pedrom
+ * @author andred, pedrom, trindade
  */
 public class Flow {
 
@@ -432,5 +432,25 @@ public class Flow {
 
 	public void setConnectionDisruption(boolean connectionDisruption) {
 		this.connectionDisruption = connectionDisruption;
+	}
+
+	public Flow copy() {
+		
+		Flow f = new Flow(this.id, this.src, this.dst, this.time, this.bw, this.duration, this.cos, this.deadline);
+        f.accepeted = this.accepeted;
+        f.time = this.time;
+        f.modulationLevel = this.modulationLevel;
+        
+        f.lightpathID = this.lightpathID;
+        f.links = this.links.clone();
+        
+        ArrayList<Slot> slots = new ArrayList<Slot>();
+        for(Slot s: slotList) {
+        	slots.add(s);
+        }
+        
+        f.setSlotList(slots);
+        
+		return f;
 	}
 }

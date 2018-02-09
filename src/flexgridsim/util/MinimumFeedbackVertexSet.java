@@ -129,7 +129,7 @@ public class MinimumFeedbackVertexSet {
                 numVertices--;
             }
         }
-
+        
         protected void deleteVertices(ArrayList<Integer> v) throws Exception {
         	int n = v.size();
         	for(int i = n-1; i >= 0; i--) {
@@ -178,15 +178,16 @@ public class MinimumFeedbackVertexSet {
          * Constructors and destructor *
          */
 		protected void init(int maxSize) {
-            this.outgoingNeighbors = new ArrayList< ArrayList<Integer> >(maxSize);
-            this.incomingNeighbors = new ArrayList< ArrayList<Integer> >(maxSize);
+			
+            this.outgoingNeighbors = new ArrayList< ArrayList<Integer> >();
+            this.incomingNeighbors = new ArrayList< ArrayList<Integer> >();
             this.hasVertex = new ArrayList<Boolean>();
             this.vertices = new TreeSet<Integer>();
             
             for (int i = 0; i < maxSize; i++) {
             	this.hasVertex.add(false);
-            	this.outgoingNeighbors.add(new ArrayList<>());
-            	this.incomingNeighbors.add(new ArrayList<>());
+            	this.outgoingNeighbors.add(new ArrayList<Integer>());
+            	this.incomingNeighbors.add(new ArrayList<Integer>());
             	this.addVertex(i);
             }
             
@@ -199,7 +200,7 @@ public class MinimumFeedbackVertexSet {
 			this.sccsByNum = new ArrayList<Integer>();
             
             this.V = maxSize;
-            this.numVertices = 0;
+            this.numVertices = maxSize;
             this.numEdges  = 0;
             
             this.strongVertices = new ArrayList<Integer>();
@@ -210,14 +211,14 @@ public class MinimumFeedbackVertexSet {
          * Basic accessors *
         */
         public int numberOfVertices() {
-            return numVertices;
+            return this.numVertices;
         }
 
         int numberOfEdges() {
             return numEdges;
         }
 
-        protected boolean hasVertex(int vertex) {
+        public boolean hasVertex(int vertex) {
             if (vertex < 0 || vertex >= V) 
             {
             	return false;
@@ -264,7 +265,7 @@ public class MinimumFeedbackVertexSet {
             	return this.incomingNeighbors.get(vertex);
             }
             else {
-            	throw new Exception("The vertex does not exist.");
+            	throw new Exception("The vertex"+vertex+"does not exist.");
             }
         }
 
@@ -281,15 +282,13 @@ public class MinimumFeedbackVertexSet {
        public void print(boolean edges) throws Exception{
             
             if (edges) 
-            {
-            	System.out.println(": ");
-            	
+            {	
             	Iterator<Integer> it = vertices.iterator();
             	while (it.hasNext()){
-                    
-            		ArrayList<Integer> neighbors = getOutgoingNeighbors(it.next());
+                    int i = it.next();
+            		ArrayList<Integer> neighbors = getOutgoingNeighbors(i);
                     for (int j = 0; j < neighbors.size(); j++) {
-                    	System.out.println( "(" + it +"," + neighbors.get(j) + ") ");
+                    	System.out.println( "(" + i +"," + neighbors.get(j) + ") ");
                     }
                 }
             }
@@ -337,7 +336,7 @@ public class MinimumFeedbackVertexSet {
        public void addEdge(int source, int target) throws Exception {
 
     	    if (hasVertex(source) && hasVertex(target) && !hasEdge(source, target)) {
-    	    	System.out.println(source +" - "+target);
+//    	    	System.out.println("source:"+source +" target: "+target);
     	        outgoingNeighbors.get(source).add(target);
     	        incomingNeighbors.get(target).add(source);
     	        numEdges++;
@@ -596,10 +595,9 @@ public class MinimumFeedbackVertexSet {
        protected ArrayList< ArrayList<Integer> > stronglyConnectedComponents() throws Exception {
 	            
 			for (int i = 0; i < V; i++) {
-			    tarjanIndex.add(-1);
-			    tarjanInStack.add(false);
-			    tarjanAncestor.add(-1);
-			    sccs.add(new ArrayList<Integer>());
+			    this.tarjanIndex.add(-1);
+			    this.tarjanInStack.add(false);
+			    this.tarjanAncestor.add(-1);
 			}
 			
 			Iterator<Integer> iterator = vertices.iterator();
@@ -613,7 +611,7 @@ public class MinimumFeedbackVertexSet {
 			    }
 			}
 	
-	        return sccs;
+	        return this.sccs;
         }
 
        protected ArrayList<Integer> vertexToStronglyConnectedComponentNumber() throws Exception {
@@ -696,7 +694,7 @@ public class MinimumFeedbackVertexSet {
                         tarjanInStack.set(u, false);
                     } 
                     while (u != vertex);
-                    this.sccs.add(s);
+                    this.sccs.add(new ArrayList<Integer>(s));
                 }
             }
         }
@@ -1288,6 +1286,7 @@ public class MinimumFeedbackVertexSet {
         }
 
        public boolean isAcyclic() throws Exception {
+//    	   	System.out.println(" "+loops().size()+" "+stronglyConnectedComponents().size() + " "+numberOfVertices());
             return loops().size() == 0 && stronglyConnectedComponents().size() == numberOfVertices();
         }
 

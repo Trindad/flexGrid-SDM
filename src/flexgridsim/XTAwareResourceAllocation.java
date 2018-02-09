@@ -132,7 +132,7 @@ public class XTAwareResourceAllocation {
 			Graph.addEdge(cores, 0, numberOfCores);
 		}
 		
-		Graph.printGraph(cores);
+		// Graph.printGraph(cores);
 	}
 	
 	protected LinkedList<Integer> getAdjacentsCores(int index) {

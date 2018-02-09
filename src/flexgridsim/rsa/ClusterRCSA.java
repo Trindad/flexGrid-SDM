@@ -1,6 +1,11 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.KShortestPathAlgorithm;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 import flexgridsim.Cluster;
 import flexgridsim.Flow;
@@ -16,27 +21,28 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @param flow
 	 * @return
 	 */
-	private ArrayList<Integer>identifyCluster(Flow flow, int nHops) {
+	private ArrayList<Integer>identifyCluster(Flow flow, int h) {
 		
-		int  []distances = new int[this.clusters.size()];
+		double  []distances = new double[this.clusters.size()];
 		ArrayList<Integer> sortClusters = new ArrayList<Integer>();
+		int i = 0;
 		
-		for(int i = 0; i < this.clusters.size(); i++) {
+		for(Cluster c: clusters) {
 			
-			if(clusters.get(i).getNumberOfFeatures() == 3) {
+			if(c.getNumberOfFeatures() == 3) {
 				
-				distances[i] = (int)( (this.euclidianDistance(clusters.get(i).getX() * 100, clusters.get(i).getY(), clusters.get(i).getZ(),
-						nHops, flow.getRate(), flow.getDuration())*100 ) * 100);
+				distances[i] = euclidianDistance( c.getX(), c.getY(), c.getZ(), (double)(h * 100), (double)flow.getRate(), (flow.getDuration()*1000) );
 			}
-			else
+			else if(c.getNumberOfFeatures() == 2)
 			{
-				distances[i] = (int)( this.euclidianDistanceTwoFeatures(clusters.get(i).getX(), clusters.get(i).getY(),flow.getRate(), nHops)*100 );
+				distances[i] = euclidianDistanceTwoFeatures(c.getX(), c.getY(),flow.getRate(), h * 100);
 			}
 
 			sortClusters.add(i);
+			i++;
 		}
 		
-		sortClusters.sort((a,b) -> distances[a] - distances[b]);
+		sortClusters.sort((a,b) -> (int)(distances[a] * 1000) - (int)(distances[b] * 1000) );
 		
 		return sortClusters;
 	}
@@ -51,7 +57,7 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @param q3
 	 * @return
 	 */
-	private double euclidianDistance(int p1, int p2, double p3, int q1, int q2, double q3) {
+	private double euclidianDistance(double p1, double p2, double p3, double q1, double q2, double q3) {
 		
 		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2) + Math.pow(p3 - q3,2);
 		
@@ -66,7 +72,7 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @param q2
 	 * @return
 	 */
-	private double euclidianDistanceTwoFeatures(int p1, int p2, int q1, int q2) {
+	private double euclidianDistanceTwoFeatures(double p1, double p2, double q1, double q2) {
 		
 		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2);
 		
@@ -82,7 +88,7 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @return
 	 */
 	@SuppressWarnings("unused")
-	private double euclidianDistance(int p1, int p2, int q1, int q2) {
+	private double euclidianDistance(double p1, double p2, double q1, double q2) {
 		
 		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2) ;
 		
@@ -91,64 +97,75 @@ public class ClusterRCSA extends SCVCRCSA {
 	
 	protected boolean runRCSA(Flow flow) {
 		
-		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 3);
-
-		if(kPaths.length >= 1)
+		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 3);
+		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
+			
+		if(KPaths.size() >= 1)
 		{
 			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 			
-			for (int k = 0; k < kPaths.length; k++) {
+			for (int k = 0; k < KPaths.size(); k++) {
 				
 				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-
-				int[] links = new int[kPaths[k].length - 1];
-				for (int j = 0; j < kPaths[k].length - 1; j++) {
+				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				
+				for (int j = 0; j < listOfVertices.size()-1; j++) {
 					
-					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
+					links[j] = pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
+					bitMap(pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getSpectrum(), spectrum, spectrum);
+					
 				}
+				
 				
 				if(cp.getClusters().isEmpty())
 				{
 					if( fitConnection(flow, spectrum, links) == true) {
-						System.out.println("Connection accepted: "+flow);
+//						 System.out.println("Connection accepted: "+flow);
 						return true;
 					}
+					
 				}
 				else
 				{
 					if( fitConnectionUsingClustering(flow, spectrum, links) == true) 
 					{
-						System.out.println("Connection accepted using clusterRCSA: "+flow);
+//						System.out.println("Connection accepted: "+flow);
 						return true;
 					}
 				}
 			}
 		}
 		
+//		System.out.println("Connection blocked: "+flow);
 		return false;
 	}
 	
 	public boolean fitConnectionUsingClustering(Flow flow, boolean [][]spectrum, int[] links) {
 		
-		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		this.clusters = new ArrayList<Cluster>(cp.getClusters());
 		ArrayList<Integer> sortClusters = identifyCluster(flow, links.length);
-			
-		int []cores = this.clusters.get(sortClusters.get(0)).getCores();
 		
-		for(int i = 0; i < cores.length; i++) {
+		for(int i = 0; i < sortClusters.size(); i++) {
 			
-			fittedSlotList = canBeFitConnection(flow, links, spectrum[cores[i]] , cores[i], flow.getRate());
-			if(!fittedSlotList.isEmpty()) 
-			{
-				return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
+			int []cores = this.clusters.get(sortClusters.get(i)).getCores();
+		
+			for(int j = 0; j < cores.length ; j++) {
+//				System.out.println("core: "+cores[j]+" "+flow);
+				ArrayList<Slot> fittedSlotList = canBeFitConnection(flow, links, spectrum[cores[j]] , cores[j], flow.getRate());
+				
+				if(!fittedSlotList.isEmpty()) 
+				{
+					if(establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) 
+					{
+						
+						return true;
+					}
+				}
 			}
 		}
-		
-		return this.lastChanceToAssign(flow, spectrum, links, cores);
+	
+		return false;
 	}
 
 	/**
@@ -159,6 +176,7 @@ public class ClusterRCSA extends SCVCRCSA {
 	 * @param coreFull
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private boolean lastChanceToAssign(Flow flow, boolean[][] spectrum, int[] links, int []coreFull) {
 		
 		ArrayList<Integer> sortFreeCore = new ArrayList<Integer>();
