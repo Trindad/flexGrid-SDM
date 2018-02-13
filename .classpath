@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="python"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/silvana/gurobi751/linux64/lib/gurobi.jar"/>
 	<classpathentry kind="lib" path="lib/jython-standalone-2.7.0.jar"/>

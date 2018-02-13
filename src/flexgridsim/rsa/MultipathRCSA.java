@@ -10,7 +10,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 73;
+	private int TH = 70;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
@@ -24,6 +24,7 @@ public class MultipathRCSA extends SCVCRCSA {
 			return;
 		}
 		
+		//try to allocate using multipath
 		if(flow.getRate() > TH)
 		{
 			if(this.multipathEstablishConnection(flow)) 
@@ -34,6 +35,7 @@ public class MultipathRCSA extends SCVCRCSA {
 		}
 		
 //		System.out.println("Connection blocked:"+flow);
+		
 		cp.blockFlow(flow.getID());
 		
 	}
@@ -71,31 +73,34 @@ public class MultipathRCSA extends SCVCRCSA {
 			
 			while(k < selectedPaths.size() && p.size() < n) 
 			{
-				spectrum = this.getAvaibleSlotsInLightpath(spectrum, selectedPaths.get(k));
-				flow.setMultipath(true);
-				ArrayList<Slot> temp = this.fitConnection(flow, spectrum, selectedPaths.get(k), rate);
-				
-				if(!temp.isEmpty() && !p.contains(selectedPaths.get(k))) {
+				if(pt.getNumberOfAvailableSlots(selectedPaths.get(k)) >= rate) {
+					
+					spectrum = this.getAvaibleSlotsInLightpath(spectrum, selectedPaths.get(k));
+					flow.setMultipath(true);
+					ArrayList<Slot> temp = this.fitConnection(flow, spectrum, selectedPaths.get(k), rate);
+					
+					if(!temp.isEmpty() && !p.contains(selectedPaths.get(k))) {
 
-					fittedSlotList.add(temp);
-					p.add(selectedPaths.get(k));
-					
-					if(totalRate < rate) 
-					{
-						rate = totalRate;
+						fittedSlotList.add(temp);
+						p.add(selectedPaths.get(k));
+						
+						if(totalRate < rate) 
+						{
+							rate = totalRate;
+						}
+						else 
+						{
+							totalRate -= rate;
+						}
+						
+						break;
+						
 					}
-					else 
+					else if(flow.getModulationLevels().size() >= 1) 
 					{
-						totalRate -= rate;
+						flow.removeModulationLevel();
+						flow.setMultipath(false);
 					}
-					
-					break;
-					
-				}
-				else if(flow.getModulationLevels().size() >= 1) 
-				{
-					flow.removeModulationLevel();
-					flow.setMultipath(false);
 				}
 				
 				k++;
@@ -195,11 +200,9 @@ public class MultipathRCSA extends SCVCRCSA {
 	protected boolean multipathEstablishConnection(Flow flow) {
 
 		this.setkShortestPaths(flow);
-		ArrayList<int[]> paths = this.getkShortestPaths();
 
-		if(paths.size() >= 2)
+		if(this.paths.size() >= 2)
 		{
-			
 			//suppose the high level of modulation fitted, ignoring the distance between source and destination
 			int demandInSlots = (int) Math.ceil( ( (double)flow.getRate() / (double)ModulationsMuticore.subcarriersCapacity[ModulationsMuticore.numberOfModulations()-1])/(double)paths.size());
 			
@@ -207,15 +210,10 @@ public class MultipathRCSA extends SCVCRCSA {
 			ArrayList<int[]> selectedPaths = new ArrayList<int[]>();
 			int sumOfAvailableSlots = this.getPathsCandidates(selectedPaths, demandInSlots, nSlotsAvailable);
 			
-			
-			
 			if(sumOfAvailableSlots >= demandInSlots && selectedPaths.size() >= 2) 
 			{
 				return this.tryToAssign(flow, selectedPaths, nSlotsAvailable);
-				
 			}
-			
-			this.paths.clear();
 		}
 		
 		
@@ -365,7 +363,8 @@ public class MultipathRCSA extends SCVCRCSA {
 				}
 			}
 		}
-		else {
+		else 
+		{
 			if(!flow.isAccepeted()) return;
 			
 			int []links = flow.getLinks();

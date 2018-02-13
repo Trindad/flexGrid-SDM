@@ -10,15 +10,12 @@ import flexgridsim.Cluster;
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.ModulationsMuticore;
-import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
-import flexgridsim.VirtualTopology;
 import flexgridsim.util.KMeansResult;
 import flexgridsim.util.PythonCaller;
 
 /**
  * De-fragmentation approach using clustering (k-Means)
- * 
  * @author trindade
  *
  */
@@ -89,7 +86,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			}
 		}
 		
-		return this.nConnectionDisruption >= 1;
+		return (this.nConnectionDisruption >= 1);
 	}
 	
 	protected void releaseResourcesAssigned() {
@@ -112,14 +109,20 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		this.nConnectionDisruption = 0;
 	}
 	
-	private boolean isInCorrectCore(int core, int a, int b) {
+	private boolean isInCorrectCore(int core, int min, int max) {
 		
-		for (; b >= a && b >= 0; b--) {
-			
-			if(b == core) return true;
+		return (core >= min && core <= max);
+	}
+	
+	private void printAllLinksStatus() {
+
+		int n = this.pt.getNumNodes();
+		for(int u = 0; u < n; u++) {
+			for(int v = 0; v < n; v++) {
+				if(u == v) continue;
+				else if(this.pt.hasLink(u, v)) printSpectrum(this.pt.getLink(u, v).getSpectrum());
+			}
 		}
-		
-		return false;
 	}
 	
 	@SuppressWarnings("unused")
@@ -130,35 +133,36 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		for(Integer key: clusters.keySet()) {
 			
-			if(!clusters.get(key).isEmpty()) {
-				
+			if(!clusters.get(key).isEmpty()) 
+			{
 				index = nextLimit(index, key);
 				next = (next - cores[key]);
 				for(Flow flow: clusters.get(key)) {
 					if(isInCorrectCore(flow.getCore(), next, index)) {
 						updateData(flow, flow.getLinks(), flow.getSlotList(), flow.getModulationLevel());
 						flows.remove(flow.getID());
-					}
-					
+					}		
 				}
 			}
 		}
+		
+//		printAllLinksStatus();
 	}
 	
 	public void runDefragmentantion() {
 		
 		Map<Long, Flow> flows = cp.getActiveFlows();
 		ArrayList<Flow> secondChance = new ArrayList<Flow>();
-		
-		
-		
 		boolean[][] spectrum = new boolean[this.pt.getCores()][this.pt.getNumSlots()];
 		int index = this.pt.getCores();
 		int next = index;
 		
 		this.pt.resetAllSpectrum();
 		this.runKMeans(this.k, flows);
-		
+
+//		System.out.println("nFlows before: "+flows.size());
+		removeFlowsInCorrectCore(flows);
+//		System.out.println("nFlows after: "+flows.size());
 		//re-assigned resources in the same link, but using clustering
 		for(Integer key: clusters.keySet()) {
 			
@@ -168,29 +172,28 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				next = (next - cores[key]);
 				
 				for(Flow flow: clusters.get(key)) {
-
-					spectrum = initMatrix(spectrum, this.pt.getCores(),this.pt.getNumSlots());
 					
-					for(int i = 0; i < flow.getLinks().length; i++) {
+					if(flows.containsKey(flow.getID())) {
+						spectrum = initMatrix(spectrum, this.pt.getCores(),this.pt.getNumSlots());
 						
-						int src  = this.pt.getLink(flow.getLink(i)).getSource();
-						int dst = this.pt.getLink(flow.getLink(i)).getDestination();
-						
-						bitMap(this.pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
+						for(int i = 0; i < flow.getLinks().length; i++) {
+							
+							int src  = this.pt.getLink(flow.getLink(i)).getSource();
+							int dst = this.pt.getLink(flow.getLink(i)).getDestination();
+							
+							bitMap(this.pt.getLink(src, dst).getSpectrum(), spectrum, spectrum);
+						}
+	
+						if(fitConnection(flow, spectrum, flow.getLinks(), next, index ) == false) {
+							secondChance.add(flow);
+						}
 					}
-					
-					
-					if(fitConnection(flow, spectrum, flow.getLinks(), next, index ) == false) {
-						secondChance.add(flow);
-					}
-					
 				}
 			}
 		}
 		
 		if(secondChance.size() >= 1)
 		{
-//			System.out.println(" "+flows.size()+" "+secondChance.size());
 			if(lastChanceToAllocating(secondChance)) 
 			{
 				System.out.println("It's impossible to reallocate: "+this.nConnectionDisruption);
@@ -266,34 +269,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			}
 		}
 	}
-	
-	protected boolean createNewLightpath(Flow flow) {
-		
-		long id = this.vt.createLightpath(flow.getLinks(), flow.getSlotList() ,flow.getModulationLevel());
-		
-		if (id >= 0) 
-		{
-			LightPath lps = this.vt.getLightpath(id);
-			flow.setLightpathID(id);
-			
-			int []links = flow.getLinks();
-			
-			for (int j = 0; j < links.length; j++) {
-				
-	            this.pt.getLink(links[j]).reserveSlots(flow.getSlotList());
-	            this.pt.getLink(links[j]).updateNoise(lps.getSlotList(), flow.getModulationLevel());
-	        }
-			
-			//update cross-talk
-			for(int i = 0; i < links.length; i++) {
-				this.pt.getLink(links[i]).updateCrosstalk();
-			}
-			
-			return true;
-		}
-		
-		return false;
-	}
+
 	
 	protected boolean updateLightpath(Flow flow) {
 		
@@ -346,32 +322,43 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		double xt = 0.0f;
-				
+		
+		int nSlots = pt.getNumberOfAvailableSlots(links);
+		
 		for (; i >= n && i >= 0; i--) {
-
+			
 			int modulation = chooseModulationFormat(flow, links);
+			int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]);
 
-			while(modulation >= 0) {
-				
-				double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-				int demandInSlots = (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
-				
-				xt = this.pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
-				
-				if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
-	
-					fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
+			if(nSlots >= demandInSlots)
+			{
+				while(modulation >= 0) {
 					
-					if(fittedSlotList.size() == demandInSlots) {
+					double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
+					demandInSlots = (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
+					
+					if(nSlots >= demandInSlots)
+					{
+						xt = this.pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
 						
-						if(fittedSlotList.size() == demandInSlots) {
-							this.updateData(flow, links, fittedSlotList, modulation);
-							return true;
+						if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
+			
+							fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
+							
+							if(fittedSlotList.size() == demandInSlots) {
+								
+								if(fittedSlotList.size() == demandInSlots) {
+									this.updateData(flow, links, fittedSlotList, modulation);
+									return true;
+								}
+							}
+							
+							fittedSlotList.clear();
 						}
 					}
-					fittedSlotList.clear();
+					
+					modulation --;
 				}
-				modulation --;
 			}
 		}
 		
@@ -388,7 +375,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		for(Long f: flows.keySet()) {
 			
-			features[i][1] = flows.get(f).getDuration() - (time - flows.get(f).getTime());
+			features[i][1] = flows.get(f).getLinks().length * 100;
 			features[i][0] = flows.get(f).getRate();
 			
 			listOfFlows.add(flows.get(f));

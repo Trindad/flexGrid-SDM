@@ -28,6 +28,7 @@ public class FlexGridLink {
 	private XTAwareResourceAllocation xt; //considering inter-core cross-talk 
 	private int reserved;
 	private boolean isBlocked = false;
+	private int slotsAvailable = 0;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -60,6 +61,7 @@ public class FlexGridLink {
 			this.slots = slots;
 			this.weight = weight;
 			this.cores = cores;
+			this.slotsAvailable = (this.slots * this.cores);
 			this.reservedSlots = new boolean[cores][slots];
 			this.modulationLevel = new int[slots];
 			this.noise = new double[cores][slots];
@@ -182,7 +184,11 @@ public class FlexGridLink {
 		for (int i = 0; i < cores; i++) {
 			this.modulationLevel[i] = 0;
 			for (int j = 0; j < slots; j++) {
+				if(this.reservedSlots[i][j]) {
+					this.slotsAvailable++;
+				}
 				this.reservedSlots[i][j] = false;
+				
 				this.noise[i][j]=-100;
 			}
 		}
@@ -210,7 +216,7 @@ public class FlexGridLink {
 				}
 			}
 		}
-		//printSpectrum();
+		
 		return freeSlots;
 	}
 
@@ -393,7 +399,10 @@ public class FlexGridLink {
 				}
 			}
 			for (Slot slot: slotList) {
-				reservedSlots[slot.c][slot.s] = true;
+				if (!reservedSlots[slot.c][slot.s]) {
+					reservedSlots[slot.c][slot.s] = true;
+					this.slotsAvailable--;
+				}
 			}
 			
 			return true;
@@ -401,7 +410,8 @@ public class FlexGridLink {
 			System.out.println("Illegal argument for reserveSlots");
 			return false;
 		}
-
+		
+		
 	}
 
 	/**
@@ -417,7 +427,10 @@ public class FlexGridLink {
 			}
 		}
 		for (Slot pixel : slotList) {
-			reservedSlots[pixel.c][pixel.s] = false;
+			if (reservedSlots[pixel.c][pixel.s]) {
+				reservedSlots[pixel.c][pixel.s] = false;
+				this.slotsAvailable++;
+			}
 		}
 	}
 
@@ -592,6 +605,11 @@ public class FlexGridLink {
 
 	public void setBlocked(boolean isBlocked) {
 		this.isBlocked = isBlocked;
+	}
+
+	public int getSlotsAvailable() {
+		
+		return this.slotsAvailable;
 	}
 
 }

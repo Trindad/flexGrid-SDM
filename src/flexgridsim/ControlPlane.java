@@ -8,11 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.jgrapht.alg.interfaces.VertexScoringAlgorithm;
-import org.jgrapht.alg.scoring.ClosenessCentrality;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.python.antlr.ast.Set;
 import org.w3c.dom.Element;
 
 import flexgridsim.rsa.EarliestDeadlineFirst;
@@ -22,6 +17,7 @@ import flexgridsim.rsa.DefragmentationRCSA;
 import flexgridsim.rsa.RSA;
 import flexgridsim.rsa.TridimensionalClusterDefragmentationRCSA;
 import flexgridsim.rsa.ZhangDefragmentationRCSA;
+import flexgridsim.rsa.BalanceDefragmentationRCSA;
 
 /**
  * The Control Plane is responsible for managing resources and
@@ -49,10 +45,13 @@ public class ControlPlane implements ControlPlaneForRSA {
      * Defragmentation approaches
      */
     private boolean DFR = false;
+    private double dfIndex = 0;
     private ArrayList<Cluster> clusters;
+    private String typeOfReroutingAlgorithm;
 	private int nExceeds = 0;
 	private int nBlocked = 0;
 	private boolean RR = false;
+	private double fi[];
 	
     /**
 	 * Creates a new ControlPlane object.
@@ -96,13 +95,22 @@ public class ControlPlane implements ControlPlaneForRSA {
         	this.defragmentation = new ClusterDefragmentationRCSA();
         	this.defragmentation.simulationInterface(xml, pt, vt, this, traffic);
         }
-        else if(reroute.equals("true") == true) 
+        else if(reroute.equals("BalanceDefragmentationRCSA") == true) 
         {
         	this.RR = true;
+        	this.typeOfReroutingAlgorithm = reroute;
+        	this.rerouting = new BalanceDefragmentationRCSA();
+        	this.rerouting.simulationInterface(xml, pt, vt, this, traffic); 
+        }
+        else if(reroute.equals("ZhangDefragmentationRCSA") == true) 
+        {
+        	this.RR = true;
+        	this.typeOfReroutingAlgorithm = reroute;
         	this.rerouting = new ZhangDefragmentationRCSA();
         	this.rerouting.simulationInterface(xml, pt, vt, this, traffic); 
         }
-  
+        fi = new double[pt.getNumLinks()];//for defragmentation methods
+        
         try {
             RSAClass = Class.forName(rsaModule);
             rsa = (RSA) RSAClass.newInstance();
@@ -110,18 +118,6 @@ public class ControlPlane implements ControlPlaneForRSA {
         } catch (Throwable t) {
             t.printStackTrace();
         }
-
-        closenessCentrality();
-    }
-    
-    private void closenessCentrality() {
-    	
-    	ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
-    	java.util.Set<Integer> vertices = pt.getGraph().vertexSet();
-    	
-    	for(Integer v: vertices) {
-    		System.out.println("v: "+v+" cc: "+cc.getVertexScore(v) * 1000);
-    	}
     }
 
 	/**this.clusters = new ArrayList<Cluster>();
@@ -169,6 +165,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	    } 
     	else 
     	{
+    		
 	    	if (event instanceof FlowArrivalEvent)
 	        {
 	            newFlow(((FlowArrivalEvent) event).getFlow());
@@ -183,48 +180,85 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            
 	            this.nExceeds++;
 	            
-            	if(this.activeFlows.size() >= 500 && this.DFR == true && this.nExceeds >= 5 && nBlocked >= 1) {
-            		
-            		double dfIndex = this.getFragmentationRatio();
-            		if(dfIndex > 0.4 && dfIndex < 0.65) 
-            		{
+//            	if(this.activeFlows.size() >= 300 && this.DFR == true && this.nExceeds >= 5 && nBlocked >= 1) {
+//            		
+//            		this.getFragmentationRatio();
+//            		if(dfIndex > 0.5 && dfIndex < 0.55) 
+//            		{
 //            			System.out.println("before df: "+dfIndex);
+//            			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
+//    	            	eventScheduler.addEvent(defragmentationEvent);
+//    	            	this.nExceeds = 0; 
+//            		}
+//            		
+//            		this.nBlocked--;
+//            	}
+            	if(this.DFR == true && this.activeFlows.size() >= 700 && this.nExceeds >= 400 ) {
+            		
+            		this.getFragmentationRatio();
+            		if(dfIndex > 0.6) 
+            		{
+            			System.out.println("before df: "+dfIndex);
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
-    	            	this.DFR = false;
             		}
             		
             		this.nBlocked--;
             	}
-            	else if(RR == true && this.activeFlows.size() >= 400 && nExceeds >= 5) {
-            		
-            		double dfIndex = this.getFragmentationRatio();
-            		if(dfIndex >= 0.4 && dfIndex < 0.65) 
-            		{
-            			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
-                		eventScheduler.addEvent(reroutingnEvent);
-                		this.nExceeds = 0;
-            		}
+//            	else if(RR == true && this.activeFlows.size() >= 300 && this.activeFlows.size() <= 700 && nExceeds >= 100 && nBlocked >= 3) {
+//            	
+//            		fi = this.getFragmentationRatio();
+//            		
+//            		if(dfIndex > 0.3 && dfIndex < 0.55) 
+//            		{
+//            			System.out.println("before df: "+dfIndex);
+//            			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
+//                		eventScheduler.addEvent(reroutingnEvent);
+//                		this.nExceeds = 0;
+//                		this.nBlocked = 0;
+//            		}
+//            		else this.nBlocked--;
+//            	}
+            	else if(RR == true && this.activeFlows.size() >= 300  && nExceeds >= 100) {
+                    		
+            		fi = this.getFragmentationRatio();
+
+//        			System.out.println("before df: "+dfIndex);
+        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
+            		eventScheduler.addEvent(reroutingnEvent);
+            		this.nExceeds = 0;
+            		this.nBlocked = 0;
             	}
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
 	        {
-
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
-	        	
-//	        	System.out.println("after df: "+this.getFragmentationRatio());
+	        	this.getFragmentationRatio();
+	        	System.out.println("after df: "+ dfIndex);
 	        	
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
-	        else if(event instanceof ReroutingArrivalEvent) {
-	        	
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.3),"HUSIF", this, this.pt, this.vt);
+	        else if(event instanceof ReroutingArrivalEvent) 
+	        {
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.15),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
+//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
 	        	
-	        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
-	        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
+	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
+		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
+		        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
+	        	}
+	        	else if(typeOfReroutingAlgorithm.equals("BalanceDefragmentationRCSA") == true) {
+		        	((BalanceDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
+		        	((BalanceDefragmentationRCSA) rerouting).setFragmentationIndexOfEachLink(fi);
+		            ((BalanceDefragmentationRCSA) rerouting).runDefragmentantion(connections);
+	        	}
+	        	
+	        	this.getFragmentationRatio();
+//	        	System.out.println("after df: "+dfIndex);
 	        	
 	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
 	        }
@@ -235,19 +269,24 @@ public class ControlPlane implements ControlPlaneForRSA {
      * Fragmentation ratio 
      * @return
      */
-	private double getFragmentationRatio() {
+	private double []getFragmentationRatio() {
     	
-    	int E = pt.getNumLinks();
+    	int nLinks = pt.getNumLinks();
+    	double []fi = new double[nLinks];
+    	double nSlots = (pt.getNumSlots() * pt.getCores());
+    	dfIndex = 0;
     	
-    	double FRi = 0.0f;
-    	
-    	for(int i = 0; i < E; i++) {
-    		double nSlots = (pt.getLink(i).getSlots()*pt.getLink(i).getCores());
-    		FRi += (double)(nSlots - (double)pt.getLink(i).getNumFreeSlots()) / nSlots;
+    	for(int i = 0; i < nLinks; i++) {
+//    		System.out.println(pt.getLink(i).getSlotsAvailable() + " "+ pt.getLink(i).getNumFreeSlots());
+    		fi[i] =  (double)(nSlots - (double)pt.getLink(i).getSlotsAvailable()) / nSlots;
+    		dfIndex += fi[i];
     	}
     	
-    	return (FRi/E);
+    	dfIndex = (dfIndex / (double)nLinks);
+    	
+    	return fi;
 	}
+	
 
 	public double getTime() {
 		return time;
@@ -607,16 +646,21 @@ public class ControlPlane implements ControlPlaneForRSA {
    
     
     public boolean canGroom(Flow flow){
-    	for (Entry<Flow, ArrayList<LightPath>> entry : mappedFlows.entrySet()){
+    	
+    	for (Entry<Flow, ArrayList<LightPath>> entry : mappedFlows.entrySet())
+    	{
     		ArrayList<LightPath> lp = entry.getValue();
-    		if (flow.getSource()==lp.get(0).getSource() && flow.getDestination() == lp.get(0).getDestination()){
+    		if (flow.getSource()==lp.get(0).getSource() && flow.getDestination() == lp.get(0).getDestination())
+    		{
     			int demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(lp.get(0).getModulationLevel()));
     			int slotCount = lp.get(0).getSlotList().get(lp.get(0).getSlotList().size()-1).s;
     			ArrayList<Slot> slotList = new ArrayList<Slot>();
+    			
     			for (int i = slotCount; i < slotCount+demandInSlots; i++) {
     				Slot p = new Slot(0,i);
     				slotList.add(p);
 				}
+    			
     			boolean contiguity = true;
     			for (int j = 0; j < lp.get(0).getLinks().length; j++) {
     				if (pt.getLink(lp.get(0).getLink(j)).areSlotsAvailable(slotList, flow.getModulationLevel())){
@@ -624,6 +668,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     					break;
     				}
 				}
+    			
     			if (contiguity == true){
     				for (int linkID : lp.get(0).getLinks()) {
     		            pt.getLink(linkID).reserveSlots(lp.get(0).getSlotList());
@@ -635,6 +680,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     		}
     	    
     	}
+    	
     	return false;
     }
     

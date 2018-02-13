@@ -87,6 +87,7 @@ public class PhysicalTopology {
                 distance = Integer.parseInt(((Element) linklist.item(i)).getAttribute("distance"));
                 linkVector[id] = adjMatrix[src][dst] = new FlexGridLink(id, src, dst, cores, delay, slots, weight, distance);
             }
+            
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -185,6 +186,7 @@ public class PhysicalTopology {
      * @return the specified link from the PhysicalTopology's adjMatrix
      */
     public FlexGridLink getLink(int src, int dst) {
+    	
         return adjMatrix[src][dst];
     }
     
@@ -352,5 +354,17 @@ public class PhysicalTopology {
 //        	}
 //        	System.out.println();
         }
+	}
+
+	public int getNumberOfAvailableSlots(int []indexes) {
+		
+		int n = Integer.MAX_VALUE;
+		
+		for(int i = 0; i < indexes.length; i++) {
+			
+			n = this.getLink(0).getSlotsAvailable() < n ? this.getLink(0).getSlotsAvailable() : n;
+		}
+		
+		return n;
 	}
 }

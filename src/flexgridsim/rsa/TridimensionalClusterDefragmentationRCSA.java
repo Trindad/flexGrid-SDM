@@ -30,7 +30,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 //			features[i][1] = (flows.get(f).getDuration() - (time - flows.get(f).getTime())) * 1000;
 			features[i][0] = flows.get(f).getLinks().length * 100;
 			features[i][1] = flows.get(f).getRate();
-			features[i][2] = flows.get(f).getDuration() * 1000;
+			features[i][2] = flows.get(f).getDuration() * 100;
 			
 			listOfFlows.add(flows.get(f));
 			i++;

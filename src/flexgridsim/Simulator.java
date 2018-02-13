@@ -23,6 +23,8 @@ public class Simulator {
     private static final String simName = new String("flexgridsim");
     private static final Float simVersion = new Float(2.0);
     
+    public static String PYTHON_PATH = null;
+    
     /** Verbose flag. */
     public static boolean verbose = false;
     
@@ -170,6 +172,16 @@ public class Simulator {
 	            String costMKP = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("costMKP");
 	            String defragmentation = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("defragmentation");
 	            String reroute = ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("reroute");
+	            
+	            try {
+		            String pythonPath = ((Element) doc.getElementsByTagName("python").item(0)).getAttribute("location");
+		            
+		            Simulator.PYTHON_PATH = pythonPath;
+	            } catch (Exception e) {
+	            	if (Simulator.verbose) {
+	            		System.out.println("Python path was not set");
+	            	}
+	            }
 	            
 	            if (Simulator.verbose) {
 	                System.out.println("RSA module: " + rsaModule);

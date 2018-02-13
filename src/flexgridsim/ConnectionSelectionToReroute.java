@@ -8,6 +8,7 @@ public class ConnectionSelectionToReroute {
 	
 	private Map<Long, Flow> connectionsToReroute;
 	private int nConnections;
+	private double fi[];
 	private String strategy;
 	private ControlPlane cp;
 	private PhysicalTopology pt;
@@ -22,6 +23,10 @@ public class ConnectionSelectionToReroute {
 		this.vt = vt;
 		this.pt = pt;
 	}
+	
+	public void setFragmentationIndexForEachLink(double fi[]) {
+		this.fi = fi;
+	}
 
 	public Map<Long, Flow> getConnectionsToReroute() {
 		
@@ -30,9 +35,29 @@ public class ConnectionSelectionToReroute {
 			MFUSF selection = new MFUSF(nConnections);
 			connectionsToReroute = selection.run(cp, pt, vt);
 		}
-		else 
+		else if(strategy.equals("HUSIF"))
 		{
 			HUSIF selection = new HUSIF(nConnections);
+			connectionsToReroute = selection.run(cp, pt, vt);
+		}
+		else if(strategy.equals("LargestRate"))
+		{
+			LargestRate selection = new LargestRate(nConnections);
+			connectionsToReroute = selection.run(cp, pt, vt);
+		}
+		else if(strategy.equals("SmallestConnections"))
+		{
+			SmallestConnections selection = new SmallestConnections(nConnections);
+			connectionsToReroute = selection.run(cp, pt, vt);
+		}
+		else if(strategy.equals("RandomConnections")) {
+			
+			RandomConnections selection = new RandomConnections(nConnections);
+			connectionsToReroute = selection.run(cp, pt, vt);
+		}
+		else if(strategy.equals("ConnectionsInBottleneckLink")) {
+			
+			ConnectionsInBottleneckLink selection = new ConnectionsInBottleneckLink(nConnections, fi);
 			connectionsToReroute = selection.run(cp, pt, vt);
 		}
 		
@@ -257,32 +282,8 @@ public class ConnectionSelectionToReroute {
 					
 				}
 			}
-//			
-//			slots.sort((a,b) -> {
-//				int fb = slotIndex(b);
-//				int fa = slotIndex(a);
-////				System.out.println(fa + " * "+fb+" "+a.c+" "+b.c);
-//				if (fb == fa) {
-//					return b.c - a.c;
-//				} else 
-//					if (fb > fa) {
-//					return 1;
-//				} else {
-//					return -1;
-//				}
-//			});
-			
-//			slots.sort((a, b) -> b.c - a.c);
+
 			slots.sort((a, b) -> b.s - a.s);
-			
-//			slots.sort((a, b) -> {
-//				
-//				if(a.c == b.c) {
-//					return b.s - a.s;
-//				}
-//				
-//				return b.c - a.c;
-//			});
 			
 			return slots;
 		}
@@ -298,5 +299,199 @@ public class ConnectionSelectionToReroute {
 			return false;
 		}
 		
+	}
+
+	private class LargestRate {
+		
+		private int nConnections = 0;
+		
+		public LargestRate(int n) {
+			nConnections = n;
+		}
+		
+		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
+			
+			Map<Long, Flow> connections = new HashMap<Long, Flow>();
+			Map<Long, Flow> allconnections = cp.getActiveFlows();
+
+			int k = 0;
+		
+			for (Long key: allconnections.keySet()) { 
+				
+				Flow flow = allconnections.get(key);
+		
+				 if(flow.getRate() <= 12 || (flow.getRate() <= 125 && flow.getModulationLevel() <= 2) ) continue;
+				
+				if(k < nConnections && !connections.containsKey(key)) 
+				{
+					connections.put(key, flow);
+					k++;
+				}
+				
+				if(k >= nConnections) {
+					
+					return connections;
+				}
+			}
+			
+			return connections;
+		}
+	}
+	
+	
+	private class SmallestConnections {
+		
+		private int nConnections = 0;
+		
+		public SmallestConnections(int n) {
+			nConnections = n;
+		}
+		
+		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
+			
+			Map<Long, Flow> connections = new HashMap<Long, Flow>();
+			Map<Long, Flow> allconnections = cp.getActiveFlows();
+
+			int k = 0;
+		
+			for (Long key: allconnections.keySet()) { 
+				
+				Flow flow = allconnections.get(key);
+		
+				 if(allconnections.get(key).getRate() > 12 ) continue;
+				
+				if(k < nConnections && !connections.containsKey(key)) 
+				{
+					connections.put(key, flow);
+					k++;
+				}
+				
+				if(k >= nConnections) {
+					
+					return connections;
+				}
+			}
+			
+			return connections;
+		}
+	}
+	
+	
+	private class RandomConnections {
+		
+		private int nConnections = 0;
+		
+		public RandomConnections(int n) {
+			nConnections = n;
+		}
+		
+		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
+			
+			Map<Long, Flow> connections = new HashMap<Long, Flow>();
+			Map<Long, Flow> allconnections = cp.getActiveFlows();
+
+			int k = 0;
+		
+			for (Long key: allconnections.keySet()) { 
+				
+				Flow flow = allconnections.get(key);
+		
+				if(flow.getRate() <= 74) continue;
+				
+				if(k < nConnections && !connections.containsKey(key)) 
+				{
+					connections.put(key, flow);
+					k++;
+				}
+				
+				if(k >= nConnections) {
+					
+					return connections;
+				}
+			}
+			
+			return connections;
+		}
+	}
+
+	
+
+	private class ConnectionsInBottleneckLink {
+		
+		private int nConnections = 0;
+		private double fi[];
+		
+		public ConnectionsInBottleneckLink(int n, double []f) {
+			this.nConnections = n;
+			this.fi = f;
+		}
+		
+		public ArrayList<Long>getConnections(Map<Long, Flow> flows) {
+			
+			ArrayList<Double> sumLightpath = new ArrayList<Double>();
+			ArrayList<Long> indices = new ArrayList<Long>();
+			ArrayList<Integer> indicesOfIndices = new ArrayList<Integer>(); 
+			
+			for(Long key: flows.keySet()) {
+				
+				Flow flow = flows.get(key);
+				
+				int []links = flow.getLinks();
+				double s = 0;
+				for(int i = 0; i < links.length; i++) {
+					s += fi[links[i]];
+				}
+				
+				sumLightpath.add(s);
+				indices.add(key);
+				indicesOfIndices.add(indices.size() - 1);
+			}
+//			System.out.println(Arrays.toString(indices.toArray()));
+			
+			indicesOfIndices.sort( (a , b) -> {
+				if (sumLightpath.get(b) > sumLightpath.get(a)) {
+					return 1;
+				} else if (sumLightpath.get(b) < sumLightpath.get(a)) {
+					return -1;
+				} else {
+					return 0;
+				}
+			});
+			
+			ArrayList<Long> sortedIndices = new ArrayList<Long>();
+			
+			for (Integer k : indicesOfIndices) {
+				sortedIndices.add(indices.get(k));
+			}
+			
+			return sortedIndices;
+		}
+		
+		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
+			
+			Map<Long, Flow> connections = new HashMap<Long, Flow>();
+			Map<Long, Flow> flows = cp.getActiveFlows();
+
+			int k = 0;
+			
+			ArrayList<Long> orderConnections = getConnections(flows);
+		
+			for (Long key: orderConnections) { 
+				
+				Flow flow = flows.get(key);
+				if(k < nConnections && !connections.containsKey(key)) 
+				{
+					connections.put(key, flow);
+					k++;
+				}
+				
+				if(k >= nConnections) {
+					
+					return connections;
+				}
+			}
+			
+			return connections;
+		}
 	}
 }

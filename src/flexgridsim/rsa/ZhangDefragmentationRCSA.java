@@ -4,20 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import org.jgrapht.GraphPath;
-import org.jgrapht.graph.DefaultWeightedEdge;
-
-import com.kenai.jffi.Array;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
 import flexgridsim.VirtualTopology;
-import flexgridsim.util.KShortestPaths;
 
 /**
  * 
@@ -27,12 +20,12 @@ import flexgridsim.util.KShortestPaths;
 
 public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	
-	private int nConnectionDisruption = 0;
-	private ArrayList<Flow> connectionDisruption = new ArrayList<Flow>();
+	public int nConnectionDisruption = 0;
+	public ArrayList<Flow> connectionDisruption = new ArrayList<Flow>();
 	
-	private Map<Long, Flow> allflows;
-	private Map<Long, Flow> allFlowsToReroute;
-	private Map<Flow, LightPath> accepted = new HashMap<Flow, LightPath>();
+	public Map<Long, Flow> allflows;
+	public Map<Long, Flow> allFlowsToReroute;
+	public Map<Flow, LightPath> accepted = new HashMap<Flow, LightPath>();
 
 	
 	public void copyStrutures(PhysicalTopology pt, VirtualTopology vt) {
@@ -78,32 +71,9 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	
 	protected ArrayList<int[]>findKPaths(Flow flow) {
 		
-		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 3);
-		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
+		this.setkShortestPaths(flow);
 		
-		ArrayList<int[]> p = new ArrayList<int[]>();
-		
-		if(KPaths.size() >= 1)
-		{
-			boolean[][] spectrum = new boolean[this.pt.getCores()][this.pt.getNumSlots()];
-			
-			for (int k = 0; k < KPaths.size(); k++) {
-				
-				spectrum = initMatrix(spectrum, this.pt.getCores(),this.pt.getNumSlots());
-				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
-				int[] links = new int[listOfVertices.size()-1];
-				
-				for (int j = 0; j < listOfVertices.size()-1; j++) {
-					
-					links[j] = this.pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
-					bitMap(this.pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getSpectrum(), spectrum, spectrum);
-				}
-				
-				p.add(links);
-			}	
-		}
-		
-		return p;
+		return this.paths;
 	}
 	
 	/**
@@ -254,9 +224,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	public ArrayList<Slot> preFitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		
-//		printSpectrum(spectrum);
-				
+			
 		for (int i = 0; i < spectrum.length; i++) {
 			
 			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
@@ -287,9 +255,6 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 				p.add(pi);
 			}
 		}
-		
-//		System.out.println("old: "+ flow.getSlotList()+" n: "+candidateMaximumUsedSlotIndex.size()+ ": "+kPaths.size());
-
 		if(!candidateMaximumUsedSlotIndex.isEmpty()) 
 		{	
 			int index = smallestUsedSlotIndex(candidateMaximumUsedSlotIndex);
@@ -297,17 +262,14 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			//pre-allocation
 			if(establishConnection(p.get(index), candidateSlotLists.get(index), flow.getModulationLevel(), flow)) 
 			{
-//				System.out.println("new "+flow.getID()+" "+flow.getSlotList());
 				return;
 			}
 		}
-		else
-		{
-//			System.out.println("not-accepted "+flow);
-			connectionDisruption.add(flow);
-			flow.setConnectionDisruption(true);
-			this.nConnectionDisruption++;
-		}
+		
+		connectionDisruption.add(flow);
+		flow.setConnectionDisruption(true);
+		this.nConnectionDisruption++;
+
 	}
 	
 	public int getConnectionDisruption() {
@@ -328,13 +290,11 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 
 	@Override
 	public void runDefragmentantion() {
-		// TODO Auto-generated method stub
-		
+		return;
 	}
 
 	@Override
 	public void setTime(double time) {
-		// TODO Auto-generated method stub
-		
+		return;
 	}
 }

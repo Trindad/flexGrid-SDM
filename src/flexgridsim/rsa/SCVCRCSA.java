@@ -26,12 +26,12 @@ import flexgridsim.util.WeightedGraph;
  *
  */
 public class SCVCRCSA implements RSA{
-	
+		
 	protected PhysicalTopology pt;
 	protected VirtualTopology vt;
 	protected ControlPlaneForRSA cp;
 	protected WeightedGraph graph;
-	protected ArrayList<int []> paths = new ArrayList<int []>();
+	protected ArrayList<int []> paths;
 	
 	public void simulationInterface(Element xml, PhysicalTopology pt,
 			VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic) {
@@ -75,33 +75,31 @@ public class SCVCRCSA implements RSA{
 		return modulationLevel;
 	}
 	
+	protected boolean[][]bitMapAll(int []links) {
+	
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+		
+		for(int i = 0; i < links.length; i++) {
+			
+			bitMap(pt.getLink(links[i]).getSpectrum(), spectrum, spectrum);
+		}
+		
+		return spectrum;
+	}
+	
 	protected boolean runRCSA(Flow flow) {
 		
-		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 3);
-		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
-			
-		if(KPaths.size() >= 1)
-		{
-			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-			
-			for (int k = 0; k < KPaths.size(); k++) {
-				
-				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
-				int[] links = new int[listOfVertices.size()-1];
-				
-				for (int j = 0; j < listOfVertices.size()-1; j++) {
-					
-					links[j] = pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
-					bitMap(pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getSpectrum(), spectrum, spectrum);
-					
-				}
+		setkShortestPaths(flow);
 
-				if( fitConnection(flow, spectrum, links) == true) {
+		for(int i = 0; i < this.paths.size(); i++) {
+			
+			if(fitConnection(flow, bitMapAll(this.paths.get(i)), this.paths.get(i))) {
 					return true;
-				}
 			}
 		}
+		
+		this.paths.clear();
 		
 		return false;
 	}
@@ -113,23 +111,20 @@ public class SCVCRCSA implements RSA{
 
 	public void setkShortestPaths(Flow flow) {
 		
+		this.paths  = new ArrayList<int []>();
 		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 4);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
 			
 		if(KPaths.size() >= 1)
 		{
-			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-			
 			for (int k = 0; k < KPaths.size(); k++) {
 				
-				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
 				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
 				int[] links = new int[listOfVertices.size()-1];
 				
 				for (int j = 0; j < listOfVertices.size()-1; j++) {
 					
 					links[j] = pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
-					bitMap(pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getSpectrum(), spectrum, spectrum);
 				}
 
 				this.paths.add(links);
@@ -143,11 +138,11 @@ public class SCVCRCSA implements RSA{
 	 */
 	public void flowArrival(Flow flow) {
 		
-		if(runRCSA(flow)) {
+		if(runRCSA(flow)) 
+		{
 			return;
 		}
 		
-//		System.out.println("Connection blocked:"+flow);
 		cp.blockFlow(flow.getID());
 	}
 	
@@ -162,8 +157,8 @@ public class SCVCRCSA implements RSA{
 
 	
 	protected void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] res) {
-//		printSpectrum(s1);
-//		printSpectrum(s2);
+//			printSpectrum(s1);
+//			printSpectrum(s2);
 		for (int i = 0; i < res.length; i++) {
 			for (int j = 0; j < res[0].length; j++) {
 				res[i][j] = s1[i][j] & s2[i][j];
@@ -299,7 +294,6 @@ public class SCVCRCSA implements RSA{
 			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
 			
 			if(!fittedSlotList.isEmpty()) {
-//				printSpectrum(spectrum);
 				return establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow);
 			}
 			
@@ -359,8 +353,7 @@ public class SCVCRCSA implements RSA{
 			
 			//update cross-talk
 			updateCrosstalk(links);
-			
-//			System.out.println("Connection accepted:"+flow);
+	
 			return true;
 		} 
 		else 
@@ -447,3 +440,4 @@ public class SCVCRCSA implements RSA{
 	}
 
 }
+
