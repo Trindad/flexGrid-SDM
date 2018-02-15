@@ -23,7 +23,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
 	protected Map<Integer, ArrayList<Flow> > clusters;
 	protected int cores[];
-	protected int k = 4;//number of clusters
+	protected int k = 5;//number of clusters
 	private int nConnectionDisruption = 0;
 	protected double time;
 	
@@ -114,6 +114,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		return (core >= min && core <= max);
 	}
 	
+	@SuppressWarnings("unused")
 	private void printAllLinksStatus() {
 
 		int n = this.pt.getNumNodes();
@@ -157,8 +158,12 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		int index = this.pt.getCores();
 		int next = index;
 		
+		
+		if(!this.runKMeans(this.k, flows)) {
+			return;
+		}
+		
 		this.pt.resetAllSpectrum();
-		this.runKMeans(this.k, flows);
 
 //		System.out.println("nFlows before: "+flows.size());
 		removeFlowsInCorrectCore(flows);
@@ -174,6 +179,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				for(Flow flow: clusters.get(key)) {
 					
 					if(flows.containsKey(flow.getID())) {
+//						System.out.println(" "+flow);
 						spectrum = initMatrix(spectrum, this.pt.getCores(),this.pt.getNumSlots());
 						
 						for(int i = 0; i < flow.getLinks().length; i++) {
@@ -366,7 +372,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		return false;
 	}
 
-	protected void runKMeans(int k, Map<Long, Flow> flows) {
+	protected boolean runKMeans(int k, Map<Long, Flow> flows) {
 		
 		double[][] features = new double[flows.size()][2];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
@@ -384,6 +390,14 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		PythonCaller caller = new PythonCaller();
 		KMeansResult result = caller.kmeans(features, k);
+		
+		
+		if(result.getSilhouette() < 0.7) {
+			
+			cp.setClusters(new ArrayList<Cluster>());
+			return false;
+		}
+//		System.out.println(result.getSilhouette());
 		String []labels = result.getLabels();
 		double [][]centroids = result.getCentroids();
 		
@@ -401,6 +415,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
 		this.createClusters(centroids);
 		
+		return true;
 	}
 	
 	/**

@@ -193,18 +193,18 @@ public class ControlPlane implements ControlPlaneForRSA {
 //            		
 //            		this.nBlocked--;
 //            	}
-            	if(this.DFR == true && this.activeFlows.size() >= 700 && this.nExceeds >= 400 ) {
-            		
+//            	if(this.DFR == true && this.activeFlows.size() >= 700 && this.nExceeds >= 400 ) {
+            	if(this.DFR == true && this.activeFlows.size() >= 500 && this.nExceeds >= 300) {
             		this.getFragmentationRatio();
-            		if(dfIndex > 0.6) 
+            		if(dfIndex > 0.5) 
             		{
-            			System.out.println("before df: "+dfIndex);
+//            			System.out.println("before df: "+dfIndex);
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
             		}
-            		
-            		this.nBlocked--;
+//            		
+//            		this.nBlocked = 0;
             	}
 //            	else if(RR == true && this.activeFlows.size() >= 300 && this.activeFlows.size() <= 700 && nExceeds >= 100 && nBlocked >= 3) {
 //            	
@@ -220,10 +220,10 @@ public class ControlPlane implements ControlPlaneForRSA {
 //            		}
 //            		else this.nBlocked--;
 //            	}
-            	else if(RR == true && this.activeFlows.size() >= 300  && nExceeds >= 100) {
+            	else if(RR == true && this.activeFlows.size() >= 300  && nExceeds >= 1000) {
                     		
             		fi = this.getFragmentationRatio();
-
+//            		if(this.dfIndex < 0.5) return;
 //        			System.out.println("before df: "+dfIndex);
         			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
             		eventScheduler.addEvent(reroutingnEvent);
@@ -235,8 +235,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
-	        	this.getFragmentationRatio();
-	        	System.out.println("after df: "+ dfIndex);
+//	        	this.getFragmentationRatio();
+//	        	System.out.println("after df: "+ dfIndex);
 	        	
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
@@ -800,6 +800,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 	 * @param clusters
 	 */
 	public void setClusters(ArrayList<Cluster> c) {
+		
+		if(c.isEmpty()) this.clusters.clear();
 		this.clusters = c;
 	}
 	

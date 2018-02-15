@@ -18,7 +18,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 	
 	//k = 4 for three dimensions 
 	//k = 3 for two dimensions
-	protected void runKMeans(int k , Map<Long, Flow> flows) {
+	protected boolean runKMeans(int k , Map<Long, Flow> flows) {
 
 		double[][] features = new double[flows.size()][3];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
@@ -41,6 +41,12 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		String []labels = result.getLabels();
 		double [][]centroids = result.getCentroids();
 		
+//		System.out.println(result.getSilhouette());
+		if(result.getSilhouette() < 0.60) {
+			
+			return false;
+		}
+		
 		this.clusters = new HashMap<Integer, ArrayList<Flow> >();
 		
 		for(i = 0; i < this.k; i++) {
@@ -55,6 +61,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 
 		this.createClusters(centroids);
 		
+		return true;
 	}
 	
 	/**

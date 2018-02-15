@@ -4,11 +4,14 @@ public class KMeansResult {
 
 	private double [][]centroids;
 	private String[] labels;
-	
+	private double silhouette;
 	
 	public KMeansResult(String output) {
 		
-		String []parts = output.split("&");
+		String []preparts = output.split("@");
+		this.silhouette = Double.parseDouble(preparts[0]);
+		
+		String []parts = preparts[1].split("&");
 		this.labels = parts[0].split("-");
 		
 		String []temp = parts[1].split("/");
@@ -22,6 +25,10 @@ public class KMeansResult {
 				this.centroids[i][j] = Double.parseDouble(coords[j]);
 			}
 		}
+	}
+	
+	public double getSilhouette() {
+		return silhouette;
 	}
 
 	public double[][] getCentroids() {
