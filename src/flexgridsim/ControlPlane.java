@@ -220,15 +220,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 //            		}
 //            		else this.nBlocked--;
 //            	}
-            	else if(RR == true && this.activeFlows.size() >= 300  && nExceeds >= 1000) {
+            	else if(RR == true && nExceeds >= 500) {
                     		
             		fi = this.getFragmentationRatio();
-//            		if(this.dfIndex < 0.5) return;
-//        			System.out.println("before df: "+dfIndex);
-        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
-            		eventScheduler.addEvent(reroutingnEvent);
-            		this.nExceeds = 0;
-            		this.nBlocked = 0;
+            		if(this.dfIndex > 0.4) {
+//	        			System.out.println("before df: "+dfIndex);
+	        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
+	            		eventScheduler.addEvent(reroutingnEvent);
+	            		this.nExceeds = 0;
+	            		this.nBlocked = 0;
+            		}
             	}
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent) 
@@ -242,7 +243,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) 
 	        {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.15),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.7),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
 //	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());

@@ -32,6 +32,7 @@ public class SCVCRCSA implements RSA{
 	protected ControlPlaneForRSA cp;
 	protected WeightedGraph graph;
 	protected ArrayList<int []> paths;
+	public int totalSlotsAvailable;
 	
 	public void simulationInterface(Element xml, PhysicalTopology pt,
 			VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic) {
@@ -84,6 +85,14 @@ public class SCVCRCSA implements RSA{
 			
 			bitMap(pt.getLink(links[i]).getSpectrum(), spectrum, spectrum);
 		}
+		
+		this.totalSlotsAvailable = 0;
+		for(int i = 0; i < spectrum.length; i++) {
+			for(int j = 0; j < spectrum[i].length; j++) {
+				this.totalSlotsAvailable += spectrum[i][j] ? 1 : 0;
+			}
+		}
+		
 		
 		return spectrum;
 	}
@@ -156,15 +165,16 @@ public class SCVCRCSA implements RSA{
 	}
 
 	
-	protected void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] res) {
+	protected void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] result) {
 //			printSpectrum(s1);
 //			printSpectrum(s2);
-		for (int i = 0; i < res.length; i++) {
-			for (int j = 0; j < res[0].length; j++) {
-				res[i][j] = s1[i][j] & s2[i][j];
+		for (int i = 0; i < result.length; i++) {
+			
+			for (int j = 0; j < result[0].length; j++) {
+				result[i][j] = s1[i][j] & s2[i][j];
 			}
+			
 		}
-
 	}
 	
 
@@ -369,7 +379,6 @@ public class SCVCRCSA implements RSA{
 		}
 	}
 
-	@Override
 	public void flowDeparture(Flow flow) {
 		
 		if(!flow.isAccepeted()) return;
@@ -384,7 +393,7 @@ public class SCVCRCSA implements RSA{
 	public boolean runRCSA(Flow flow, int[] oldLinks, ArrayList<Slot> oldSlotList) {
 		
 		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 3);
+		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 4);
 
 		if(kPaths.length >= 1)
 		{

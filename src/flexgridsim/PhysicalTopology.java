@@ -358,11 +358,10 @@ public class PhysicalTopology {
 
 	public int getNumberOfAvailableSlots(int []indexes) {
 		
-		int n = Integer.MAX_VALUE;
+		int n = this.cores * this.slots;
 		
-		for(int i = 0; i < indexes.length; i++) {
-			
-			n = this.getLink(0).getSlotsAvailable() < n ? this.getLink(0).getSlotsAvailable() : n;
+		for (int index : indexes) {
+			n = this.getLink(index).getSlotsAvailable() < n ? this.getLink(index).getSlotsAvailable() : n;
 		}
 		
 		return n;

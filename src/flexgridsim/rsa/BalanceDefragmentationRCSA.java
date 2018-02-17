@@ -49,9 +49,10 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 			double s = Double.NEGATIVE_INFINITY;
 			for(int i = 0; i < links.length; i++) {
 				s = s < fi[ links[i] ] ? fi[ links[i] ] : s;
+//				s += fi[links[i]];
 			}
 			
-			sumLightpath.add( (int)(s * 1000) );
+			sumLightpath.add( (int)(s * 100) );
 			indices.add(index);
 			index++;
 		}

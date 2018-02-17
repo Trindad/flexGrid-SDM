@@ -134,7 +134,7 @@ public class MultipathRCSA extends SCVCRCSA {
 
 			double y = i;
 
-			while(y >= 2) {
+			while(y == 2) {
 				
 				y--;
 				double percentage = 1.0/y;

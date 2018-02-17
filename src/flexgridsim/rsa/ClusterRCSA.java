@@ -8,7 +8,6 @@ import flexgridsim.Slot;
 public class ClusterRCSA extends SCVCRCSA {
 	
 	private ArrayList<Cluster> clusters;
-	private double time;
 	
 	/**
 	 * @param flow
