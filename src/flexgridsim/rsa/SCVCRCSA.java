@@ -33,6 +33,7 @@ public class SCVCRCSA implements RSA{
 	protected WeightedGraph graph;
 	protected ArrayList<int []> paths;
 	public int totalSlotsAvailable;
+	public int kPaths = 4;
 	
 	public void simulationInterface(Element xml, PhysicalTopology pt,
 			VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic) {
@@ -68,6 +69,7 @@ public class SCVCRCSA implements RSA{
 			totalLength += (pt.getLink(links[i]).getDistance());
 		}
 		
+//		System.out.println(totalLength);
 		int modulationLevel = ((double)flow.getRate()/pt.getSlotCapacity()) >= 1.5 ? ModulationsMuticore.getModulationByDistance(totalLength) : 0;
 		double p = Math.ceil( (double)flow.getRate()/ModulationsMuticore.subcarriersCapacity[modulationLevel]) * ModulationsMuticore.subcarriersCapacity[modulationLevel];
 		
@@ -104,10 +106,11 @@ public class SCVCRCSA implements RSA{
 		for(int i = 0; i < this.paths.size(); i++) {
 			
 			if(fitConnection(flow, bitMapAll(this.paths.get(i)), this.paths.get(i))) {
+//					System.out.println("ACCEPTED: "+flow.getRate());
 					return true;
 			}
 		}
-		
+//		System.out.println("BLOCKED:"+ flow.getRate());
 		this.paths.clear();
 		
 		return false;
@@ -121,7 +124,7 @@ public class SCVCRCSA implements RSA{
 	public void setkShortestPaths(Flow flow) {
 		
 		this.paths  = new ArrayList<int []>();
-		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 4);
+		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), kPaths);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
 			
 		if(KPaths.size() >= 1)
@@ -261,19 +264,21 @@ public class SCVCRCSA implements RSA{
 		{
 			double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
 			int demandInSlots = (int) Math.ceil((double)rate / subcarrierCapacity);
-			
-			xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
-			
+			System.out.println(xt + " "+ ModulationsMuticore.inBandXT[modulation]);
+			fittedSlotList = this.FirstFitPolicy(spectrum, core, links, demandInSlots);
+			xt = pt.getSumOfMeanCrosstalk(links, core, fittedSlotList);//returns the sum of cross-talk	
 			if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
-
-				fittedSlotList = this.FirstFitPolicy(spectrum, core, links, demandInSlots);
-				
 				if(!fittedSlotList.isEmpty()) {
 					
 					if(fittedSlotList.size() == demandInSlots) {
 						
-						if(!flow.isMultipath()) flow.setModulationLevel(modulation);
-						else flow.addModulationLevel(modulation);
+						if(!flow.isMultipath()) {
+							flow.setModulationLevel(modulation);
+						}
+						else {
+							flow.addModulationLevel(modulation);
+						}
+						
 						return fittedSlotList;
 					}
 				}

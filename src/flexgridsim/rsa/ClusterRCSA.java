@@ -9,10 +9,6 @@ public class ClusterRCSA extends SCVCRCSA {
 	
 	private ArrayList<Cluster> clusters;
 	
-	/**
-	 * @param flow
-	 * @return
-	 */
 	private ArrayList<Integer>identifyCluster(Flow flow, int h) {
 		
 		double  []distances = new double[this.clusters.size()];
@@ -82,7 +78,7 @@ public class ClusterRCSA extends SCVCRCSA {
 			{
 				if( fitConnectionUsingClustering(flow, spectrum, links)) 
 				{
-//						System.out.println("Connection accepted: "+flow);
+						System.out.println("Connection accepted: "+flow);
 						return true;
 				}
 			}

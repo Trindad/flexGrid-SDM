@@ -10,7 +10,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 70;
+	private int TH = 100;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
@@ -23,9 +23,7 @@ public class MultipathRCSA extends SCVCRCSA {
 		{
 			return;
 		}
-		
-		//try to allocate using multipath
-		if(flow.getRate() > TH)
+		else if(flow.getRate() > TH)
 		{
 			if(this.multipathEstablishConnection(flow)) 
 			{
@@ -56,7 +54,7 @@ public class MultipathRCSA extends SCVCRCSA {
 	
 	protected int getNewRate(Flow flow, int index, double percentage) {
 		
-		return (int) Math.abs(flow.getRate() - ( (double)flow.getRate() * percentage) );
+		return (int) Math.abs((double)flow.getRate() - ( (double)flow.getRate() * percentage) );
 	}
 	
 	protected boolean tryToSlitRateInMultipaths(Flow flow, int i, int rate, ArrayList<int[]> selectedPaths, ArrayList<Integer> indices) {
@@ -73,7 +71,7 @@ public class MultipathRCSA extends SCVCRCSA {
 			
 			while(k < selectedPaths.size() && p.size() < n) 
 			{
-				if(pt.getNumberOfAvailableSlots(selectedPaths.get(k)) >= rate) {
+				// if(pt.getNumberOfAvailableSlots(selectedPaths.get(k)) >= rate) {
 					
 					spectrum = this.getAvaibleSlotsInLightpath(spectrum, selectedPaths.get(k));
 					flow.setMultipath(true);
@@ -101,7 +99,7 @@ public class MultipathRCSA extends SCVCRCSA {
 						flow.removeModulationLevel();
 						flow.setMultipath(false);
 					}
-				}
+				// }
 				
 				k++;
 			}
@@ -130,9 +128,10 @@ public class MultipathRCSA extends SCVCRCSA {
 		indices.sort((a,b) -> nSlotsAvailable.get(a) - nSlotsAvailable.get(b));
 		Collections.reverse(indices);
 		
-		for(int i = 2; i <= indices.size(); i++) {
+//		for(int i = 2; i <= indices.size(); i++) {
 
-			double y = i;
+			double y = 2;
+			int i = (int) y; 
 
 			while(y == 2) {
 				
@@ -144,7 +143,7 @@ public class MultipathRCSA extends SCVCRCSA {
 				
 				if( this.tryToSlitRateInMultipaths(flow, i, rate, selectedPaths, indices)) return true;
 			}
-		}
+//		}
 			
 		return false;
 	}

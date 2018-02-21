@@ -5,35 +5,10 @@ import java.util.ArrayList;
 import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
-import flexgridsim.rsa.ZhangDefragmentationRCSA;
 
-public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
+public class BoundedSpaceRCSA extends SCVCRCSA{
 
-	protected double []fi;
-
-	public void setFragmentationIndexOfEachLink(double []fi) {
-		
-		this.fi = fi;
-	}
-	
-	public void flowArrival(Flow flow) {
-
-//		kPaths = 4;
-		ArrayList<int[]> kPaths = findKPaths(flow);//find K-Shortest paths using Dijkstra
-		ArrayList<Integer> indices = orderKPaths(kPaths);//sort paths by the fragmentation index from each link
-//		System.out.println(flow);
-		for(int i: indices)
-		{
-			if(fitConnection(flow, bitMapAll(kPaths.get(i)), kPaths.get(i))) 
-			{
-				return;
-			}
-		}
-	
-		this.connectionDisruption.add(flow);
-		flow.setConnectionDisruption(true);
-		this.nConnectionDisruption++;
-	}
+	private int k = 2;
 	
 	private boolean kBoundedSpacePolicy(Flow flow, boolean [][]spectrum, int []links, int demandInSlots) {
 	
@@ -71,13 +46,14 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 					slotList.add(s);
 				}
 				
-				if(slotList.size() >= 1) 
+				if(slotList.size() >= k) 
 				{
 					break;
 				}
 			}
 		}
 		
+//		System.out.println(slotList.size());
 		slotList.sort((a, b) -> a.size() - b.size());
 		
 		for(ArrayList<Slot> set: slotList) {
@@ -90,10 +66,15 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 				slots.add(s);
 				if(slots.size() == demandInSlots) 
 				{
+					double xt = pt.getSumOfMeanCrosstalk(links, slots.get(0).c);//returns the sum of cross-talk	
+				
+					if(xt == 0 || (xt < ModulationsMuticore.inBandXT[flow.getModulationLevel()]) ) {
+
 					if(establishConnection(links, slots, flow.getModulationLevel(), flow)) 
 					{
 						return true;
 					}
+				}
 					
 					slots.clear();
 				}
@@ -112,32 +93,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
-		int d =  getDemandInSlots(flow, links);
-//		System.out.println(flow.getModulationLevel() + " "+flow.getRate()+" "+d);
-		return kBoundedSpacePolicy(flow, spectrum, links, d);
-	}
-
-	private ArrayList<Integer>orderKPaths(ArrayList<int[]> kPaths) {
-		
-		ArrayList<Integer> sumLightpath = new ArrayList<Integer>();
-		ArrayList<Integer> indices = new ArrayList<Integer>(); 
-		int index = 0;
-
-		for(int[] links: kPaths) {
-
-			double s = Double.NEGATIVE_INFINITY;
-			for(int i = 0; i < links.length; i++) {
-				s = s < fi[ links[i] ] ? fi[ links[i] ] : s;
-			}
-			
-			sumLightpath.add( (int)(s * 100) );
-			indices.add(index);
-			index++;
-		}
-		
-		indices.sort( (a , b) -> sumLightpath.get(a) - sumLightpath.get(b));
-		
-		return indices;
+		return kBoundedSpacePolicy(flow, spectrum, links, getDemandInSlots(flow, links));
 	}
 	
 }

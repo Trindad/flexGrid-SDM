@@ -39,7 +39,8 @@ public class ControlPlane implements ControlPlaneForRSA {
     private MyStatistics st = MyStatistics.getMyStatisticsObject();
     
     private EventScheduler eventScheduler;
-    SetOfBatches batches;
+    private SetOfBatches batches;
+    private long nConnections = 0;
     
     /**
      * Defragmentation approaches
@@ -168,6 +169,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     		
 	    	if (event instanceof FlowArrivalEvent)
 	        {
+	    		nConnections++;
 	            newFlow(((FlowArrivalEvent) event).getFlow());
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
 	            
@@ -220,10 +222,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 //            		}
 //            		else this.nBlocked--;
 //            	}
-            	else if(RR == true && nExceeds >= 500) {
+            	else if(RR == true && nExceeds >= 1000 && this.activeFlows.size() > 200 && nConnections < 100000) {
                     		
             		fi = this.getFragmentationRatio();
-            		if(this.dfIndex > 0.4) {
+            		System.out.println("before df: "+dfIndex);
+            		if(this.dfIndex < 0.7) {
 //	        			System.out.println("before df: "+dfIndex);
 	        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
 	            		eventScheduler.addEvent(reroutingnEvent);
@@ -243,11 +246,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) 
 	        {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.7),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size()*0.15),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
-	        	
+	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
+//	        	System.out.println("before df: "+dfIndex);
 	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
 		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 		        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);

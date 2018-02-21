@@ -18,7 +18,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 	
 	//k = 4 for three dimensions 
 	//k = 3 for two dimensions
-	protected boolean runKMeans(int k , Map<Long, Flow> flows) {
+	protected boolean runKMeans(int k, Map<Long, Flow> flows) {
 
 		double[][] features = new double[flows.size()][3];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();

@@ -1,6 +1,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -444,9 +445,9 @@ public class ConnectionSelectionToReroute {
 				
 				sumLightpath.add(s);
 				indices.add(key);
-				indicesOfIndices.add(indices.size() - 1);
+				indicesOfIndices.add(indices.size()-1);
 			}
-//			System.out.println(Arrays.toString(indices.toArray()));
+//			System.out.println(Arrays.toString(sumLightpath.toArray()));
 			
 			indicesOfIndices.sort( (a , b) -> {
 				if (sumLightpath.get(b) > sumLightpath.get(a)) {
@@ -478,11 +479,11 @@ public class ConnectionSelectionToReroute {
 		
 			for (Long key: orderConnections) { 
 				
-				Flow flow = flows.get(key);
 				if(k < nConnections && !connections.containsKey(key)) 
 				{
-					connections.put(key, flow);
+					connections.put(key, flows.get(key));
 					k++;
+					
 				}
 				
 				if(k >= nConnections) {

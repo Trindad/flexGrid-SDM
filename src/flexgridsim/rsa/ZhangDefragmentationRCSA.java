@@ -106,7 +106,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			e.printStackTrace();
 		}	
 		
-//		if(this.nConnectionDisruption >= 1) System.out.println(" disruption: "+this.nConnectionDisruption);
+		if(this.nConnectionDisruption >= 1) System.out.println(" disruption: "+this.nConnectionDisruption);
 	}
 	
 	

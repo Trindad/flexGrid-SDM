@@ -13,39 +13,38 @@ public class LoadBalancingRCSA extends SCVCRCSA{
 		
 		setkShortestPaths(flow);
 		ArrayList<Integer> indices = closenessCentrality();
-		for(int i = 0; i < indices.size(); i++) {
+		kPaths = 6;
+//		System.out.println(flow);
+		for(Integer i: indices) {
 			
-			if(fitConnection(flow, bitMapAll(this.paths.get( indices.get(i) )), this.paths.get( indices.get(i) ))) 
+			if(fitConnection(flow, bitMapAll(this.paths.get( i )), this.paths.get( i ))) 
 			{
-				this.paths.clear();
 				return true;
 			}
 		}
 		
-		this.paths.clear();
-		
 		return false;
 	}
 	
-	private ArrayList<Integer> closenessCentrality() {
+	public ArrayList<Integer> closenessCentrality() {
     	
     	ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
     
     	double []avgClosenessCentrality = new double[this.paths.size()];
     	ArrayList<Integer> indices = new ArrayList<Integer>();
-    	
-    	for(int i = 0; i < this.paths.size(); i++) {
+    	int i = 0;
+    	for(int []links: this.paths) {
     		
-    		int []links = this.paths.get(i);
     		avgClosenessCentrality[i] = 0;
     		
     		for(int j = 0; j < links.length; j++) {
-    			
-    			avgClosenessCentrality[i] = Double.max(avgClosenessCentrality[i], cc.getVertexScore(pt.getLink(links[j]).getDestination()));
-    			avgClosenessCentrality[i] = Double.max(avgClosenessCentrality[i], cc.getVertexScore(pt.getLink(links[j]).getSource()));	
+    			int index = links[j];
+    			avgClosenessCentrality[i] += cc.getVertexScore(pt.getLink(index).getDestination()) > avgClosenessCentrality[i] ? 
+    					cc.getVertexScore(pt.getLink(index).getDestination()) : 0;
     		}
     		
     		indices.add(i);
+    		i++;
     	}
     	
     	indices.sort((a,b) -> (int)(avgClosenessCentrality[a] * 100) - (int)(avgClosenessCentrality[b] * 100) );

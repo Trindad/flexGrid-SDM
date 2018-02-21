@@ -325,6 +325,20 @@ public class PhysicalTopology {
 		
 		return xt;
 	}
+	
+	public double getSumOfMeanCrosstalk(int[] links, int coreIndex, ArrayList<Slot> slotList) {
+
+		double xt = 0.0f;
+		
+		for(int i = 0; i < links.length; i++) {
+			
+			xt += this.getLink(i).getXT(coreIndex);
+		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		
+		return xt;
+	}
 
 	public void resetAllSpectrum() {
 
