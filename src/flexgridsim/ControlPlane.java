@@ -587,7 +587,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     	for (int j = 0; j < links.length; j++) {
     		ptTemp.getLink(links[j]).releaseSlots(lightpath.getSlotList());
     		ptTemp.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
-    		ptTemp.getLink(links[j]).updateCrosstalk();
+    		ptTemp.getLink(links[j]).updateCrosstalk(lightpath.getSlotList());
         }
     	
     	vtTemp.removeLightPath(lightpath.getID());
@@ -859,13 +859,84 @@ public class ControlPlane implements ControlPlaneForRSA {
 		this.pt.updateEverything(newPT);
 		this.vt.updateEverything(newVT);
 		
-		for(int i = 0; i < pt.getNumLinks(); i++) {
-			this.pt.getLink(i).updateCrosstalk();
+		for(Long key: activeFlows.keySet()) {
+			int []links = activeFlows.get(key).getLinks();
+			for(int i: links) {
+				this.pt.getLink(i).updateCrosstalk(activeFlows.get(key).getSlotList());
+			}	
 		}
 	}
 	
 	public boolean isRerouting() {
 		
 		return this.RR;
+	}
+	
+	private boolean match(ArrayList<Slot> s1, ArrayList<Slot> s2) {
+		
+		if(s1.get(0) != s2.get(0)) return false;
+		
+		for(Slot i: s1) 
+		{
+			for(Slot j: s2) 
+			{
+				if(i.s == j.s) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private ArrayList<Slot> getMatchSlots(ArrayList<Slot> s1, ArrayList<Slot> s2) {
+		
+		ArrayList<Slot> slots = new ArrayList<Slot>();
+		if(s1.get(0).c != s2.get(0).c) return slots;
+		
+		for(Slot i: s1) 
+		{
+			for(Slot j: s2) 
+			{
+				if(i.s == j.s && !slots.contains(i)) {
+					slots.add(i);
+				}
+			}
+		}
+		
+		return slots;
+	}
+	
+	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
+		
+		if(!pt.canAcceptCrosstalk(links, slotList, db)) return false;
+		
+		for(Long key: this.activeFlows.keySet()) {
+			
+			if(key == flow.getID()) continue;
+			
+			if(this.activeFlows.get(key).isMultipath()) 
+			{
+				int i = 0;
+				for(ArrayList<Slot> s: this.activeFlows.get(key).getMultiSlotList()) {
+					
+					ArrayList<Slot> t = getMatchSlots(slotList, s);
+					if(!t.isEmpty()) 
+					{
+						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), t, this.activeFlows.get(key).getLinks(i))) return false;
+					}
+					
+					i++;
+				}
+			}
+			else 
+			{
+				ArrayList<Slot> t = getMatchSlots(slotList, this.activeFlows.get(key).getSlotList());
+				if(!t.isEmpty()) 
+				{
+					if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), t)) return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 }

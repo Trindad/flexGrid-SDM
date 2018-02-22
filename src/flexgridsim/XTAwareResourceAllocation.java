@@ -16,17 +16,23 @@ public class XTAwareResourceAllocation {
 	protected int numberOfCores;
 	protected int numberOfCoresAvailable;
 	protected int []availableSlots;
-	protected double []meanXT;
+	protected double [][]xt;
+	protected double [][]modulationDbLimit;
+	protected int numberOfSlots;
 	
-	public XTAwareResourceAllocation(int numberOfCores, int numberOfCoresAvailable) {
+	public XTAwareResourceAllocation(int nOfCores, int nCoresAvailable, int nSlots) {
 
-		this.numberOfCores = numberOfCores;
-		this.numberOfCoresAvailable = numberOfCoresAvailable;
+		this.numberOfCores = nOfCores;
+		this.numberOfCoresAvailable = nCoresAvailable;
+		this.numberOfSlots = nSlots;
 		
-		this.meanXT = new double[this.numberOfCores];
-		
+		this.xt = new double[this.numberOfCores][this.numberOfSlots];
+		this.modulationDbLimit = new double[this.numberOfCores][this.numberOfSlots];
 		for(int i = 0; i < this.numberOfCores; i++) {
-			this.meanXT[i] = 0.0f;
+			for(int j = 0; j < this.numberOfSlots; j++) {
+				this.xt[i][j] = modulationDbLimit[i][j] = 0.0f;
+			}
+			
 		}
 		
 		this.createGraph();
@@ -40,18 +46,19 @@ public class XTAwareResourceAllocation {
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 	}
 	
-	protected double meanInterCoreCrosstalk(int core, double n, double L) {
+	protected double interCoreCrosstalk(int core, int slot, double n, double L) {
 
 		double h = (Math.pow(k, 2) / B) * (R / corePitch);
 		L = (L*1000);
 		double exponential = (-1 * (n + 1)) * 2 * h * L;
 		
-		this.meanXT[core] = ( n - n * Math.exp(exponential) ) / ( 1.0f + n * Math.exp(exponential) );
+		this.xt[core][slot] = ( n - n * Math.exp(exponential) ) / ( 1.0f + n * Math.exp(exponential) );
 
+//		System.out.println(this.xt[core][slot]);
 //		this.meanXT[core] = xt > 0 ? 10.0f * Math.log10(xt)/Math.log10(10) : 0.0f;
 //		System.out.println(""+core+" nCores: "+n+" db: "+10.0f * Math.log10(this.meanXT[core])/Math.log10(10)+" xt: "+this.meanXT[core]);
 		
-		return this.meanXT[core];
+		return this.xt[core][slot];
 	}
 	
 	static class Graph
@@ -140,8 +147,12 @@ public class XTAwareResourceAllocation {
 		return cores.adjListArray[index];
 	}
 
-	public double getXT(int core) {
+	public double getXT(int core, int slot) {
 		
-		return this.meanXT[core];
+		return this.xt[core][slot];
+	}
+
+	public void setLimitDB(int c, int s, double db) {
+		this.modulationDbLimit[c][s] = db;
 	}
 }

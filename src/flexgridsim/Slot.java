@@ -52,4 +52,5 @@ public class Slot {
 	public String toString(){
 		return "("+c+","+s+")";
 	}
+	
 }

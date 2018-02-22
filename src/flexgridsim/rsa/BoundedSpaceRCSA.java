@@ -14,25 +14,20 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 	
 		ArrayList<ArrayList<Slot>> slotList = new ArrayList< ArrayList<Slot> >();
 		
-		for (int i = 0; i < spectrum.length; i++) {
+		for (int i = spectrum.length-1; i >= 0; i--) {
 			
 			ArrayList<Slot> s = new ArrayList<Slot>();
 			for (int j = 0; j < spectrum[i].length; j++) {
 				
 				if(spectrum[i][j] == true) 
 				{
-//					System.out.println(i+" "+j);
-					if(s.size() <= 0) 
-					{
-//						System.out.println(i+" "+j);
+					if(s.size() <= 0) {
 						s.add(new Slot(i, j));
 					}
 					else if( Math.abs(j - s.get(s.size()-1).s) == 1 ) {
-//						System.out.println(i+" "+j);
 						s.add(new Slot(i, j));
 					}
-					else 
-					{
+					else {
 						if(s.size() >= demandInSlots) {
 							slotList.add(s);
 						}
@@ -66,15 +61,13 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 				slots.add(s);
 				if(slots.size() == demandInSlots) 
 				{
-					double xt = pt.getSumOfMeanCrosstalk(links, slots.get(0).c);//returns the sum of cross-talk	
-				
-					if(xt == 0 || (xt < ModulationsMuticore.inBandXT[flow.getModulationLevel()]) ) {
-
-					if(establishConnection(links, slots, flow.getModulationLevel(), flow)) 
-					{
-						return true;
+					if(cp.CrosstalkIsAcceptable(flow, links, slots, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
+						
+						if(establishConnection(links, slots, flow.getModulationLevel(), flow)) 
+						{
+							return true;
+						}
 					}
-				}
 					
 					slots.clear();
 				}
@@ -86,7 +79,7 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 	
 	private int getDemandInSlots(Flow flow, int []links) {
 		
-		int modulation = chooseModulationFormat(flow, links);
+		int modulation = chooseModulationFormat(flow.getRate(), links);
 		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
 		return (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
 	}

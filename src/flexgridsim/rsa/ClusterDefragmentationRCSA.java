@@ -290,7 +290,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				
 	            this.pt.getLink(links[j]).reserveSlots(flow.getSlotList());
 	            this.pt.getLink(links[j]).updateNoise(lps.getSlotList(), flow.getModulationLevel());
-	            this.pt.getLink(links[j]).updateCrosstalk();
+	            this.pt.getLink(links[j]).updateCrosstalk(flow.getSlotList());
 	        }
 			
 			return true;
@@ -327,13 +327,12 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links, int n , int i) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		double xt = 0.0f;
 		
 		int nSlots = pt.getNumberOfAvailableSlots(links);
 		
 		for (; i >= n && i >= 0; i--) {
 			
-			int modulation = chooseModulationFormat(flow, links);
+			int modulation = chooseModulationFormat(flow.getRate(), links);
 			int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]);
 
 			if(nSlots >= demandInSlots)
@@ -345,22 +344,15 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 					
 					if(nSlots >= demandInSlots)
 					{
-						xt = this.pt.getSumOfMeanCrosstalk(links, i);//returns the sum of cross-talk	
+						fittedSlotList = this.FirstFitPolicy(flow, spectrum[i], i, links, demandInSlots, modulation);
 						
-						if(xt == 0 || (xt < ModulationsMuticore.inBandXT[modulation]) ) {
-			
-							fittedSlotList = this.FirstFitPolicy(spectrum[i], i, links, demandInSlots);
-							
-							if(fittedSlotList.size() == demandInSlots) {
-								
-								if(fittedSlotList.size() == demandInSlots) {
-									this.updateData(flow, links, fittedSlotList, modulation);
-									return true;
-								}
-							}
-							
-							fittedSlotList.clear();
+						if(fittedSlotList.size() == demandInSlots) 
+						{
+							this.updateData(flow, links, fittedSlotList, modulation);
+							return true;
 						}
+							
+						fittedSlotList.clear();
 					}
 					
 					modulation --;

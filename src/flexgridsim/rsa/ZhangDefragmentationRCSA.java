@@ -159,7 +159,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			
 			//update cross-talk
 			for(int i = 0; i < links.length; i++) {
-				this.pt.getLink(links[i]).updateCrosstalk();
+				this.pt.getLink(links[i]).updateCrosstalk(slotList);
 			}
 			
 //			System.out.println("Connection reaccepted: "+flow);
@@ -284,7 +284,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		int []links = flow.getLinks();
 		
 		for(int i = 0; i < links.length; i++) {
-			this.pt.getLink(links[i]).updateCrosstalk();
+			this.pt.getLink(links[i]).updateCrosstalk(flow.getSlotList());
 		}
 	}
 

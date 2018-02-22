@@ -74,7 +74,7 @@ public class FlexGridLink {
 				}
 			}
 			
-			xt = new XTAwareResourceAllocation(this.cores, this.slots);
+			xt = new XTAwareResourceAllocation(this.cores, this.cores, this.slots);
 		}
 	}
 	
@@ -114,44 +114,56 @@ public class FlexGridLink {
 	 * 
 	 * @return crosstalk
 	 */
-	public double getXT(int core) {
+	public double getXT(int core, int slot, double db) {
 
-		return this.xt.getXT(core);
+		return this.xt.getXT(core, slot);
 	}
 	
 	public void resetCrosstalk() {
 		for(int k = 0; k < this.cores; k++) {
-		
-			this.xt.meanInterCoreCrosstalk(k, 0, 0);
-			
+			for(int i = 0; i < this.slots; i++) {
+				this.xt.interCoreCrosstalk(k, i, 0, 0);
+			}
 		}
-		
 	}
 	
 	/**
 	 * Update the XT 
 	 */
-	public void updateCrosstalk() {
-
-		for(int k = 0; k < this.cores; k++) {
-			
-			double n = 0;
-			LinkedList<Integer> adjacent = xt.getAdjacentsCores(k);
-			
-			for(Integer i: adjacent) {
+	public void updateCrosstalk(ArrayList<Slot> slotList, double dbLimited) {
+	
+		for(Slot s: slotList) {
 				
-				for(int j = 0; j < this.slots; j++) {
+			double n = 0;
+			for(Integer c: this.xt.getAdjacentsCores(s.c) ) {
 					
-					if(reservedSlots[i][j] && reservedSlots[k][j]) {
-						n++;
-						break;
-					}
+				if(reservedSlots[c][s.s]) {
+					n++;
 				}
 			}
 			
-			this.xt.meanInterCoreCrosstalk(k, n, this.distance);
+			this.xt.interCoreCrosstalk(s.c, s.s, n, this.distance);
+			this.xt.setLimitDB(s.c, s.s, dbLimited);
 		}
+	}
+
+	
+	public void updateCrosstalk(ArrayList<Slot> slotList) {
 		
+		for(Slot s: slotList) {
+				
+			double n = 0;
+			for(Integer c: this.xt.getAdjacentsCores(s.c) ) {
+					
+				if(reservedSlots[c][s.s]) {
+					n++;
+					
+				}
+			}
+			
+			this.xt.interCoreCrosstalk(s.c, s.s,  n, this.distance);
+			this.xt.setLimitDB(s.c, s.s, 0);
+		}
 	}
 
 	/**
@@ -352,17 +364,16 @@ public class FlexGridLink {
 				throw (new IllegalArgumentException());
 			else if   (slotList.get(i).s < 0) 
 				throw (new IllegalArgumentException());
-				
-			else {
-				boolean[][] freeSlots = getSpectrum();
-			
-				for (Slot slot : slotList) {
-					if (!freeSlots[slot.c][slot.s]) {
-						return false;
-					} 
-				}
-			}
 		}
+		
+		boolean[][] freeSlots = getSpectrum();
+		
+		for (Slot slot : slotList) {
+			if (!freeSlots[slot.c][slot.s]) {
+				return false;
+			} 
+		}
+		
 		return true;
 	}
 
@@ -610,6 +621,25 @@ public class FlexGridLink {
 	public int getSlotsAvailable() {
 		
 		return this.slotsAvailable;
+	}
+
+	public LinkedList<Integer>getXTAdjacents(int c, int s) {
+		
+		return xt.getAdjacentsCores(c);
+	}
+
+	public double getNewXT(Slot s, int count) {
+		
+		int n = 0;
+		
+		for(Integer c: this.xt.getAdjacentsCores(s.c) ) {
+				
+			if(reservedSlots[c][s.s]) {
+				n++;
+			}
+		}
+		
+		return xt.interCoreCrosstalk(s.c, s.s, n + count, distance);
 	}
 
 }

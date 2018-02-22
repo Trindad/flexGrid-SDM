@@ -30,7 +30,7 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 	
 	private boolean fitConnection(Flow flow, int []links) {
 		
-		int modulationLevel = chooseModulationFormat(flow, links);
+		int modulationLevel = chooseModulationFormat(flow.getRate(), links);
 		int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulationLevel]);
 		boolean [][]spectrum = bitMapAll(links);
 
@@ -39,7 +39,6 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 			
 			FloodFill8 ff = new FloodFill8(spectrum, pt.getCores(), pt.getNumSlots());
 			int n = 0;
-//			int it = 0;
 			while(n < totalSlotsAvailable) 
 			{
 				int []coreAndSlot = getRandomNumbers(ff.getFillMap());
@@ -47,13 +46,8 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 				{
 					n += ff.runFloodFill(coreAndSlot[0], coreAndSlot[1]);
 				}
-//				it++;
 			}
 			
-//			System.out.println(it);
-		
-	//			ff.printFillMap();
-	//			printSpectrum(spectrum);
 			while(modulationLevel >= 0) 
 			{
 				flow.addModulationLevel(modulationLevel);
@@ -126,7 +120,6 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 
 	protected boolean createSlotList(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow) {
 		
-		
 		ArrayList<Slot> slotList = new ArrayList<Slot>();
 		Collections.sort(slots);
 		
@@ -150,10 +143,8 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 				
 				if(slotList.size() == demandInSlots) {
 					
-					double xt = pt.getSumOfMeanCrosstalk(links, core);//returns the sum of cross-talk	
-					
-					if(xt == 0 || (xt < ModulationsMuticore.inBandXT[flow.getModulationLevel()]) ) {
-
+					if(cp.CrosstalkIsAcceptable(flow, links, slotList, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
+				
 						if(establishConnection(links, slotList, flow.getModulationLevel(), flow)) 
 						{
 							return true;

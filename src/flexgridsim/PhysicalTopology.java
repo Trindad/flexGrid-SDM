@@ -312,32 +312,56 @@ public class PhysicalTopology {
         return topo;
     }
     
-	public double getSumOfMeanCrosstalk(int[] links, int coreIndex) {
-
-		double xt = 0.0f;
-		
-		for(int i = 0; i < links.length; i++) {
-			
-			xt += this.getLink(i).getXT(coreIndex);
+    
+    public boolean canAcceptCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
+    	
+    	double xt = 0.0f;
+		for(int i : links) {
+			for(Slot s: slotList) {
+				int controller = 0;
+				if(contains(slotList, s)) controller++;
+				xt += this.getLink(i).getNewXT(s, controller);
+			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt;
+		return xt < db || xt == 0;
+    }
+    
+
+	
+	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> slotList) {
+
+		double xt = 0.0f;
+		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		for(int i : flow.getLinks()) {
+			for(Slot s: slotList) {
+				int controller = 0;
+				if(contains(slotList, s)) controller++;
+				xt += this.getLink(i).getNewXT(s, controller);
+			}
+		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		
+		return xt < db || xt == 0;
 	}
 	
-	public double getSumOfMeanCrosstalk(int[] links, int coreIndex, ArrayList<Slot> slotList) {
-
-		double xt = 0.0f;
-		
-		for(int i = 0; i < links.length; i++) {
+	private boolean contains(ArrayList<Slot> slotList, Slot slot) {
+		for(Slot s: slotList) {
 			
-			xt += this.getLink(i).getXT(coreIndex);
+			if(s.c == slot.c && s.s == slot.s) return true;
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		return false;
+	}
+
+	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> slotList, int []links) {
+
 		
-		return xt;
+		
+		return true;
 	}
 
 	public void resetAllSpectrum() {

@@ -105,7 +105,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	
 	private int getDemandInSlots(Flow flow, int []links) {
 		
-		int modulation = chooseModulationFormat(flow, links);
+		int modulation = chooseModulationFormat(flow.getRate(), links);
 		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
 		return (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
 	}

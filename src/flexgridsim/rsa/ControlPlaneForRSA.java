@@ -150,4 +150,6 @@ public interface ControlPlaneForRSA {
 
 	public boolean isRerouting();
 
+	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> fittedSlotList, double d);
+
 }

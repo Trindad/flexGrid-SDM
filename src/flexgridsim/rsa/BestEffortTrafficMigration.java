@@ -166,7 +166,7 @@ public class BestEffortTrafficMigration {
     	for (int j = 0; j < links.length; j++) {
     		ptTemp.getLink(links[j]).releaseSlots(lightpath.getSlotList());
     		ptTemp.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel());
-    		ptTemp.getLink(links[j]).updateCrosstalk();
+    		ptTemp.getLink(links[j]).updateCrosstalk(flow.getSlotList());
         }
     	
     	vtTemp.removeLightPath(lightpath.getID());
