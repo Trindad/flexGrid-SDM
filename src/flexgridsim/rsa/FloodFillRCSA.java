@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -8,15 +9,15 @@ import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
 
-public class FloodFillRCSA extends LoadBalancingRCSA{
+public class FloodFillRCSA extends SCVCRCSA{
 
 	protected boolean runRCSA(Flow flow) {
-		
+		kPaths = 3;
 		setkShortestPaths(flow);
-		
-		for(int i = 0; i < paths.size(); i++) {
+	
+		for(int []links : getkShortestPaths()) {
 			
-			if(fitConnection(flow, paths.get(i))) {
+			if(fitConnection(flow, links)) {
 				this.paths.clear();
 				return true;
 			}
@@ -27,86 +28,126 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 		return false;
 	}
 	
+	private int getNumberOfSlots(Flow flow, int []links) {
+		
+
+		int modulationLevel = chooseModulationFormat(flow.getRate(), links);
+		
+		if (modulationLevel < 0) {
+			
+			return -1;
+		}
+		
+		flow.setModulationLevel(modulationLevel);
+		double requestedBandwidthInGHz = ( (double)flow.getRate() / ((double)modulationLevel + 1) );
+		double requiredBandwidthInGHz = requestedBandwidthInGHz;
+		double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+		int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+		
+		demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+		demandInSlots++;
+		
+		return demandInSlots;
+	}
+	
 	
 	private boolean fitConnection(Flow flow, int []links) {
 		
-		int modulationLevel = chooseModulationFormat(flow.getRate(), links);
-		int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulationLevel]);
+		int demandInSlots  = getNumberOfSlots(flow, links);
+		
+		if(demandInSlots < 0 ) {
+			return false;
+		}
+		
+		int n = 0, i = 0;
 		boolean [][]spectrum = bitMapAll(links);
-
-		if(this.totalSlotsAvailable >= demandInSlots) 
-		{
-			
-			FloodFill8 ff = new FloodFill8(spectrum, pt.getCores(), pt.getNumSlots());
-			int n = 0;
-			while(n < totalSlotsAvailable) 
-			{
-				int []coreAndSlot = getRandomNumbers(ff.getFillMap());
-				if(coreAndSlot != null) 
-				{
-					n += ff.runFloodFill(coreAndSlot[0], coreAndSlot[1]);
-				}
-			}
-			
-			while(modulationLevel >= 0) 
-			{
-				flow.addModulationLevel(modulationLevel);
-				demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulationLevel]);
-				
-				if(totalSlotsAvailable >= demandInSlots) 
-				{
-					if(allocateConnection(flow, ff.getFillingArea(), links, demandInSlots)) 
-					{
-//						System.out.println("Connection accepted: "+flow);
-						return true;
-					}
-				}
-				else 
-				{
-					return false;
-				}
-				
-				modulationLevel--;
+		boolean [][]tempSpectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		
+		for(int c = 0; c < spectrum.length; c++ ) {
+			for(int s = 0; s < spectrum[i].length; s++ ) {
+				tempSpectrum[c][s] = false;
 			}
 		}
 		
+		ArrayList<Integer> cores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 2, 5, 0));
+		ArrayList<Integer> listOfCores = new ArrayList<Integer>();
+		while(n < totalSlotsAvailable) {
+			
+			int t = 0;
+			if(!listOfCores.contains(cores.get(i))) listOfCores.add(cores.get(i));
+			if(!listOfCores.contains(cores.get(i+1))) listOfCores.add(cores.get(i+1));
+			
+			for(int c : listOfCores) {
+			
+				for(int s = 0; s < spectrum[c].length; s++) {
+					if(spectrum[c][s]) {
+						tempSpectrum[c][s] = true;
+						t++;
+					}
+				}
+			
+			}
+			
+			int nVisited = 0;
+//			System.out.println(n+" "+t+" "+i+" "+(i+1));
+			if(t >= 1 && (t-n) >= demandInSlots) 
+			{
+				FloodFill8 ff  = new FloodFill8(tempSpectrum.clone());
+				
+				while (nVisited < t) {
+					
+					int []coreAndSlot = getSeed(listOfCores, ff.getFillMap());
+					if(coreAndSlot != null) {
+						nVisited += ff.runFloodFill(coreAndSlot[0], coreAndSlot[1]);
+					}
+				}
+				
+				if(allocateConnection(flow, ff.getFillingArea(), links, demandInSlots)) 
+				{
+//					System.out.println("Connection accepted: "+flow);
+					return true;
+				}
+				
+//				if((nVisited-n) >= demandInSlots) System.out.println(demandInSlots+" "+nVisited +" " + Arrays.toString(listOfCores.toArray()));
+			}
+			
+			n = t; 
+			
+			if(i < 4) {
+				i+= 2;
+			}
+			else {
+				i++;
+			}
+		}
+//		System.out.println(Arrays.toString(listOfCores.toArray()));
 		return false;
 	}
 
-	private int[]getPositionNumbers(boolean[][] spectrum) {
+	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum) {
 		
-		int []numbers = new int[2];
-		
-		for(int i = 0; i < spectrum.length; i++) {
-//			System.out.println(Arrays.toString(spectrum[i]));
-			for(int j = 0; j < spectrum[i].length; j++) {
-				if(spectrum[i][j]) 
-				{
-					numbers[0] = i;
-					numbers[1] = j;
-					
-//					System.out.println("position (" + i + ", " + j + ")");
-					
-					return numbers;
-				}
+		for(int it : cores) {
+			
+			int []seed = getRandomNumbers(spectrum,it);
+			
+			if(seed != null) {
+				return seed;
 			}
 		}
 		
 		return null;
 	}
 
+	private int[] getRandomNumbers(boolean[][] spectrum, Integer index) {
 
-	private int[]getRandomNumbers(boolean[][] spectrum) {
-		
 		int []numbers = new int[2];
 		int i = 0;
-		while(i < 5) {
+		while(i < 3) {
 			
-			int k = (int)(Math.random() * spectrum.length + 1);
-			int j = (int)(Math.random() * spectrum[k-1].length + 1);
-			if(spectrum[k-1][j-1]) {
+			int j = (int)(Math.random() * spectrum[index].length + 1);
+			if(spectrum[index][j-1]) {
 				
-				numbers[0] = k-1;
+				numbers[0] = index;
 				numbers[1] = j-1;
 				return numbers;
 			}
@@ -114,45 +155,135 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 			i++;
 		}
 		
-		return getPositionNumbers(spectrum);
+		return getPositionNumbers(spectrum, index);
 	}
 
+	private int[]getPositionNumbers(boolean[][] spectrum, int index) {
+		
+		int []numbers = new int[2];
+		for(int j = 0; j < spectrum[index].length; j++) {
+			if(spectrum[index][j]) 
+			{
+				numbers[0] = index;
+				numbers[1] = j;
+				
+				return numbers;
+			}
+		}
+	
+		return null;
+	}
 
-	protected boolean createSlotList(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow) {
+	private ArrayList<ArrayList<Slot>> getSetOfCandidatesRight(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow, ArrayList<Integer> candidates) {
 		
-		ArrayList<Slot> slotList = new ArrayList<Slot>();
-		Collections.sort(slots);
+		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>>();
 		
-//		System.out.println(Arrays.toString(slots.toArray()));
+		double db = ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		if(slots.size() >= demandInSlots) {
-		
+			
+			int count = 0;
+			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int i = 0; i < slots.size(); i++) {
 				
 				if(i == 0) 
 				{
-					slotList.add(new Slot(core, slots.get(i)));
+					temp.add(new Slot(core, slots.get(i)));
 				}
 				else if( Math.abs(slots.get(i) - slots.get(i-1)) == 1 ) {
-					slotList.add(new Slot(core, slots.get(i)));
+					temp.add(new Slot(core, slots.get(i)));
 				}
 				else 
 				{
-					slotList.clear();
-					slotList.add(new Slot(core, slots.get(i)));
+					temp = new ArrayList<Slot>();
+					if(Math.abs(slots.size()-i) < demandInSlots) {
+						break;
+					}
+					
+					temp.add(new Slot(core, slots.get(i)));
 				}
 				
-				if(slotList.size() == demandInSlots) {
+				if(temp.size() == demandInSlots) {
 					
-					if(cp.CrosstalkIsAcceptable(flow, links, slotList, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
-				
-						if(establishConnection(links, slotList, flow.getModulationLevel(), flow)) 
-						{
-							return true;
-						}
+					if(cp.CrosstalkIsAcceptable(flow, links, temp, db)) {
+						
+						slotList.add(new ArrayList<Slot>(temp));
+						candidates.add(count);
+						count++;
 					}
-					slotList.clear();
+					
+					temp.remove(0);
+					
 				}
 			}
+		}   
+
+		return slotList;
+	}
+	
+	
+	private ArrayList<ArrayList<Slot>> getSetOfCandidatesLeft(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow, ArrayList<Integer> candidates) {
+		
+		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>>();
+		
+		double db = ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		if(slots.size() >= demandInSlots) {
+			
+			int count = 0;
+			ArrayList<Slot> temp = new ArrayList<Slot>();
+			for(int i = slots.size()-1; i >= 0; i--) {
+				
+				if(i == 0) 
+				{
+					temp.add(new Slot(core, slots.get(i)));
+				}
+				else if( Math.abs(slots.get(i) - slots.get(i-1)) == 1 ) {
+					temp.add(new Slot(core, slots.get(i)));
+				}
+				else 
+				{
+					temp = new ArrayList<Slot>();
+					temp.add(new Slot(core, slots.get(i)));
+				}
+				
+				if(temp.size() == demandInSlots) {
+					
+					if(cp.CrosstalkIsAcceptable(flow, links, temp, db)) {
+						
+						slotList.add(new ArrayList<Slot>(temp));
+						candidates.add(count);
+						count++;
+					}
+					
+					temp.remove(0);
+					
+				}
+			}
+		}   
+		
+		return slotList;
+	}
+
+	protected boolean tryToEstablish(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow) {
+		
+		if(slots.size() >= demandInSlots) {	
+			
+			Collections.sort(slots);
+			ArrayList<Integer> candidates = new ArrayList<Integer>();
+			ArrayList<ArrayList<Slot>> slotList = core == 0 ? getSetOfCandidatesLeft(slots,core,demandInSlots, links, flow, candidates) : getSetOfCandidatesRight(slots,core,demandInSlots, links, flow, candidates);
+			
+			if(slotList.size() <= 0) return false;
+			
+			for(ArrayList<Slot> s: slotList) {
+				
+				if(s.size() == demandInSlots) 
+				{
+					if(establishConnection(links, s, flow.getModulationLevel(), flow)) {
+						return true;
+					}
+					
+				}
+			}
+			
 		}
 		
 		return false;
@@ -160,23 +291,26 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 	
 	public boolean allocateConnection(Flow flow, HashMap<Integer, ArrayList<Integer>> spectrumAvailable, int[]links, int demandInSlots) {
 
-		ArrayList<Integer> coreIndex = new ArrayList<Integer>();
-		coreIndex.addAll(spectrumAvailable.keySet());
-		
-//		System.out.println(Arrays.toString(coreIndex.toArray()));
-//		coreIndex.sort( (a,b) -> spectrumAvailable.get(b).size() - spectrumAvailable.get(a).size());
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 4, 1));//15.88
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 1, 4));//15.65
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 0, 2, 5));//15.45
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(4, 1, 6, 3, 0, 5, 2));//15.65
+		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 2, 5, 0));
 		
 		for(Integer key: coreIndex) {
 			
-			if(createSlotList(spectrumAvailable.get(key), key, demandInSlots, links, flow)) {
-				return true;
+			if(spectrumAvailable.containsKey(key)) 
+			{ 
+				if(tryToEstablish(spectrumAvailable.get(key), key, demandInSlots, links, flow)) {
+					return true;
+				}
 			}
-
 		}
 		
 		return false;
 	}
 
+	
 	private class FloodFill8 {
 		
 		private HashMap<Integer, ArrayList<Integer> > painted;
@@ -185,12 +319,12 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 		private int m = 0;
 		private int n = 0;
 		
-		public FloodFill8(boolean[][] matrix, int n, int m) {
+		public FloodFill8(boolean[][] matrix) {
 			
 			this.fillMap = matrix.clone();
 			this.painted = new HashMap<Integer, ArrayList<Integer>>();
-			this.m = m;
-			this.n = n;
+			this.n = fillMap.length;
+			this.m = fillMap[0].length;
 			
 			this.visited = new boolean[n][m];
 			for(int i = 0; i < n; i++) {
@@ -202,12 +336,12 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 
 		public HashMap<Integer, ArrayList<Integer>>  getFillingArea() {
 			
-			return painted;
+			return this.painted;
 		}
 		
 		public boolean[][]getFillMap() {
 			
-			return fillMap;
+			return this.fillMap;
 		}
 		
 		@SuppressWarnings("unused")
@@ -256,5 +390,4 @@ public class FloodFillRCSA extends LoadBalancingRCSA{
 			return sum;
 		}
 	}
-	
 }

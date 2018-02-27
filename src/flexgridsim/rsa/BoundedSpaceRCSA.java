@@ -8,13 +8,13 @@ import flexgridsim.Slot;
 
 public class BoundedSpaceRCSA extends SCVCRCSA{
 
-	private int k = 2;
+	private int k = 10;
 	
 	private boolean kBoundedSpacePolicy(Flow flow, boolean [][]spectrum, int []links, int demandInSlots) {
 	
 		ArrayList<ArrayList<Slot>> slotList = new ArrayList< ArrayList<Slot> >();
 		
-		for (int i = spectrum.length-1; i >= 0; i--) {
+		for (int i = 0; i < spectrum.length; i++) {
 			
 			ArrayList<Slot> s = new ArrayList<Slot>();
 			for (int j = 0; j < spectrum[i].length; j++) {
@@ -28,24 +28,27 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 						s.add(new Slot(i, j));
 					}
 					else {
+						
 						if(s.size() >= demandInSlots) {
 							slotList.add(s);
+							break;
 						}
 						
 						s.clear();
 						s.add(new Slot(i, j));
 					}
 				}
-				
-				if(s.size() >= demandInSlots) {
-					slotList.add(s);
-				}
-				
-				if(slotList.size() >= k) 
-				{
-					break;
-				}
 			}
+				
+			if(s.size() >= demandInSlots) {
+				slotList.add(s);
+			}
+			
+			if(slotList.size() >= k) 
+			{
+				break;
+			}
+			
 		}
 		
 //		System.out.println(slotList.size());
@@ -69,7 +72,7 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 						}
 					}
 					
-					slots.clear();
+					slots.remove(0);
 				}
 			}
 		}
@@ -81,12 +84,23 @@ public class BoundedSpaceRCSA extends SCVCRCSA{
 		
 		int modulation = chooseModulationFormat(flow.getRate(), links);
 		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
+		flow.setModulationLevel(modulation);
 		return (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
 	}
 	
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
-		return kBoundedSpacePolicy(flow, spectrum, links, getDemandInSlots(flow, links));
+		int demand = getDemandInSlots(flow, links);
+		int modulation = flow.getModulationLevel();
+		while(modulation >= 0) {
+			
+			demand = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]);
+			flow.setModulationLevel(modulation);
+			if(kBoundedSpacePolicy(flow, spectrum, links, demand)) return true;
+			modulation--;
+		}
+		
+		return false;
 	}
 	
 }

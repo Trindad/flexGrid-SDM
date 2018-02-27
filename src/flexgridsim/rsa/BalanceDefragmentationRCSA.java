@@ -2,6 +2,9 @@ package flexgridsim.rsa;
 
 import java.util.ArrayList;
 
+import org.jgrapht.alg.scoring.ClosenessCentrality;
+import org.jgrapht.graph.DefaultWeightedEdge;
+
 import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
@@ -17,127 +20,198 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	}
 	
 	public void flowArrival(Flow flow) {
-
-//		kPaths = 4;
+		
 		ArrayList<int[]> kPaths = findKPaths(flow);//find K-Shortest paths using Dijkstra
 		ArrayList<Integer> indices = orderKPaths(kPaths);//sort paths by the fragmentation index from each link
-//		System.out.println(flow);
+
 		for(int i: indices)
 		{
-			if(fitConnection(flow, bitMapAll(kPaths.get(i)), kPaths.get(i))) 
-			{
+			int []links = kPaths.get(i);
+			boolean [][]spectrum = bitMapAll(links);
+			
+			if(fitConnection(flow, spectrum, links)) {
+				this.activeFlows.put(flow.getID(), flow);
+				updateCrosstalk();
 				return;
 			}
 		}
-	
+		System.out.println(flow.getRate());
 		this.connectionDisruption.add(flow);
 		flow.setConnectionDisruption(true);
 		this.nConnectionDisruption++;
 	}
 	
-	private boolean kBoundedSpacePolicy(Flow flow, boolean [][]spectrum, int []links, int demandInSlots) {
-	
-		ArrayList<ArrayList<Slot>> slotList = new ArrayList< ArrayList<Slot> >();
+	private ArrayList<Slot> getMatchSlots(ArrayList<Slot> s1, ArrayList<Slot> s2) {
 		
-		for (int i = 0; i < spectrum.length; i++) {
-			
-			ArrayList<Slot> s = new ArrayList<Slot>();
-			for (int j = 0; j < spectrum[i].length; j++) {
-				
-				if(spectrum[i][j] == true) 
-				{
-//					System.out.println(i+" "+j);
-					if(s.size() <= 0) 
-					{
-//						System.out.println(i+" "+j);
-						s.add(new Slot(i, j));
-					}
-					else if( Math.abs(j - s.get(s.size()-1).s) == 1 ) {
-//						System.out.println(i+" "+j);
-						s.add(new Slot(i, j));
-					}
-					else 
-					{
-						if(s.size() >= demandInSlots) {
-							slotList.add(s);
-						}
-						
-						s.clear();
-						s.add(new Slot(i, j));
-					}
-				}
-				
-				if(s.size() >= demandInSlots) {
-					slotList.add(s);
-				}
-				
-				if(slotList.size() >= 1) 
-				{
-					break;
+		ArrayList<Slot> slots = new ArrayList<Slot>();
+		if(s1.get(0).c != s2.get(0).c) return slots;
+		
+		for(Slot i: s1) 
+		{
+			for(Slot j: s2) 
+			{
+				if(i.s == j.s && !slots.contains(i)) {
+					slots.add(i);
 				}
 			}
 		}
 		
-		slotList.sort((a, b) -> a.size() - b.size());
+		return slots;
+	}
+
+	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
 		
-		for(ArrayList<Slot> set: slotList) {
+		if(!this.pt.canAcceptCrosstalk(links, slotList, db)) return false;
+		
+		for(Long key: this.activeFlows.keySet()) {
+		
+			if(key == flow.getID()) continue;
 			
-			if(set.size() < demandInSlots) continue;
-			ArrayList<Slot> slots = new ArrayList<Slot>();
 			
-			for(Slot s: set) {
-				
-				slots.add(s);
-				if(slots.size() == demandInSlots) 
-				{
-					if(establishConnection(links, slots, flow.getModulationLevel(), flow)) 
-					{
-						return true;
-					}
-					
-					slots.clear();
-				}
+			ArrayList<Slot> t = getMatchSlots(slotList, this.activeFlows.get(key).getSlotList());
+			if(!t.isEmpty()) 
+			{
+				if(!this.pt.canAcceptInterCrosstalk(this.activeFlows.get(key), slotList, t)) return false;
+			}
+			
+			
+		}
+		
+		return true;
+	}
+	
+	@SuppressWarnings("unused")
+	private int getDemandInSlots(Flow flow, int []links) {
+		
+		int modulation = chooseModulationFormat(flow.getRate(), links);
+		flow.setModulationLevel(modulation);
+		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
+		return ( (int) Math.ceil((double)flow.getRate() / subcarrierCapacity) + 1 );
+	}
+	
+	public boolean fitConnection(Flow flow, boolean [][]spectrum, int []links) {
+		
+		ArrayList<Slot> fittedSlotList  = canBeFitConnection(flow, links, spectrum, flow.getRate());
+		
+		if(!fittedSlotList.isEmpty()) {
+			if(establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) {
+				return true;
 			}
 		}
 		
 		return false;
 	}
 	
-	private int getDemandInSlots(Flow flow, int []links) {
+	private void getSetOfCandidates(ArrayList<ArrayList<Slot>>  slotList, boolean [][]spectrum, int demandInSlots, int []links, Flow flow, ArrayList<Integer> candidates) {
 		
-		int modulation = chooseModulationFormat(flow.getRate(), links);
-		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-		return (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
-	}
-	
-	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
-		
-		int d =  getDemandInSlots(flow, links);
-//		System.out.println(flow.getModulationLevel() + " "+flow.getRate()+" "+d);
-		return kBoundedSpacePolicy(flow, spectrum, links, d);
-	}
-
-	private ArrayList<Integer>orderKPaths(ArrayList<int[]> kPaths) {
-		
-		ArrayList<Integer> sumLightpath = new ArrayList<Integer>();
-		ArrayList<Integer> indices = new ArrayList<Integer>(); 
-		int index = 0;
-
-		for(int[] links: kPaths) {
-
-			double s = Double.NEGATIVE_INFINITY;
-			for(int i = 0; i < links.length; i++) {
-				s = s < fi[ links[i] ] ? fi[ links[i] ] : s;
-			}
+		ArrayList<Integer> xt = new ArrayList<Integer>();
+		int count = 0;
+		ArrayList<Slot> temp = new ArrayList<Slot>();
+		for(int i = 0; i < spectrum.length; i++) {
 			
-			sumLightpath.add( (int)(s * 100) );
-			indices.add(index);
-			index++;
+			for(int j = 0; j < spectrum[i].length; j++) {
+				
+				if(i == 0 && spectrum[i][j] == true) 
+				{
+					temp.add(new Slot(i, j));
+				}
+				else if( temp.size() >= 1) {
+					if(Math.abs(i - temp.get(temp.size()-1).s) == 1 && spectrum[i][j] == true) {
+						temp.add(new Slot(i, j));
+					}
+				}
+				else 
+				{
+					temp = new ArrayList<Slot>();
+					if(Math.abs(spectrum[i].length-i) < demandInSlots) {
+						break;
+					}
+					
+					temp.add(new Slot(i, j));
+				}
+				
+				if(temp.size() == demandInSlots) {
+					
+					slotList.add(new ArrayList<Slot>(temp));
+					candidates.add(count);
+					
+					xt.add( (int)(this.pt.sumOfInterCoreCrosstalk(links, temp, ModulationsMuticore.inBandXT[flow.getModulationLevel()]) * (-100.0) ) );
+					
+					temp.remove(0);
+					count++;
+				}
+			}
 		}
 		
-		indices.sort( (a , b) -> sumLightpath.get(a) - sumLightpath.get(b));
+		candidates.sort( (a,b) -> xt.get(a) - xt.get(b));	
+	}
+
+	
+	public boolean fitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
-		return indices;
+		ArrayList<Integer> candidates = new ArrayList<Integer>();
+		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>> ();
+		
+		getSetOfCandidates(slotList, spectrum, demandInSlots, links, flow, candidates);
+		
+		if(slotList.size() <= 0) return false;
+		
+		for(int index: candidates) {
+			
+			ArrayList<Slot> slotsCandidates = slotList.get(index);
+//			System.out.println(Arrays.toString(slotsCandidates.toArray()) + demandInSlots);
+			if(slotsCandidates.size() == demandInSlots) 
+			{
+				if(cp.CrosstalkIsAcceptable(flow, links, slotsCandidates, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
+					
+					if(establishConnection(links, slotsCandidates, flow.getModulationLevel(), flow)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+	
+	private double []getFragmentationRatio() {
+    	
+    	int nLinks = this.pt.getNumLinks();
+    	double []fi = new double[nLinks];
+    	double nSlots = (double)(this.pt.getNumSlots() * this.pt.getCores());
+    	
+    	for(int i = 0; i < nLinks; i++) {
+    		fi[i] =  (double)(nSlots - (double)this.pt.getLink(i).getSlotsAvailable()) / nSlots;
+    	}
+    	
+    	return fi;
+	}
+
+	private ArrayList<Integer>orderKPaths(ArrayList<int[]> p) {
+		
+		ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
+	    
+    	double []sumRisc = new double[p.size()];
+    	ArrayList<Integer> indices = new ArrayList<Integer>();
+    	
+    	double []fi = getFragmentationRatio();
+    	int i = 0;
+    	for(int []links: p) {
+    		
+    		sumRisc[i] = 0;
+    		
+    		for(int index : links) {
+    			double cci = cc.getVertexScore(this.pt.getLink(index).getDestination()) + cc.getVertexScore(this.pt.getLink(index).getSource());
+    			sumRisc[i] += (fi[index] + cci);
+    		}
+    		
+    		indices.add(i);
+    		i++;
+    	}
+    	
+    	indices.sort((a,b) -> (int)(sumRisc[a] * 100) - (int)(sumRisc[b] * 100) );
+    	
+    	return indices;
 	}
 	
 }

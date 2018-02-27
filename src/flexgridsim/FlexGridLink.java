@@ -127,6 +127,13 @@ public class FlexGridLink {
 		}
 	}
 	
+	public void resetCrosstalk(ArrayList<Slot> slotList) {
+		
+		for(Slot s: slotList) {
+			this.xt.resetCrosstalk(s.c, s.s);
+		}
+	}
+	
 	/**
 	 * Update the XT 
 	 */
@@ -144,6 +151,25 @@ public class FlexGridLink {
 			
 			this.xt.interCoreCrosstalk(s.c, s.s, n, this.distance);
 			this.xt.setLimitDB(s.c, s.s, dbLimited);
+		}
+	}
+	
+	public void updateCrosstalk() {
+		
+		for(int i = 0; i < this.cores; i++) {
+			
+			for(int j = 0; j < this.slots; j++) {
+				double n = 0;
+				for(Integer c: this.xt.getAdjacentsCores(i) ) {
+				
+					if(reservedSlots[c][j]) {
+						n++;
+					}
+				}
+				
+				
+				this.xt.interCoreCrosstalk(i, j, n, this.distance);
+			}
 		}
 	}
 
@@ -640,6 +666,23 @@ public class FlexGridLink {
 		}
 		
 		return xt.interCoreCrosstalk(s.c, s.s, n + count, distance);
+	}
+
+	public int getInterCoreCrosstalkInAdjacent(Slot s) {
+		
+		int n = 0;
+		for(Integer c: this.xt.getAdjacentsCores(s.c) ) {
+			
+			if(reservedSlots[c][s.s]) {
+				n++;	
+			}
+		}
+		
+		return n;
+	}
+
+	public void printXTMatrix() {
+		xt.printXTMatrix();
 	}
 
 }

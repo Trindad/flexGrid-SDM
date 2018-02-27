@@ -1,7 +1,6 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
@@ -9,33 +8,32 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 100;
+	private int TH = 400;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
 	 * @param Flow
 	 */
 	public void flowArrival(Flow flow) {
-
 		
 		//Try to assign in a normal way
 		if(this.runRCSA(flow)) 
 		{
+//			System.out.println("Connection accepted: "+flow);
 			return;
 		}
 		
-		if(flow.getRate() > TH)
+		if(flow.getRate() >= TH)
 		{
-//			System.out.println(flow);
 			if(this.multipathEstablishConnection(flow)) 
 			{
 				this.paths.clear();
-//				System.out.println("Connection accepted using multipath:"+flow);
+//				System.out.println("Connection accepted using multipath: "+flow);
 				return;
 			}
 		}
 		
-//		System.out.println("Connection blocked:"+flow);
+//		System.out.println("Connection blocked: "+flow);
 		this.paths.clear();
 		cp.blockFlow(flow.getID());
 		
@@ -43,7 +41,6 @@ public class MultipathRCSA extends SCVCRCSA {
 
 	protected boolean multipathEstablishConnection(Flow flow) {
 
-		this.kPaths = 5;
 		this.setkShortestPaths(flow);
 		
 		if(getkShortestPaths().size() <= 1)
@@ -59,21 +56,14 @@ public class MultipathRCSA extends SCVCRCSA {
 		for(int []links : getkShortestPaths()) {
 			
 			boolean [][]spectrum = bitMapAll(links);
-			int i = 0;
-			for(boolean []core : spectrum) {
-				ArrayList<Slot> slots = fitConnection(flow, core, i, links, rate);
-				if(!slots.isEmpty()) 
-				{
-//					System.out.println(slots.size());
-					slotList.add(slots);
-					nPaths.add(links);
-					count++;
-					break;
-				}	
-				
-				i++;
-			}
-			
+		
+			ArrayList<Slot> slots = fitConnection(flow, spectrum, links, rate);
+			if(!slots.isEmpty()) 
+			{
+				slotList.add(slots);
+				nPaths.add(links);
+				count++;
+			}	
 			if(count == 2) 
 			{
 //					System.out.println(fittedSlotList.size() + " "+ nPaths.size() + " " + flow.getModulationLevels().size());
@@ -130,13 +120,15 @@ public class MultipathRCSA extends SCVCRCSA {
 	 * @param links
 	 * @return
 	 */
-	public ArrayList<Slot> fitConnection(Flow flow, boolean []spectrum, int core, int []links, int rate) {
+	public ArrayList<Slot>fitConnection(Flow flow, boolean [][]spectrum, int []links, int rate) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		flow.setMultipath(true);
-		fittedSlotList  = canBeFitConnection(flow, links, spectrum, core, rate);
+		fittedSlotList  = canBeFitConnection(flow, links, spectrum, rate);
 			
-		if(fittedSlotList.size() >= 1) return fittedSlotList;
+		if(fittedSlotList.size() >= 1) {
+			return fittedSlotList;
+		}
 			
 		return new ArrayList<Slot>();
 	}

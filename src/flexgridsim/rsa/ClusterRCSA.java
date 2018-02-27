@@ -62,9 +62,7 @@ public class ClusterRCSA extends SCVCRCSA {
 
 		setkShortestPaths(flow);
 		
-		for(int i = 0; i < this.paths.size(); i++) {
-			
-			int []links = this.paths.get(i);
+		for(int []links : this.paths) {
 			boolean[][] spectrum = bitMapAll(links);
 			
 			if(cp.getClusters().isEmpty())
@@ -96,22 +94,27 @@ public class ClusterRCSA extends SCVCRCSA {
 		for(int i = 0; i < 2; i++) {
 			
 			int []cores = this.clusters.get(sortClusters.get(i)).getCores();
-		
+			boolean [][]setOfCores = new boolean[cores.length][pt.getNumSlots()];
+			
 			for(int j = 0; j < cores.length ; j++) {
+				setOfCores[j] = spectrum[cores[j]];
+			}
+			
+			ArrayList<Slot> fittedSlotList = canBeFitConnection(flow, links, setOfCores, flow.getRate());
 				
-				ArrayList<Slot> fittedSlotList = canBeFitConnection(flow, links, spectrum[cores[j]] , cores[j], flow.getRate());
-				
-				if(!fittedSlotList.isEmpty()) 
+			if(!fittedSlotList.isEmpty()) 
+			{
+				if(establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) 
 				{
-					if(establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) 
-					{
-						
-						return true;
-					}
+					
+					return true;
 				}
 			}
+		
 		}
 	
 		return false;
 	}
+
+	
 }

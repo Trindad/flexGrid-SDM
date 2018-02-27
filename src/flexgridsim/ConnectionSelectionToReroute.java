@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jgrapht.alg.scoring.ClosenessCentrality;
+import org.jgrapht.graph.DefaultWeightedEdge;
+
 public class ConnectionSelectionToReroute {
 	
 	private Map<Long, Flow> connectionsToReroute;
@@ -359,7 +362,7 @@ public class ConnectionSelectionToReroute {
 				
 				Flow flow = allconnections.get(key);
 		
-				 if(allconnections.get(key).getRate() > 12 ) continue;
+				 if(allconnections.get(key).getRate() >= 100 ) continue;
 				
 				if(k < nConnections && !connections.containsKey(key)) 
 				{
@@ -388,30 +391,8 @@ public class ConnectionSelectionToReroute {
 		
 		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
 			
-			Map<Long, Flow> connections = new HashMap<Long, Flow>();
-			Map<Long, Flow> allconnections = cp.getActiveFlows();
-
-			int k = 0;
-		
-			for (Long key: allconnections.keySet()) { 
-				
-				Flow flow = allconnections.get(key);
-		
-				if(flow.getRate() <= 74) continue;
-				
-				if(k < nConnections && !connections.containsKey(key)) 
-				{
-					connections.put(key, flow);
-					k++;
-				}
-				
-				if(k >= nConnections) {
-					
-					return connections;
-				}
-			}
 			
-			return connections;
+			return null;
 		}
 	}
 
@@ -429,6 +410,8 @@ public class ConnectionSelectionToReroute {
 		
 		public ArrayList<Long>getConnections(Map<Long, Flow> flows) {
 			
+			ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
+			
 			ArrayList<Double> sumLightpath = new ArrayList<Double>();
 			ArrayList<Long> indices = new ArrayList<Long>();
 			ArrayList<Integer> indicesOfIndices = new ArrayList<Integer>(); 
@@ -439,8 +422,9 @@ public class ConnectionSelectionToReroute {
 				
 				int []links = flow.getLinks();
 				double s = 0;
-				for(int i = 0; i < links.length; i++) {
-					s += fi[links[i]];
+				for(int i : links) {
+					double cci = cc.getVertexScore(pt.getLink(i).getDestination()) + cc.getVertexScore(pt.getLink(i).getSource());
+					s += (fi[i] + cci);
 				}
 				
 				sumLightpath.add(s);
@@ -479,7 +463,9 @@ public class ConnectionSelectionToReroute {
 		
 			for (Long key: orderConnections) { 
 				
-				if(k < nConnections && !connections.containsKey(key)) 
+//				if(k < nConnections && !connections.containsKey(key) && flows.get(key).getRate() <= 40) 
+//				{
+				if(k < nConnections && !connections.containsKey(key) && flows.get(key).getRate() <= 100) 
 				{
 					connections.put(key, flows.get(key));
 					k++;

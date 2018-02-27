@@ -318,34 +318,64 @@ public class PhysicalTopology {
     	double xt = 0.0f;
 		for(int i : links) {
 			for(Slot s: slotList) {
-				int controller = 0;
-				if(contains(slotList, s)) controller++;
+				int controller = this.getLink(i).getInterCoreCrosstalkInAdjacent(s);
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt < db || xt == 0;
+		return xt <= db || xt == 0;
     }
     
+    public double sumOfInterCoreCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
+    	
+    	double xt = 0.0f;
+		for(int i : links) {
+			for(Slot s: slotList) {
+				int controller = this.getLink(i).getInterCoreCrosstalkInAdjacent(s);
+				xt += this.getLink(i).getNewXT(s, controller);
+			}
+		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		
+		return xt;
+    }
+    
+    public boolean canAcceptInterCrosstalk(Flow flow, int []links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+
+		double xt = 0.0f;
+		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		for(int i : links) {
+			for(Slot s: s1) {
+				int controller = 0;
+				if(contains(s2, s)) controller++;
+				xt += this.getLink(i).getNewXT(s, controller);
+			}
+		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		
+		return xt <= db || xt == 0;
+	}
 
 	
-	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> slotList) {
+	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> s1, ArrayList<Slot> s2) {
 
 		double xt = 0.0f;
 		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		for(int i : flow.getLinks()) {
-			for(Slot s: slotList) {
+			for(Slot s: s1) {
 				int controller = 0;
-				if(contains(slotList, s)) controller++;
+				if(contains(s2, s)) controller++;
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt < db || xt == 0;
+		return xt <= db || xt == 0;
 	}
 	
 	private boolean contains(ArrayList<Slot> slotList, Slot slot) {
@@ -355,13 +385,6 @@ public class PhysicalTopology {
 		}
 		
 		return false;
-	}
-
-	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> slotList, int []links) {
-
-		
-		
-		return true;
 	}
 
 	public void resetAllSpectrum() {

@@ -18,10 +18,13 @@ public class ModulationsMuticore {
 		/**
 		 * 
 		 */
-		public static final double subcarriersCapacity[] = {12.5,25,37.5,50,62.5,75};
+//		public static final double subcarriersCapacity[] = {12.5,25,37.5,50,62.5,75};
+		
+		public static final double subcarriersCapacity[] = {25,50,75,100,125,150};
 		
 		/** The Constant distance. */
-		public static final int maxDistance[] = {4000,2000,1000,500,250,125};
+//		public static final int maxDistance[] = {4000,2000,1000,500,250,125};
+		public static final int maxDistance[] = {9600, 4800, 2400, 1200, 600, 300};//updated
 		/**
 		 * SNR threshold for the correct 
 		 */
@@ -32,6 +35,7 @@ public class ModulationsMuticore {
 		 * 
 		 */
 		public static final double inBandXT[] = {-14,-18.5,-21,-25,-27,-34};
+//		public static final double inBandXT[] = {-32,-32,-32,-32,-32,-32};
 		/**
 		 * Number of modulations.
 		 *
@@ -91,11 +95,12 @@ public class ModulationsMuticore {
 			
 			int i = numberOfModulations-1;
 			
-			while (givendistance <= maxDistance[i] && i >= 0) {
+			while (givendistance > maxDistance[i] && i > 0) {
 				
 				i--;
 			}
-//			System.out.println(" "+givendistance+" "+maxDistance[i]+" "+i);
+//			
+//			System.out.println(givendistance+" - "+maxDistance[i]+" - "+i);
 			return i;
 		}
 		

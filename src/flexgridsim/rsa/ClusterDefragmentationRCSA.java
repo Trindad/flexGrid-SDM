@@ -328,38 +328,20 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		
-		int nSlots = pt.getNumberOfAvailableSlots(links);
-		
-		for (; i >= n && i >= 0; i--) {
-			
-			int modulation = chooseModulationFormat(flow.getRate(), links);
-			int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]);
+		int modulation = chooseModulationFormat(flow.getRate(), links);
+		int demandInSlots = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]) + 1;
 
-			if(nSlots >= demandInSlots)
+		if(this.totalSlotsAvailable >= demandInSlots)
+		{
+			fittedSlotList = this.FirstFitPolicy(flow, spectrum, links, demandInSlots, modulation);
+			
+			if(fittedSlotList.size() == demandInSlots) 
 			{
-				while(modulation >= 0) {
-					
-					double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-					demandInSlots = (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
-					
-					if(nSlots >= demandInSlots)
-					{
-						fittedSlotList = this.FirstFitPolicy(flow, spectrum[i], i, links, demandInSlots, modulation);
-						
-						if(fittedSlotList.size() == demandInSlots) 
-						{
-							this.updateData(flow, links, fittedSlotList, modulation);
-							return true;
-						}
-							
-						fittedSlotList.clear();
-					}
-					
-					modulation --;
-				}
+				this.updateData(flow, links, fittedSlotList, modulation);
+				return true;
 			}
+
 		}
-		
 		
 		return false;
 	}

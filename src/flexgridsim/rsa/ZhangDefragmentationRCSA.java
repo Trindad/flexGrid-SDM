@@ -8,6 +8,7 @@ import java.util.Map;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
+import flexgridsim.ModulationsMuticore;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
 import flexgridsim.VirtualTopology;
@@ -26,6 +27,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	public Map<Long, Flow> allflows;
 	public Map<Long, Flow> allFlowsToReroute;
 	public Map<Flow, LightPath> accepted = new HashMap<Flow, LightPath>();
+	public Map<Long, Flow> activeFlows = new HashMap<Long, Flow>();
 
 	
 	public void copyStrutures(PhysicalTopology pt, VirtualTopology vt) {
@@ -35,19 +37,53 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		this.graph = this.pt.getWeightedGraph();
 	}
 	
-	protected void releaseResourcesAssigned(Map<Long, Flow> flows) {
+	public void releaseResourcesAssigned(Map<Long, Flow> flows) {
 		
+		this.activeFlows = new HashMap<Long, Flow>(cp.getActiveFlows());
 		this.allflows = new HashMap<Long, Flow>(cp.getActiveFlows());
 		this.allFlowsToReroute = new HashMap<Long, Flow>();
 		
+//		for(int i = 0; i < pt.getNumLinks(); i++) {
+//			
+////			printSpectrum(pt.getLink(i).getSpectrum());
+//			System.out.println("link: "+i);
+//			pt.getLink(i).printXTMatrix();
+//		}
+		
 		for(Long key: flows.keySet()) {
-			
 			this.allFlowsToReroute.put(key, flows.get(key));
 			this.allflows.remove(key);
-			cp.removeFlowFromPT(flows.get(key), this.vt.getLightpath(flows.get(key).getLightpathID()), this.pt, this.vt);	
+			this.activeFlows.remove(key);
+			cp.removeFlowFromPT(flows.get(key), this.vt.getLightpath(flows.get(key).getLightpathID()), this.pt, this.vt);
+			updateCrosstalk();	
+			
+		}
+	
+		updateCrosstalk();	
+		for(int i = 0; i < pt.getNumLinks(); i++) {
+			pt.getLink(i).updateCrosstalk();
 		}
 		
+//		for(int i = 0; i < pt.getNumLinks(); i++) {
+//			System.out.println("link*: "+i);
+//			pt.getLink(i).printXTMatrix();
+//		}
+		
 		this.nConnectionDisruption = 0;
+	}
+	
+	
+	 public void updateCrosstalk() {
+			
+    	for(Long key: this.activeFlows.keySet()) {
+    		
+    		Flow f = this.activeFlows.get(key);
+			for(int l : f.getLinks()) {
+    			this.pt.getLink(l).updateCrosstalk(f.getSlotList(),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel()]);
+    		}
+    	}
+    	
+    	
 	}
 	
 	@SuppressWarnings("unused")
@@ -224,15 +260,11 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	public ArrayList<Slot> preFitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+				
+		fittedSlotList  = canBeFitConnection(flow, links, spectrum, flow.getRate());
 			
-		for (int i = 0; i < spectrum.length; i++) {
-			
-			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
-			
-			if(!fittedSlotList.isEmpty()) return fittedSlotList;
-			
-		}
-		
+		if(!fittedSlotList.isEmpty()) return fittedSlotList;
+
 		return fittedSlotList;
 	}
 

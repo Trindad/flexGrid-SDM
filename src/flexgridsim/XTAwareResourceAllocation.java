@@ -1,5 +1,6 @@
 package flexgridsim;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class XTAwareResourceAllocation {
@@ -46,7 +47,18 @@ public class XTAwareResourceAllocation {
 		this.numberOfCoresAvailable = numberOfCoresAvailable;
 	}
 	
+	public void resetCrosstalk(int c, int s) {
+		xt[c][s] = 0.0;
+		modulationDbLimit[c][s] = 0.0;
+	}
+	
 	protected double interCoreCrosstalk(int core, int slot, double n, double L) {
+		
+		if(n == 0) {
+			this.xt[core][slot] = 0;
+			this.modulationDbLimit[core][slot] = 0;
+			return 0;
+		}
 
 		double h = (Math.pow(k, 2) / B) * (R / corePitch);
 		L = (L*1000);
@@ -129,6 +141,8 @@ public class XTAwareResourceAllocation {
 				
 				Graph.addEdge(cores, i, i+1);
 			}
+			
+			
 		}
 		else if(numberOfCores == 12) {
 			
@@ -138,13 +152,23 @@ public class XTAwareResourceAllocation {
 			
 			Graph.addEdge(cores, 0, numberOfCores);
 		}
-		
-		// Graph.printGraph(cores);
+//		System.out.println("GRAPH-XT");
+//		 Graph.printGraph(cores);
 	}
 	
 	protected LinkedList<Integer> getAdjacentsCores(int index) {
 		
 		return cores.adjListArray[index];
+	}
+	
+	
+	public void printXTMatrix() {
+		
+		for(int i = 0; i < numberOfCores; i++) {
+			
+			System.out.println(Arrays.toString(xt[i]));
+		}
+		
 	}
 
 	public double getXT(int core, int slot) {
