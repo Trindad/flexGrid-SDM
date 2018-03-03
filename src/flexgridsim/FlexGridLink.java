@@ -122,7 +122,7 @@ public class FlexGridLink {
 	public void resetCrosstalk() {
 		for(int k = 0; k < this.cores; k++) {
 			for(int i = 0; i < this.slots; i++) {
-				this.xt.interCoreCrosstalk(k, i, 0, 0);
+				this.xt.resetCrosstalk(k, i);
 			}
 		}
 	}

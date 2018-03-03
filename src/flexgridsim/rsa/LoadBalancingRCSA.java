@@ -6,22 +6,19 @@ import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import flexgridsim.Flow;
-//import flexgridsim.ModulationsMuticore;
-//import flexgridsim.Slot;
 
 public class LoadBalancingRCSA extends SCVCRCSA{
 	
 	protected boolean runRCSA(Flow flow) {
 		
-		kPaths = 3;
 		setkShortestPaths(flow);
 		ArrayList<Integer> indices = orderByClosenessCentralityAndFragmentationIndex(getkShortestPaths());
 
 		for(Integer i: indices) {
 			
-			if(fitConnection(flow, bitMapAll(getkShortestPaths().get( i )), getkShortestPaths().get( i ))) 
-			{
-				getkShortestPaths().clear();
+			if(fitConnection(flow, bitMapAll(this.paths.get(i)), this.paths.get(i))) {
+				this.paths.clear();
+//				System.out.println("ACCEPTED: "+flow);
 				return true;
 			}
 		}
@@ -29,40 +26,6 @@ public class LoadBalancingRCSA extends SCVCRCSA{
 		getkShortestPaths().clear();
 		return false;
 	}
-	
-	
-//	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
-//		
-//		for(int i = 0; i < spectrum.length ; i++) {
-//			
-//			ArrayList<Slot> temp = new ArrayList<Slot>();
-//			for(int j = 0; j < spectrum[i].length; j++) {	
-//				
-//				if(spectrum[i][j] == true) 
-//				{
-//					temp.add( new Slot(i,j) );
-//				}
-//				else {
-//					
-//					temp.clear();
-//					if(Math.abs(spectrum[i].length-j) < demandInSlots) return new ArrayList<Slot>();
-//				}
-//				
-//				if(temp.size() == demandInSlots) {
-//					
-//					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
-//
-//						return temp;
-//					}
-//					
-//					temp.remove(0);
-//				}
-//			}
-//		}
-//  
-//		return new ArrayList<Slot>();
-//	}
-//	
 
 
 	private double []getFragmentationRatio() {

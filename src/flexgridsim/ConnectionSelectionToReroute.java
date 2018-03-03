@@ -180,7 +180,7 @@ public class ConnectionSelectionToReroute {
 				int fa = slotFrequency(flowWithHighCore, a);
 //				System.out.println(fa + " * "+fb);
 				if (fb == fa) {
-					return b.c - a.c;
+					return b.s - a.s;
 				} else if (fb > fa) {
 					return 1;
 				} else {
@@ -287,7 +287,17 @@ public class ConnectionSelectionToReroute {
 				}
 			}
 
-			slots.sort((a, b) -> b.s - a.s);
+//			slots.sort((a, b) -> b.s - a.s);
+			
+			slots.sort( (a , b) -> {
+				int diff = a.s - b.s;
+				
+				if(diff != 0) {
+					return diff;
+				}
+				
+				return ( a.c - b.c );
+			});
 			
 			return slots;
 		}

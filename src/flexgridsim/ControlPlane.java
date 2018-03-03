@@ -5,6 +5,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,6 +48,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     private boolean DFR = false;
     private double dfIndex = 0;
+    private double limited = 0.2;
     private ArrayList<Cluster> clusters;
     private String typeOfReroutingAlgorithm;
 	private int nExceeds = 0;
@@ -180,8 +182,9 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
+	        	
 	        	rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
-	        	removeFlow(((FlowDepartureEvent) event).getFlow().getID());
+	            removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	        	
 	        	if(((FlowDepartureEvent) event).getFlow().isAccepeted()) {
 	        		
@@ -189,22 +192,25 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	           
 	            this.nExceeds++;
-            	if(this.DFR == true && this.activeFlows.size() >= 500 && this.nExceeds >= 300) {
+            	if(this.DFR == true && this.activeFlows.size() >= 300 && this.nExceeds >= 300 && nConnections < 10000) {
             		this.getFragmentationRatio();
-            		if(dfIndex > 0.5) 
+            	
+            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
             		{
-//            			System.out.println("before df: "+dfIndex);
+            			System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
+    	            	limited = 0.3;
             		}
             	}
             	else if(RR == true && nExceeds >= 300 && this.activeFlows.size() > 300 && nConnections < 10000) {
                     		
             		fi = this.getFragmentationRatio();
-            		if(this.dfIndex >= 0.50 && this.dfIndex <= 0.65) 
+            		
+            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
             		{
-            			System.out.println("before df: "+dfIndex);
+//            			System.out.println("before df: "+dfIndex);
 	        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
 	            		eventScheduler.addEvent(reroutingnEvent);
 	            		this.nExceeds = 0;
@@ -215,17 +221,17 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        {
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
-//	        	this.getFragmentationRatio();
-//	        	System.out.println("after df: "+ dfIndex);
-	        	
+	        	this.getFragmentationRatio();
+	        	System.out.println("after df: "+ dfIndex);
+	        	updateCrosstalk();
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) 
 	        {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.3),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.3),"HUSIF", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
+//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
 //	        	System.out.println("before df: "+dfIndex);
 	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
 		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
@@ -238,7 +244,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	        	
 	        	this.getFragmentationRatio();
-	        	System.out.println("after df: "+dfIndex);
+//	        	System.out.println("after df: "+dfIndex);
 	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
 	        }
 	    }
@@ -367,13 +373,15 @@ public class ControlPlane implements ControlPlaneForRSA {
             }
             
             flow = activeFlows.get(id);
-            for(int i = 0; i < lightpath.size(); i++) {
-            	if (!canAddFlowToPT(flow, lightpath.get(i))) {
+            for(LightPath lp : lightpath) {
+            	if (!canAddFlowToPT(flow, lp)) {
                     return false;
                 } 
-            	 addFlowToPT(flow, lightpath.get(i));
-            	 tr.acceptFlow(flow, lightpath.get(i));
+            	
+            	 addFlowToPT(flow, lp);
+            	 tr.acceptFlow(flow, lp);
             }
+            
             st.acceptFlow(flow,lightpath);
             mappedFlows.put(flow, lightpath);
             
@@ -525,10 +533,19 @@ public class ControlPlane implements ControlPlaneForRSA {
             flow = activeFlows.get(id);
             if (mappedFlows.containsKey(flow)) {
             	
-                lightpaths = mappedFlows.get(flow).get(0);
-                removeFlowFromPT(flow, lightpaths);
-                mappedFlows.remove(flow);
+            	if(flow.isMultipath())
+            	{
+            		removeFlowFromPT(flow, null);  
+            	}
+            	else 
+            	{
+            		lightpaths = mappedFlows.get(flow).get(0);
+            		removeFlowFromPT(flow, lightpaths);   
+            	}
+                
+            	mappedFlows.remove(flow);
             }
+            
             activeFlows.remove(id);
             return flow;
         }
@@ -543,20 +560,30 @@ public class ControlPlane implements ControlPlaneForRSA {
      * @param lightpaths a list of LighPath objects
      */
     private void removeFlowFromPT(Flow flow, LightPath lightpath) {
-
+    	
         if(flow.isMultipath()) {
-        	int[] links;
-        	for(int i = 0; i < flow.getMultipath().size(); i++) {	
+        	
+        	ArrayList<Long> ids =  flow.getLightpathsID();
+        	int n = flow.getMultipath().size();
+        	for(int i = 0; i < n; i++) {	
         		
-        		LightPath lp = mappedFlows.get(flow).get(i);
-        		links = lp.getLinks();
+//        		LightPath lp = vt.getLightpath(ids.get(i));
+        		int []links = flow.getLinks(i);
                 
-        		for (int j = 0; j < links.length; j++) {
-                    pt.getLink(links[j]).releaseSlots(lightpath.getSlotList());
-                    pt.getLink(links[j]).updateNoise(lightpath.getSlotList(), flow.getModulationLevel(i));
+        		for (int j : links) {
+                    pt.getLink(j).releaseSlots(flow.getMultiSlotList().get(i));
+                    pt.getLink(j).updateNoise(flow.getMultiSlotList().get(i), flow.getModulationLevel(i));
                 }
         		
-                vt.removeLightPath(lp.getID());
+//        		try {
+//        			
+//        			throw new Exception("Oh hai "+lp.getID()+" "+flow.getID());
+//        		} catch (Exception e) {
+//        			System.out.println(e.getMessage());
+//        			e.printStackTrace();
+//        		}
+//        		
+                vt.removeLightPath(ids.get(i));
         	}	 
         }
         else
@@ -571,6 +598,7 @@ public class ControlPlane implements ControlPlaneForRSA {
             vt.removeLightPath(lightpath.getID());
         }
         
+//       updateCrosstalk();
     }
     
     
@@ -893,13 +921,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 	
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
 		
-		if(!pt.canAcceptCrosstalk(links, slotList, db)) return false;
+		if(!pt.canAcceptCrosstalk(links, slotList, db)) {
+			return false;
+		}
 		
 		for(Long key: this.activeFlows.keySet()) {
 			
-			if(key == flow.getID()) continue;
-			
-			if(this.activeFlows.get(key).isMultipath()) 
+			if(key == flow.getID()) {
+				continue;
+			}
+			else if(this.activeFlows.get(key).isMultipath()) 
 			{
 				int i = 0;
 				for(ArrayList<Slot> s: this.activeFlows.get(key).getMultiSlotList()) {
@@ -915,6 +946,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 			}
 			else 
 			{
+//				System.out.println(Arrays.toString(slotList.toArray()) + "\n" +this.activeFlows.get(key).getSlotList());
 				ArrayList<Slot> t = getMatchSlots(slotList, this.activeFlows.get(key).getSlotList());
 				if(!t.isEmpty()) 
 				{

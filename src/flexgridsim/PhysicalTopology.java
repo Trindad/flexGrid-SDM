@@ -396,6 +396,8 @@ public class PhysicalTopology {
 		}
 	}
 
+	
+	
 	public void updateEverything(PhysicalTopology p) {
 		this.nodes = p.nodes;
         this.links = p.links;

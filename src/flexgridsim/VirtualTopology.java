@@ -176,8 +176,9 @@ public class VirtualTopology {
             if (lightPaths.containsKey(id)) {
                 return lightPaths.get(id);
             } else {
-            	System.out.println("Something bad occured... ID: "+id);
+            	
                 try {
+                	System.out.println("Something bad occured... ID: "+id);
                     throw new Exception("why");
                 }
                 catch(Exception e) {

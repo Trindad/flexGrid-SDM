@@ -63,21 +63,20 @@ public class ClusterRCSA extends SCVCRCSA {
 		setkShortestPaths(flow);
 		
 		for(int []links : this.paths) {
-			boolean[][] spectrum = bitMapAll(links);
 			
 			if(cp.getClusters().isEmpty())
 			{
-				if(fitConnection(flow, spectrum, links)) {
+				if(fitConnection(flow, bitMapAll(links), links)) {
 //						 System.out.println("Connection accepted: "+flow);
 						return true;
 				}
 			}
 			else
 			{
-				if( fitConnectionUsingClustering(flow, spectrum, links)) 
+				if( fitConnectionUsingClustering(flow, bitMapAll(links), links)) 
 				{
-						System.out.println("Connection accepted: "+flow);
-						return true;
+//					System.out.println("Connection accepted: "+flow);
+					return true;
 				}
 			}
 		}
@@ -86,18 +85,31 @@ public class ClusterRCSA extends SCVCRCSA {
 		return false;
 	}
 	
+	private boolean[][] initializeMatrix() {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		
+		for(int i = 0; i < spectrum.length; i++) {	
+			for(int j = 0; j < spectrum[i].length; j++) {
+				spectrum[i][j] = false;
+			}
+		}
+		
+		
+		return spectrum;
+	}
+	
 	public boolean fitConnectionUsingClustering(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		this.clusters = new ArrayList<Cluster>(cp.getClusters());
 		ArrayList<Integer> sortClusters = identifyCluster(flow, links.length);
-		
-		for(int i = 0; i < 2; i++) {
+		boolean [][]setOfCores = initializeMatrix();
+		int it = 0;
+		for(int i : sortClusters) {
 			
-			int []cores = this.clusters.get(sortClusters.get(i)).getCores();
-			boolean [][]setOfCores = new boolean[cores.length][pt.getNumSlots()];
-			
-			for(int j = 0; j < cores.length ; j++) {
-				setOfCores[j] = spectrum[cores[j]];
+			int []cores = this.clusters.get(i).getCores();
+			for(int j : cores) {
+				setOfCores[j] = spectrum[j];
 			}
 			
 			ArrayList<Slot> fittedSlotList = canBeFitConnection(flow, links, setOfCores, flow.getRate());
@@ -110,7 +122,9 @@ public class ClusterRCSA extends SCVCRCSA {
 					return true;
 				}
 			}
-		
+			
+			it++;
+			if(it >= 2) break;
 		}
 	
 		return false;

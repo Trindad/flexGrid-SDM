@@ -26,6 +26,7 @@ import flexgridsim.util.WeightedGraph;
  * @author trindade
  *
  */
+@SuppressWarnings("unused")
 public class SCVCRCSA implements RSA{
 		
 	public PhysicalTopology pt;
@@ -212,7 +213,7 @@ public class SCVCRCSA implements RSA{
 				
 				if(temp.size() == demandInSlots) {
 					
-					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
+					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
 						setOfSlots.add(new ArrayList<Slot>(temp));
 						break;
 					}
@@ -241,38 +242,41 @@ public class SCVCRCSA implements RSA{
 		return new ArrayList<Slot>();
 	}
 	
-	
-	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean [][]spectrum, int bandwidthInGbps) {
+	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean [][]spectrum, int rate) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		int modulation = chooseModulationFormat(bandwidthInGbps, links);
+		int modulation = chooseModulationFormat(rate, links);
 		
-		if(modulation <= -1) return fittedSlotList;
-		
-		double requestedBandwidthInGHz = ( (double)bandwidthInGbps / ((double)modulation + 1) );
-		double requiredBandwidthInGHz = requestedBandwidthInGHz;
-		double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
-		int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
-		
-		demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
-		demandInSlots++;//adding guardband
-		
-		fittedSlotList = FirstFitPolicy(flow, spectrum, links, demandInSlots, modulation);
-		
-		if(fittedSlotList.size() == demandInSlots) {
+		while(modulation >= 0) {
+			
+			double requestedBandwidthInGHz = ( (double)rate / ((double)modulation + 1) );
+			double requiredBandwidthInGHz = requestedBandwidthInGHz;
+			double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+			int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+			
+			demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+			demandInSlots++;//adding guardband
+			
+			fittedSlotList = FirstFitPolicy(flow, spectrum, links, demandInSlots, modulation);
+			
+			if(fittedSlotList.size() == demandInSlots) {
+					
+				if(!flow.isMultipath()) 
+				{
+					flow.setModulationLevel(modulation);
+				}
+				else 
+				{
+					flow.addModulationLevel(modulation);
+				}
 				
-			if(!flow.isMultipath()) 
-			{
-				flow.setModulationLevel(modulation);
-			}
-			else 
-			{
-				flow.addModulationLevel(modulation);
+				return fittedSlotList;
+				
 			}
 			
-			return fittedSlotList;
-			
+			modulation--;
 		}
+		
 		
 		return new ArrayList<Slot>();
 	}
@@ -291,6 +295,7 @@ public class SCVCRCSA implements RSA{
 		fittedSlotList  = canBeFitConnection(flow, links, spectrum, flow.getRate());
 		
 		if(!fittedSlotList.isEmpty()) {
+			
 			if(establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) {
 				return true;
 			}
@@ -379,7 +384,7 @@ public class SCVCRCSA implements RSA{
 		removeCrosstalk(flow.getLinks(), flow);
 	}
 
-	private void removeCrosstalk(int[] links, Flow flow) {
+	protected void removeCrosstalk(int[] links, Flow flow) {
 		
 		for(int l : links) {
 			this.pt.getLink(l).resetCrosstalk(flow.getSlotList());

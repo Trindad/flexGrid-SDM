@@ -4,18 +4,19 @@ import java.util.ArrayList;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
+import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
 
 public class MultipathRCSA extends SCVCRCSA {
 	
-	private int TH = 400;
+	private int TH = 1250;
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
 	 * @param Flow
 	 */
 	public void flowArrival(Flow flow) {
-		
+
 		//Try to assign in a normal way
 		if(this.runRCSA(flow)) 
 		{
@@ -25,10 +26,12 @@ public class MultipathRCSA extends SCVCRCSA {
 		
 		if(flow.getRate() >= TH)
 		{
-			if(this.multipathEstablishConnection(flow)) 
+			kPaths = 3;
+			flow.setMultipath(true);
+			if(multipathEstablishConnection(flow)) 
 			{
 				this.paths.clear();
-//				System.out.println("Connection accepted using multipath: "+flow);
+				System.out.println("Connection accepted using multipath: "+flow);
 				return;
 			}
 		}
@@ -38,6 +41,9 @@ public class MultipathRCSA extends SCVCRCSA {
 		cp.blockFlow(flow.getID());
 		
 	}
+	
+	
+	
 
 	protected boolean multipathEstablishConnection(Flow flow) {
 
@@ -48,44 +54,101 @@ public class MultipathRCSA extends SCVCRCSA {
 			return false;
 		}
 		
-		//suppose the high level of modulation fitted, ignoring the distance between source and destination
-		ArrayList<int []> nPaths = new ArrayList<int []>();
-		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>>();
-		int count = 0;
-		int rate = flow.getRate()/2;
-		for(int []links : getkShortestPaths()) {
-			
-			boolean [][]spectrum = bitMapAll(links);
+		ArrayList<int[]> lightpaths = new ArrayList<int[]>();
+		ArrayList<ArrayList<Slot>> slotList = getSetOfSlotsAvailableInEachPath(getkShortestPaths(), flow, lightpaths);
 		
-			ArrayList<Slot> slots = fitConnection(flow, spectrum, links, rate);
-			if(!slots.isEmpty()) 
+		
+		if(!slotList.isEmpty()) {
+//			System.out.println(lightpaths.size());
+			if(this.establishConnection(lightpaths, slotList, flow.getModulationLevels(), flow))
 			{
-				slotList.add(slots);
-				nPaths.add(links);
-				count++;
-			}	
-			if(count == 2) 
-			{
-//					System.out.println(fittedSlotList.size() + " "+ nPaths.size() + " " + flow.getModulationLevels().size());
-				if(this.establishConnection(nPaths, slotList, flow.getModulationLevels(), flow))
-				{
-					return true;
-				}
-				
-				slotList.remove(0);
-				nPaths.remove(0);
-				flow.getModulationLevels().remove(0);
-				count--;
+				return true;
 			}
 		}
 		
 		
 		return false;
 	}
+	
+	private ArrayList<Slot> getSetOfSlotsAvailable(int[] lightpath, Flow flow, int rate ) {
+		
+		ArrayList<Slot> setOfSlots = getSlotsAvailable(lightpath, flow, rate);
+		
+		if(!setOfSlots.isEmpty()) 
+		{
+			return new ArrayList<Slot>(setOfSlots);
+		}
+		
+		
+		return new ArrayList<Slot>();
+		
+	}
+	
+
+	private ArrayList<ArrayList<Slot>> getSetOfSlotsAvailableInEachPath(ArrayList<int[]> lightpaths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
+		
+		int totalRate = flow.getRate();
+		
+		for(int i = 1; i < kPaths; i++) {
+			
+			int rate = (int) Math.ceil((double)flow.getRate()/(double)(i+1));//rate for each lightpath
+			
+			ArrayList<int[]> lightpathsAvailableTemp = new ArrayList<int[]>();
+			ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>>();
+			
+			for(int j = 0; j <= i; j++) {
+				
+				ArrayList<Slot> slots = getSetOfSlotsAvailable(lightpaths.get(j), flow, rate);
+				
+				if(!slots.isEmpty()) {
+					
+					slotList.add(new ArrayList<Slot>(slots));
+					lightpathsAvailableTemp.add( lightpaths.get(j) );
+					totalRate -= rate;
+					
+					if(totalRate < rate) 
+					{
+						rate = totalRate;
+					}
+					
+				}
+			}
+			
+			if(slotList.size() == (i + 1) ) {
+				
+				lightpathsAvailable.addAll( new ArrayList<int[]>(lightpathsAvailableTemp) );
+				
+				return slotList;
+			}
+			
+			flow.getModulationLevels().clear();
+			
+		}
+		
+		
+		return new ArrayList<ArrayList<Slot>>();
+	}
+	
+	private ArrayList<Slot> getSlotsAvailable(int []links, Flow flow, int rate) {
+		
+		return canBeFitConnection(flow, links, bitMapAll(links),  rate);
+	}
+
+
+
+
+	@SuppressWarnings("unused")
+	private double getNewRate(int modulation, int n) {
+		
+		return (ModulationsMuticore.subcarriersCapacity[modulation] * n);
+	}
+
+
+
 
 	protected void updateData(Flow flow, ArrayList<int []> mpaths, ArrayList<Long> ids,  ArrayList< ArrayList<Slot> > fittedSlotList, ArrayList<Integer> modulation) {
 		
-		flow.setMultipath(true);
+		
 		flow.setLinks(mpaths);
 		flow.setSlotListMultipath(fittedSlotList);
 		flow.setModulationLevels(modulation);
@@ -93,17 +156,8 @@ public class MultipathRCSA extends SCVCRCSA {
 		
 		ArrayList<LightPath> lps = new ArrayList<LightPath>();
 		
-		for(int i = 0; i < mpaths.size(); i++) {
-			
-			lps.add(vt.getLightpath(ids.get(i)));
-
-			for (int j = 0; j < mpaths.get(i).length; j++) {
-				
-	            pt.getLink(mpaths.get(i)[j]).reserveSlots(fittedSlotList.get(i));
-	        }
-			
-			//update cross-talk
-			updateCrosstalk(mpaths.get(i), fittedSlotList.get(i), modulation.get(i));
+		for(long id: ids) {
+			lps.add(vt.getLightpath(id));
 		}
 		
 		if(!cp.acceptFlow(flow.getID(), lps)) {
@@ -154,14 +208,17 @@ public class MultipathRCSA extends SCVCRCSA {
 		int i = 0;
 		
 		for(int []links : mpaths) {
-			long id = vt.createLightpath(links, slotList.get(i),flow.getModulationLevel(i));
 			
+			long id = vt.createLightpath(links, slotList.get(i),flow.getModulationLevel(i));
+		
 			if(id < 0) {
 				//TODO
 //				for(int []l : mpaths) System.out.println(Arrays.toString(l));
 //				System.out.println("Error: invalid ID: "+id);
 				return false;
 			}
+			
+//			System.out.println(id);
 			
 			i++;
 			ids.add(id);
@@ -176,33 +233,34 @@ public class MultipathRCSA extends SCVCRCSA {
 		return false;
 	}
 	
+	protected void removeCrosstalkInMultipaths(int[] links, ArrayList<Slot> slotList) {
+		
+		for(int l : links) {
+			this.pt.getLink(l).resetCrosstalk(slotList);
+        }
+	}
+	
 
 	@Override
 	public void flowDeparture(Flow flow) {
 		
-		if(!flow.isAccepeted()) return;
+		if(!flow.isAccepeted()) {
+			return;
+		}
 	
 		if(flow.isMultipath()) {
-			ArrayList<int[]> mpaths = new ArrayList<int[]>();
 			
-			for(int j = 0; j < mpaths.size(); j++) {
-				
-				int []links = flow.getLinks(j);
-				
-				for(int i = 0; i < links.length; i++) {
-					pt.getLink(links[i]).updateCrosstalk(flow.getSlotList());
-				}
+			int n = flow.getMultiSlotList().size();
+			
+			for(int j = 0; j < n; j++) {
+				removeCrosstalkInMultipaths(flow.getLinks(j), flow.getMultiSlotList().get(j));
 			}
 		}
 		else 
 		{
 			if(!flow.isAccepeted()) return;
 			
-			int []links = flow.getLinks();
-			
-			for(int i = 0; i < links.length; i++) {
-				pt.getLink(links[i]).updateCrosstalk(flow.getSlotList());
-			}
+			removeCrosstalk(flow.getLinks(), flow);
 		}
 	}
 }

@@ -35,7 +35,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 				return;
 			}
 		}
-		System.out.println(flow.getRate());
+//		System.out.println(flow.getRate());
 		this.connectionDisruption.add(flow);
 		flow.setConnectionDisruption(true);
 		this.nConnectionDisruption++;
@@ -85,8 +85,11 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 		
 		int modulation = chooseModulationFormat(flow.getRate(), links);
 		flow.setModulationLevel(modulation);
-		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-		return ( (int) Math.ceil((double)flow.getRate() / subcarrierCapacity) + 1 );
+		
+		double requestedBandwidthInGHz = ( (double)flow.getRate() / ((double)modulation + 1) );
+		double requiredBandwidthInGHz = requestedBandwidthInGHz;
+		double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+		return (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
 	}
 	
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int []links) {
