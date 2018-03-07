@@ -5,6 +5,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+//import java.util.Arrays;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -325,7 +326,8 @@ public class PhysicalTopology {
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt <= db || xt == 0;
+//		System.out.println(xt + " "+ db + " cond: " + (xt >= db) + " ::: " + Arrays.toString(slotList.toArray()));
+		return xt >= db;
     }
     
     public double sumOfInterCoreCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
@@ -357,25 +359,45 @@ public class PhysicalTopology {
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt <= db || xt == 0;
+		return xt >= db;
 	}
 
-	
-	public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+    public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
 
 		double xt = 0.0f;
 		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		for(int i : flow.getLinks()) {
 			for(Slot s: s1) {
 				int controller = 0;
-				if(contains(s2, s)) controller++;
+				if(contains(s2, s) && links.contains(i)) {
+					controller++;
+				}
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-		return xt <= db || xt == 0;
+		return xt >= db;
+	}
+    
+    public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, int []l, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+
+		double xt = 0.0f;
+		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		for(int i : l) {
+			for(Slot s: s1) {
+				int controller = 0;
+				if(contains(s2, s) && links.contains(i)) {
+					controller++;
+				}
+				xt += this.getLink(i).getNewXT(s, controller);
+			}
+		}
+		
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		
+		return xt >= db;
 	}
 	
 	private boolean contains(ArrayList<Slot> slotList, Slot slot) {

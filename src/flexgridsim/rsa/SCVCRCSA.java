@@ -8,6 +8,8 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.w3c.dom.Element;
 
+import com.sun.javafx.fxml.expression.BinaryExpression;
+
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
 import flexgridsim.ModulationsMuticore;
@@ -78,13 +80,25 @@ public class SCVCRCSA implements RSA{
 		
 		int modulationLevel =  ModulationsMuticore.getModulationByDistance(totalLength);
 		
-		modulationLevel = rate < ModulationsMuticore.subcarriersCapacity[modulationLevel] &&  modulationLevel > 0 ? modulationLevel-1 : modulationLevel;
-	
-		modulationLevel = rate < ModulationsMuticore.subcarriersCapacity[0] ? 0 : modulationLevel;
+		modulationLevel = rate < ModulationsMuticore.subcarriersCapacity[modulationLevel] &&  modulationLevel > 0 ? decreaseModulation(modulationLevel, rate) : modulationLevel;
 
 		return modulationLevel;
 	}
 	
+	protected int decreaseModulation(int modulationLevel, int rate) {
+		
+		while(modulationLevel >= 0) {
+			
+			if(ModulationsMuticore.subcarriersCapacity[modulationLevel] >= rate) {
+				break;
+			}
+			
+			modulationLevel--;
+		}
+		
+		return 0;
+	}
+
 	public boolean[][]bitMapAll(int []links) {
 	
 		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
@@ -97,7 +111,11 @@ public class SCVCRCSA implements RSA{
 		this.totalSlotsAvailable = 0;
 		for(int i = 0; i < spectrum.length; i++) {
 			for(int j = 0; j < spectrum[i].length; j++) {
-				this.totalSlotsAvailable += spectrum[i][j] ? 1 : 0;
+				
+				if(spectrum[i][j]) {
+					this.totalSlotsAvailable++;
+				}
+				
 			}
 		}
 		
@@ -107,15 +125,18 @@ public class SCVCRCSA implements RSA{
 	protected boolean runRCSA(Flow flow) {
 		
 		setkShortestPaths(flow);
+		
+//		System.out.println("*****************************");
 
-		for(int i = 0; i < this.paths.size(); i++) {
+		for(int []links: this.paths) {
 			
-			if(fitConnection(flow, bitMapAll(this.paths.get(i)), this.paths.get(i))) {
+			if(fitConnection(flow, bitMapAll(links), links)) {
 					this.paths.clear();
-//					System.out.println("ACCEPTED: "+flow);
+//					System.out.println("ACCEPTED: "+flow+ " m: "+flow.getModulationLevel());
 					return true;
 			}
 		}
+//		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
 //		System.out.println("BLOCKED:"+ flow);
 		this.paths.clear();
 		
@@ -167,7 +188,11 @@ public class SCVCRCSA implements RSA{
 	public void printSpectrum(boolean [][]spectrum) {
 		
 		for (int u = 0; u < spectrum.length; u++) {
-			for (int w = 0; w < spectrum[u].length; w++) System.out.print(" "+spectrum[u][w]);
+			for (int w = 0; w < spectrum[u].length; w++) {
+				
+				if(spectrum[u][w]) System.out.print(" 1");
+				else System.out.print(" 0");
+			}
 			System.out.println();
 		}
 		System.out.println("-----------");
@@ -195,7 +220,7 @@ public class SCVCRCSA implements RSA{
 	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
 		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
-		
+//		printSpectrum(spectrum);
 		for(int i = 0; i < spectrum.length ; i++) {
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
@@ -212,13 +237,9 @@ public class SCVCRCSA implements RSA{
 				}
 				
 				if(temp.size() == demandInSlots) {
+					setOfSlots.add(new ArrayList<Slot>(temp));
+					break;
 					
-					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
-						setOfSlots.add(new ArrayList<Slot>(temp));
-						break;
-					}
-					
-					temp.remove(0);
 				}
 			}
 		}
@@ -236,7 +257,14 @@ public class SCVCRCSA implements RSA{
 				return ( b.get(0).c - a.get(0).c );
 			});
 			
-			return setOfSlots.get(0);		
+			
+			for(ArrayList<Slot> set: setOfSlots) {
+				
+				if(cp.CrosstalkIsAcceptable(flow, links, set, ModulationsMuticore.inBandXT[modulation])) {
+					return set;
+				}
+			}
+					
 		}
 	    
 		return new ArrayList<Slot>();
@@ -249,7 +277,7 @@ public class SCVCRCSA implements RSA{
 		
 		while(modulation >= 0) {
 			
-			double requestedBandwidthInGHz = ( (double)rate / ((double)modulation + 1) );
+			double requestedBandwidthInGHz = ( ((double)rate) / ((double)modulation + 1) );
 			double requiredBandwidthInGHz = requestedBandwidthInGHz;
 			double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
 			int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
@@ -358,6 +386,7 @@ public class SCVCRCSA implements RSA{
 		} 
 		else 
 		{
+			System.out.println("ID error");
 			return false;
 		}
 	}

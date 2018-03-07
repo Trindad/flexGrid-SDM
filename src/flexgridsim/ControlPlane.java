@@ -7,6 +7,7 @@ package flexgridsim;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.w3c.dom.Element;
@@ -48,7 +49,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     private boolean DFR = false;
     private double dfIndex = 0;
-    private double limited = 0.2;
+    private double limited = 0.03;
     private ArrayList<Cluster> clusters;
     private String typeOfReroutingAlgorithm;
 	private int nExceeds = 0;
@@ -192,16 +193,16 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	           
 	            this.nExceeds++;
-            	if(this.DFR == true && this.activeFlows.size() >= 300 && this.nExceeds >= 300 && nConnections < 10000) {
+            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000) {
             		this.getFragmentationRatio();
-            	
+            		System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
             		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
             		{
-            			System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
+            			
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
-    	            	limited = 0.3;
+//    	            	limited = 0.06;
             		}
             	}
             	else if(RR == true && nExceeds >= 300 && this.activeFlows.size() > 300 && nConnections < 10000) {
@@ -263,7 +264,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     			for(int i = 0; i < slotList.size(); i++) {
     				int []links = f.getLinks(i);
 	    			for(int l : links) {
-	        			pt.getLink(l).updateCrosstalk(slotList.get(i),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel()]);
+	        			pt.getLink(l).updateCrosstalk(slotList.get(i),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel(i)]);
 	        		}
     			}
     		}
@@ -901,22 +902,49 @@ public class ControlPlane implements ControlPlaneForRSA {
 		return this.RR;
 	}
 	
-	private ArrayList<Slot> getMatchSlots(ArrayList<Slot> s1, ArrayList<Slot> s2) {
+	private ArrayList<Slot> getMatchingSlots(ArrayList<Slot> s1, ArrayList<Slot> s2, LinkedList<Integer> adjacents) {
 		
-		ArrayList<Slot> slots = new ArrayList<Slot>();
-		if(s1.get(0).c != s2.get(0).c) return slots;
-		
-		for(Slot i: s1) 
-		{
-			for(Slot j: s2) 
-			{
-				if(i.s == j.s && !slots.contains(i)) {
-					slots.add(i);
-				}
+		boolean isAdjacent = false;
+		for (int i : adjacents) {
+			
+			if(i == s2.get(0).c) {
+				isAdjacent = true;	
 			}
 		}
 		
-		return slots;
+		if (isAdjacent) {
+			ArrayList<Slot> slots = new ArrayList<Slot>();
+			for(Slot i: s1) 
+			{
+				for(Slot j: s2) 
+				{
+					if(i.s == j.s && !slots.contains(i)) {
+						slots.add(i);
+					}
+				}
+			}
+			
+			return slots;
+		}
+		
+		return new ArrayList<Slot>();
+	}
+	
+	private ArrayList<Integer>getMatchingLinks(int []l1, int []l2) {
+		
+		ArrayList<Integer> links = new ArrayList<Integer>();
+		for(int i: l1) {
+			
+			for(int j: l2) {
+				
+				if(i == j) {
+					links.add(i);
+				}
+				
+			}
+		}
+		
+		return links;
 	}
 	
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
@@ -935,23 +963,36 @@ public class ControlPlane implements ControlPlaneForRSA {
 				int i = 0;
 				for(ArrayList<Slot> s: this.activeFlows.get(key).getMultiSlotList()) {
 					
-					ArrayList<Slot> t = getMatchSlots(slotList, s);
-					if(!t.isEmpty()) 
-					{
-						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key),this.activeFlows.get(key).getLinks(i), s, t)) return false;
-					}
+					ArrayList<Integer> matching = getMatchingLinks(links, this.activeFlows.get(key).getLinks(i));
 					
+					if(!matching.isEmpty()) {
+						ArrayList<Slot> t = getMatchingSlots(slotList, s, pt.getLink(0).getAdjacentCores(slotList.get(0).c));
+						
+						if(!t.isEmpty()) 
+						{
+							if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t)) return false;
+						}
+					}
 					i++;
 				}
 			}
 			else 
 			{
 //				System.out.println(Arrays.toString(slotList.toArray()) + "\n" +this.activeFlows.get(key).getSlotList());
-				ArrayList<Slot> t = getMatchSlots(slotList, this.activeFlows.get(key).getSlotList());
-				if(!t.isEmpty()) 
-				{
-					if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), this.activeFlows.get(key).getSlotList(), t)) return false;
+				ArrayList<Integer> matching =  getMatchingLinks(links, this.activeFlows.get(key).getLinks());
+				
+				if(!matching.isEmpty()) {
+					int c = slotList.get(0).c;
+					LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
+					ArrayList<Slot> t = getMatchingSlots(slotList, this.activeFlows.get(key).getSlotList(), adj);
+					
+					if(!t.isEmpty()) 
+					{
+//						System.out.println(Arrays.toString(matching.toArray()));
+						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t)) return false;
+					}
 				}
+				
 			}
 		}
 		

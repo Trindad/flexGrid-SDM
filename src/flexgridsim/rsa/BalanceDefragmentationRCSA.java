@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -41,22 +42,49 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 		this.nConnectionDisruption++;
 	}
 	
-	private ArrayList<Slot> getMatchSlots(ArrayList<Slot> s1, ArrayList<Slot> s2) {
+private ArrayList<Slot> getMatchingSlots(ArrayList<Slot> s1, ArrayList<Slot> s2, LinkedList<Integer> adjacents) {
 		
-		ArrayList<Slot> slots = new ArrayList<Slot>();
-		if(s1.get(0).c != s2.get(0).c) return slots;
-		
-		for(Slot i: s1) 
-		{
-			for(Slot j: s2) 
-			{
-				if(i.s == j.s && !slots.contains(i)) {
-					slots.add(i);
-				}
+		boolean isAdjacent = false;
+		for (int i : adjacents) {
+			
+			if(i == s2.get(0).c) {
+				isAdjacent = true;	
 			}
 		}
 		
-		return slots;
+		if (isAdjacent) {
+			ArrayList<Slot> slots = new ArrayList<Slot>();
+			for(Slot i: s1) 
+			{
+				for(Slot j: s2) 
+				{
+					if(i.s == j.s && !slots.contains(i)) {
+						slots.add(i);
+					}
+				}
+			}
+			
+			return slots;
+		}
+		
+		return new ArrayList<Slot>();
+	}
+	
+	private ArrayList<Integer>getMatchingLinks(int []l1, int []l2) {
+		
+		ArrayList<Integer> links = new ArrayList<Integer>();
+		for(int i: l1) {
+			
+			for(int j: l2) {
+				
+				if(i == j) {
+					links.add(i);
+				}
+				
+			}
+		}
+		
+		return links;
 	}
 
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
@@ -67,13 +95,20 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 		
 			if(key == flow.getID()) continue;
 			
+			ArrayList<Integer> match = getMatchingLinks(links, activeFlows.get(key).getLinks() );
 			
-			ArrayList<Slot> t = getMatchSlots(slotList, this.activeFlows.get(key).getSlotList());
-			if(!t.isEmpty()) 
-			{
-				if(!this.pt.canAcceptInterCrosstalk(this.activeFlows.get(key), slotList, t)) return false;
+			if( !match.isEmpty() ) {
+				
+				int c = slotList.get(0).c;
+				LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
+				ArrayList<Slot> t = getMatchingSlots(slotList, this.activeFlows.get(key).getSlotList(), adj);
+				
+				if(!t.isEmpty()) 
+				{
+					
+					if(!this.pt.canAcceptInterCrosstalk(this.activeFlows.get(key), match, slotList, t)) return false;
+				}
 			}
-			
 			
 		}
 		
@@ -84,12 +119,21 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	private int getDemandInSlots(Flow flow, int []links) {
 		
 		int modulation = chooseModulationFormat(flow.getRate(), links);
-		flow.setModulationLevel(modulation);
+	
+		if(modulation <= -1) {
+			return -1;
+		}
 		
-		double requestedBandwidthInGHz = ( (double)flow.getRate() / ((double)modulation + 1) );
+		flow.setModulationLevel(modulation);
+		double requestedBandwidthInGHz = ( ((double)flow.getRate()) / ((double)modulation + 1) );
 		double requiredBandwidthInGHz = requestedBandwidthInGHz;
 		double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
-		return (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+		int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+		
+		demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+		demandInSlots++;
+		
+		return demandInSlots;
 	}
 	
 	public boolean fitConnection(Flow flow, boolean [][]spectrum, int []links) {

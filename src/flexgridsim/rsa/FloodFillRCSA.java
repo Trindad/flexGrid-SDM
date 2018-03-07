@@ -13,6 +13,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 
 	protected boolean runRCSA(Flow flow) {
 		
+		kPaths = 3;
 		setkShortestPaths(flow);
 	
 		for(int []links : getkShortestPaths()) {
@@ -22,10 +23,11 @@ public class FloodFillRCSA extends SCVCRCSA{
 				this.paths.clear();
 				return true;
 			}
+			
 		}
-		
+//		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
 		this.paths.clear();
-		System.out.println("Connection blocked: "+flow);
+//		System.out.println("Connection blocked: "+flow);
 		return false;
 	}
 	
@@ -64,6 +66,8 @@ public class FloodFillRCSA extends SCVCRCSA{
 			
 //			System.out.println(Arrays.toString(update[c]));
 		}
+		
+		
 //		for(int c = 0; c < spectrum.length; c++ ) {
 //			System.out.println(Arrays.toString(update[c]));
 //		}
@@ -102,6 +106,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 		int modulationFormat = chooseModulationFormat(flow.getRate(), links);
 		
 		while(modulationFormat >= 0) {
+			
 			boolean [][]spectrum = bitMapAll(links);
 			int demandInSlots  = getNumberOfSlots(flow, links, modulationFormat);
 			flow.setModulationLevel(modulationFormat);
@@ -130,16 +135,15 @@ public class FloodFillRCSA extends SCVCRCSA{
 		if(coreEnd == ( pt.getCores() - 1 ) ) {
 			
 			int n = ( pt.getCores() - (pt.getCores()/2) ) - 1;
-			for(int i = n; i >= 0 ; i--) cores.add(i);
+			for(int i = n; i >= 1; i--) cores.add(i);
 		}
 		//3...0 and 0..159
 		else if(coreEnd == ( Math.floorDiv(pt.getCores(), 2) ) && endSlot == k ) {
 			
-			int n = (pt.getCores()/2);
+			int n = (pt.getCores()/2);//		System.out.println(coreEnd + " "+ endSlot + " " + (coreEnd == (pt.getCores()/2) - 1 ) + " " + (endSlot == ( (pt.getNumSlots()/2)-1)) );
 			for(int i = (pt.getCores()-1); i > n; i--) cores.add(i);
 		}
 		
-//		System.out.println(coreEnd + " "+ endSlot + " " + (coreEnd == (pt.getCores()/2) - 1 ) + " " + (endSlot == ( (pt.getNumSlots()/2)-1)) );
 		return cores;
 	}
 	
@@ -167,15 +171,14 @@ public class FloodFillRCSA extends SCVCRCSA{
 		for(int i = coreEnd; i > CoreStart; i--) listOfCores.add(i);
 		
 		int it = 0;
-		
+	
 		while(it <= 3) {
 			
-			it++;
 //			System.out.println(start+" ... "+ end+ " "+Arrays.toString(listOfCores.toArray()));
 			if(fitConnection(flow, listOfCores, links, start, end)) {
 				return true;
 			}
-
+			
 			ArrayList<Integer> p = newStartAndEndSlotIndex(coreEnd, end);
 			
 			ArrayList<Integer> temp = newListOfCores(coreEnd, end);
@@ -187,12 +190,17 @@ public class FloodFillRCSA extends SCVCRCSA{
 			
 			start = p.get(0);
 			end = p.get(1);
-			
+			it++;
 		}
-		
+
+		if(flow.getRate() <= 100) {
+			return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(0) ), links, 0, (pt.getNumSlots()-1) );
+		}
+//		
 //		System.out.println("**********************************");
 //		System.out.println(Arrays.toString(listOfCores.toArray()));
 		return false;
+//		return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(6, 5, 4 , 3, 2, 1) ), links, 0, (pt.getNumSlots()-1) );
 	}
 
 	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum) {
@@ -292,14 +300,14 @@ public class FloodFillRCSA extends SCVCRCSA{
 			Collections.sort(slots);
 //			int n = (pt.getNumSlots()/2);
 			
-//			if(slots.get( (slots.size()-1)  ) >=  n) 
-//			{
+			if(core >= 1) 
+			{
 				return getSetOfCandidatesRight(slots,core,demandInSlots, links, flow);
-//			}
-//			else 
-//			{
-//				return getSetOfCandidatesLeft(slots,core,demandInSlots, links, flow);
-//			}
+			}
+			else 
+			{
+				return getSetOfCandidatesLeft(slots,core,demandInSlots, links, flow);
+			}
 			
 		}
 		
@@ -350,19 +358,10 @@ public class FloodFillRCSA extends SCVCRCSA{
 
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 4, 1));//15.88
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 1, 4));//15.65
-//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 0, 2, 5));//15.45
+		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 0, 2, 5));//15.45
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(4, 1, 6, 3, 0, 5, 2));//15.65
-		
-		boolean right = false;
-		ArrayList<Integer> coreIndex = new ArrayList<Integer>();//15.65
-		if(spectrumAvailable.containsKey(3) || spectrumAvailable.containsKey(2) || spectrumAvailable.containsKey(1) || spectrumAvailable.containsKey(0)) {
-			coreIndex = new ArrayList<Integer>(Arrays.asList(3, 2, 1, 0));
-		}
-		else
-		{
-			right = true;
-			coreIndex = new ArrayList<Integer>(Arrays.asList(4, 5, 6));
-		}
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2, 1 , 0));
+//		ArrayList<Integer> coreIndex =  new ArrayList<Integer>(Arrays.asList(3, 2, 1, 0, 4, 5, 6));
 		
 		
 		ArrayList<ArrayList<Slot>> candidates = new ArrayList<ArrayList<Slot>>();
@@ -378,30 +377,31 @@ public class FloodFillRCSA extends SCVCRCSA{
 		
 		if(!candidates.isEmpty()) {
 			
-			if(right) {
-				
-				candidates.sort( (a , b) -> {
-					int diff = a.get(0).s - b.get(0).s;
-					
-					if(diff != 0) {
-						return diff;
-					}
-					
-					return ( b.get(0).c - a.get(0).c );
-				});
-			}
-			else {
-				
-				candidates.sort( (a , b) -> {
-					int diff = a.get(0).s - b.get(0).s;
-					
-					if(diff != 0) {
-						return diff;
-					}
-					
-					return ( b.get(0).c - a.get(0).c );
-				});
-			}
+//			candidates.sort( (a , b) -> a.get(0).s - b.get(0).s);
+//			if(!spectrumAvailable.containsKey(0)) 
+//			{
+//				candidates.sort( (a , b) -> {
+//					int diff = a.get(0).s - b.get(0).s;
+//					
+//					if(diff != 0) {
+//						return diff;
+//					}
+//					
+//					return ( b.get(0).c - a.get(0).c );
+//				});
+//			}
+//			else {
+//				
+//				candidates.sort( (a , b) -> {
+//					int diff = b.get(0).s - a.get(0).s;
+//					
+//					if(diff != 0) {
+//						return diff;
+//					}
+//					
+//					return ( a.get(0).c - b.get(0).c );
+//				});
+//			}
 			
 			return establishConnection(links, candidates.get(0), flow.getModulationLevel(), flow);
 		}

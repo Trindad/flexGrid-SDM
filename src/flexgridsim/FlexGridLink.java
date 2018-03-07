@@ -665,7 +665,7 @@ public class FlexGridLink {
 			}
 		}
 		
-		return xt.interCoreCrosstalk(s.c, s.s, n + count, distance);
+		return xt.interCoreCrosstalk(s.c, s.s, (n + count), distance);
 	}
 
 	public int getInterCoreCrosstalkInAdjacent(Slot s) {
@@ -683,6 +683,11 @@ public class FlexGridLink {
 
 	public void printXTMatrix() {
 		xt.printXTMatrix();
+	}
+
+	public LinkedList<Integer> getAdjacentCores(int c) {
+
+		return xt.getAdjacentsCores(c);
 	}
 
 }
