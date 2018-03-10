@@ -35,7 +35,7 @@ public class ModulationsMuticore {
 		 * 
 		 */
 		public static final double inBandXT[] = {-14,-18.5,-21,-25,-27,-34};
-//		public static final double inBandXT[] = {-32,-32,-32,-32,-32,-32};
+
 		/**
 		 * Number of modulations.
 		 *

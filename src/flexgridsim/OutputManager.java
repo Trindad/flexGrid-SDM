@@ -24,9 +24,11 @@ public class OutputManager {
 		numberOfGraphs = graphlist.getLength();
 		graphs = new Graph[numberOfGraphs];
 		for (int i = 0; i < numberOfGraphs; i++) {
+			String dimension = ((Element) graphlist.item(i)).getAttribute("dimension");
+			int dimensionInt = Integer.parseInt(!dimension.isEmpty() ? dimension : "2");
 			graphs[i] = new Graph(
 					((Element) graphlist.item(i)).getAttribute("name"),
-					"graphs"+((Element) graphlist.item(i)).getAttribute("dots-file"),2);
+					"graphs"+((Element) graphlist.item(i)).getAttribute("dots-file"), dimensionInt);
 		}
 	}
 	
@@ -49,6 +51,20 @@ public class OutputManager {
 	public void addDotToGraph(String graphName, double value1, double value2){
 		try {
 			this.getGraph(graphName).getDataSet().addDot(value1, value2);
+		} catch (GraphNotFoundException e) {
+		}
+	}
+	
+	/**
+	 * Adds the dot to graph.
+	 *
+	 * @param graphName the graph name
+	 * @param value1 the value1
+	 * @param value2 the value2
+	 */
+	public void addDotToGraph(String graphName, double... values){
+		try {
+			this.getGraph(graphName).getDataSet().addDot(values);
 		} catch (GraphNotFoundException e) {
 		}
 	}

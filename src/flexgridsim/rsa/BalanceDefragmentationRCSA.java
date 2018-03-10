@@ -22,6 +22,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	
 	public void flowArrival(Flow flow) {
 		
+		kPaths = 5;
 		ArrayList<int[]> kPaths = findKPaths(flow);//find K-Shortest paths using Dijkstra
 		ArrayList<Integer> indices = orderKPaths(kPaths);//sort paths by the fragmentation index from each link
 
@@ -33,16 +34,22 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 			if(fitConnection(flow, spectrum, links)) {
 				this.activeFlows.put(flow.getID(), flow);
 				updateCrosstalk();
+				paths.clear();
 				return;
 			}
 		}
+		
+		paths.clear();
 //		System.out.println(flow.getRate());
+		
 		this.connectionDisruption.add(flow);
+		
 		flow.setConnectionDisruption(true);
+		
 		this.nConnectionDisruption++;
 	}
 	
-private ArrayList<Slot> getMatchingSlots(ArrayList<Slot> s1, ArrayList<Slot> s2, LinkedList<Integer> adjacents) {
+	private ArrayList<Slot> getMatchingSlots(ArrayList<Slot> s1, ArrayList<Slot> s2, LinkedList<Integer> adjacents) {
 		
 		boolean isAdjacent = false;
 		for (int i : adjacents) {
@@ -149,76 +156,88 @@ private ArrayList<Slot> getMatchingSlots(ArrayList<Slot> s1, ArrayList<Slot> s2,
 		return false;
 	}
 	
-	private void getSetOfCandidates(ArrayList<ArrayList<Slot>>  slotList, boolean [][]spectrum, int demandInSlots, int []links, Flow flow, ArrayList<Integer> candidates) {
-		
-		ArrayList<Integer> xt = new ArrayList<Integer>();
-		int count = 0;
-		ArrayList<Slot> temp = new ArrayList<Slot>();
-		for(int i = 0; i < spectrum.length; i++) {
+	private ArrayList<Slot> FirstFitPolicy(boolean [][]spectrum, int demandInSlots, int []links, Flow flow, int modulation) {
+
+		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
+	
+		for(int i = 0; i < spectrum.length ; i++) {
 			
-			for(int j = 0; j < spectrum[i].length; j++) {
+			ArrayList<Slot> temp = new ArrayList<Slot>();
+			for(int j = 0; j < spectrum[i].length; j++) {	
 				
-				if(i == 0 && spectrum[i][j] == true) 
+				if(spectrum[i][j] == true) 
 				{
-					temp.add(new Slot(i, j));
+					temp.add( new Slot(i,j) );
 				}
-				else if( temp.size() >= 1) {
-					if(Math.abs(i - temp.get(temp.size()-1).s) == 1 && spectrum[i][j] == true) {
-						temp.add(new Slot(i, j));
-					}
-				}
-				else 
-				{
-					temp = new ArrayList<Slot>();
-					if(Math.abs(spectrum[i].length-i) < demandInSlots) {
-						break;
-					}
+				else {
 					
-					temp.add(new Slot(i, j));
+					temp.clear();
+					if(Math.abs(spectrum[i].length-j) < demandInSlots) break;
 				}
 				
 				if(temp.size() == demandInSlots) {
 					
-					slotList.add(new ArrayList<Slot>(temp));
-					candidates.add(count);
-					
-					xt.add( (int)(this.pt.sumOfInterCoreCrosstalk(links, temp, ModulationsMuticore.inBandXT[flow.getModulationLevel()]) * (-100.0) ) );
+					if(CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
+						setOfSlots.add(new ArrayList<Slot>(temp));
+						break;
+					}
 					
 					temp.remove(0);
-					count++;
 				}
 			}
 		}
 		
-		candidates.sort( (a,b) -> xt.get(a) - xt.get(b));	
+		
+		if(!setOfSlots.isEmpty()) {
+			
+			setOfSlots.sort( (a , b) -> {
+				int diff = a.get(0).s - b.get(0).s;
+				
+				if(diff != 0) {
+					return diff;
+				}
+				
+				return ( b.get(0).c - a.get(0).c );
+			});
+			
+			return setOfSlots.get(0);		
+		}
+	    
+		return new ArrayList<Slot>();
 	}
 
 	
-	public boolean fitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
+	
+	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean [][]spectrum, int rate) {
 		
-		ArrayList<Integer> candidates = new ArrayList<Integer>();
-		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>> ();
+		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
+		int modulation = chooseModulationFormat(rate, links);
 		
-		getSetOfCandidates(slotList, spectrum, demandInSlots, links, flow, candidates);
-		
-		if(slotList.size() <= 0) return false;
-		
-		for(int index: candidates) {
+		while(modulation >= 0) {
 			
-			ArrayList<Slot> slotsCandidates = slotList.get(index);
-//			System.out.println(Arrays.toString(slotsCandidates.toArray()) + demandInSlots);
-			if(slotsCandidates.size() == demandInSlots) 
-			{
-				if(cp.CrosstalkIsAcceptable(flow, links, slotsCandidates, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
+			double requestedBandwidthInGHz = ( ((double)rate) / ((double)modulation + 1) );
+			double requiredBandwidthInGHz = requestedBandwidthInGHz;
+			double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+			int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+			
+			demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+			demandInSlots++;//adding guardband
+			
+			fittedSlotList = FirstFitPolicy(spectrum, demandInSlots, links, flow,modulation);
+			
+			if(fittedSlotList.size() == demandInSlots) {
 					
-					if(establishConnection(links, slotsCandidates, flow.getModulationLevel(), flow)) {
-						return true;
-					}
-				}
+				flow.setModulationLevel(modulation);
+				
+				return fittedSlotList;
+				
 			}
+			
+			modulation--;
 		}
-
-		return false;
+		
+		
+		return new ArrayList<Slot>();
 	}
 	
 	private double []getFragmentationRatio() {

@@ -5,7 +5,7 @@ import flexgridsim.Cluster;
 import flexgridsim.Flow;
 import flexgridsim.Slot;
 
-public class ClusterRCSA extends SCVCRCSA {
+public class ClusterRCSA extends XTFFRCSA {
 	
 	private ArrayList<Cluster> clusters;
 	

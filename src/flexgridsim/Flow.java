@@ -44,6 +44,7 @@ public class Flow {
     
     //Rerouting
     private boolean connectionDisruption = false;
+    private int pathLength = 0;
 
 	/**
 	 * Creates a new Flow object.
@@ -452,5 +453,14 @@ public class Flow {
         f.setSlotList(slots);
         
 		return f;
+	}
+	
+	public void setPathLength(int l) {
+		this.pathLength = l;
+	}
+
+	public double getPathLength() {
+		
+		return this.pathLength;
 	}
 }

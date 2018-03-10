@@ -401,7 +401,7 @@ public class ConnectionSelectionToReroute {
 		
 		public Map<Long, Flow> run(ControlPlane cp, PhysicalTopology pt, VirtualTopology vt) {
 			
-			
+			nConnections++;
 			return null;
 		}
 	}
@@ -473,9 +473,7 @@ public class ConnectionSelectionToReroute {
 		
 			for (Long key: orderConnections) { 
 				
-//				if(k < nConnections && !connections.containsKey(key) && flows.get(key).getRate() <= 40) 
-//				{
-				if(k < nConnections && !connections.containsKey(key) && flows.get(key).getRate() <= 100) 
+				if(k < nConnections && !connections.containsKey(key)) 
 				{
 					connections.put(key, flows.get(key));
 					k++;

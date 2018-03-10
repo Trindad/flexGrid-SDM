@@ -38,6 +38,10 @@ public class MyStatistics {
     private int[][][] blockedBandwidthPairsDiff;
     private int[][] numberOfUsedTransponders;
     
+    //sum
+    private double[]modulationFormat;//sum of each kind of modulation format used 
+    private double[]sumXT;//sum of inter-core crosstalk occured
+    
     /**
      * A private constructor that prevents any other class from instantiating.
      */
@@ -117,11 +121,22 @@ public class MyStatistics {
         this.totalPowerConsumed = 0;
         this.simTime = 0;
         this.dataTransmitted = 0;
+        
+        modulationFormat = new double[6];//number of modulation format used in this simulator
+        for(int i = 0; i < modulationFormat.length; i++) {
+        	modulationFormat[i] = 0;
+        }
+        
+        sumXT = new double[pt.getNumLinks()];
+        for(int i = 0; i < sumXT.length; i++) {
+        	sumXT[i] = 0;
+        }
     }
 	/**
 	 * Calculate last statistics for the graph generation.
 	 */
 	public void calculateLastStatistics(){
+		
 		//bandwidth block graph
 		plotter.addDotToGraph("mbbr", load, ((float) blockedBandwidth) / ((float) requiredBandwidth));
 		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals) * 100);
@@ -129,9 +144,11 @@ public class MyStatistics {
         float bbr, jfi, sum1 = 0, sum2 = 0;
         if (blocked == 0) {
             bbr = 0;
-        } else {
+        } 
+        else {
             bbr = ((float) blockedBandwidth) / ((float) requiredBandwidth) * 100;
         }
+        
         for (int i = 0; i < numNodes; i++) {
             for (int j = i + 1; j < numNodes; j++) {
                 if (i != j) {
@@ -161,12 +178,27 @@ public class MyStatistics {
     	plotter.addDotToGraph("data", load, dataTransmitted);
     	plotter.addDotToGraph("ee2", load, (((float) blockedBandwidth) / ((float) requiredBandwidth)) / (totalPowerConsumed/(simTime*1000)));
     	
+    	for(int i = 0; i < modulationFormat.length; i++) {
+    		System.out.println(modulationFormat[i]);
+    		
+    	}
+    	
+    	double []modulationParams = new double[modulationFormat.length + 1];
+    	modulationParams[0] = load;
+    	
+    	for (int i = 0; i < modulationFormat.length; i++) {
+    		modulationParams[i+1] = modulationFormat[i];
+    	}
+    	
+    	plotter.addDotToGraph("modulation", modulationParams);
+    	
 	}
 	
 	/**
 	 * Calculate periodical statistics.
 	 */
 	public void calculatePeriodicalStatistics(){
+		
 		//fragmentation graph
 		double fragmentationMean = 0;
     	for (int i = 0; i < pt.getNumLinks(); i++) {
@@ -241,6 +273,7 @@ public class MyStatistics {
         		this.accepted += Math.max(flow.getNumberOfFlowsGroomed(), 1);
         	} else {
         		this.accepted++;
+        		this.modulationFormat[flow.getModulationLevel()]++;
         		
         	}
 //        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
@@ -250,8 +283,11 @@ public class MyStatistics {
         	}
         	
         	int links =  flow.getLinks().length+1;
-        	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
+//        	plotter.addDotToGraph("modulation", load, (flow.getModulationLevel()+1) );
             plotter.addDotToGraph("hops", load, links);
+           
+            plotter.addDotToGraph("avgpathlength", load, flow.getPathLength());
+            
             dataTransmitted += flow.getRate();
             for (int i = 0; i < pt.getCores(); i++) {
             	totalPowerConsumed += flow.getDuration() * flow.getSlotList().size() * Modulations.getPowerConsumption(flow.getModulationLevel());
@@ -278,6 +314,8 @@ public class MyStatistics {
         	} else {
         		this.accepted++;
         		
+        		if(flow.isMultipath()) for(int modulation : flow.getModulationLevels()) this.modulationFormat[modulation]++;
+        		
         	}
 //        	System.out.println("updated now: "+this.accepted+" ID:"+flow.getID());
         	
@@ -285,10 +323,11 @@ public class MyStatistics {
         		return;
         	}
         	
+        	
         	ArrayList<int[]> multipaths = flow.getMultipath();
         	for(int k = 0; k < multipaths.size() ; k++) {
 	        	int links =  multipaths.get(k).length+1;
-	        	plotter.addDotToGraph("modulation", load, flow.getModulationLevel());
+	        	plotter.addDotToGraph("modulation", load, flow.getModulationLevel(k));
 	            plotter.addDotToGraph("hops", load, links);
 	            dataTransmitted += flow.getRate();
 	            for (int i = 0; i < pt.getCores(); i++) {
@@ -326,7 +365,13 @@ public class MyStatistics {
         		this.blocked++;
         	}
         	
-            int cos = flow.getCOS();
+        	if(flow.isConnectionDisruption()) {
+        
+                this.modulationFormat[flow.getModulationLevel()] -= 1;
+                this.accepted--;
+        	}
+    		
+        	int cos = flow.getCOS();
             this.blockedDiff[cos]++;
             this.blockedBandwidth += flow.getRate();
             this.blockedBandwidthDiff[cos] += flow.getRate();

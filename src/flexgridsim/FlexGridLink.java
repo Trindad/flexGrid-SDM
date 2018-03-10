@@ -137,8 +137,9 @@ public class FlexGridLink {
 	/**
 	 * Update the XT 
 	 */
-	public void updateCrosstalk(ArrayList<Slot> slotList, double dbLimited) {
+	public double updateCrosstalk(ArrayList<Slot> slotList, double dbLimited) {
 	
+		double sumXT = 0;
 		for(Slot s: slotList) {
 				
 			double n = 0;
@@ -149,9 +150,11 @@ public class FlexGridLink {
 				}
 			}
 			
-			this.xt.interCoreCrosstalk(s.c, s.s, n, this.distance);
+			sumXT += this.xt.interCoreCrosstalk(s.c, s.s, n, this.distance);
 			this.xt.setLimitDB(s.c, s.s, dbLimited);
 		}
+		
+		return sumXT;
 	}
 	
 	public void updateCrosstalk() {

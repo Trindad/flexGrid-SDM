@@ -1,7 +1,6 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.jgrapht.GraphPath;
@@ -309,6 +308,16 @@ public class SCVCRCSA implements RSA{
 		return new ArrayList<Slot>();
 	}
 
+	public int getPathLength(int[] links) {
+		int totalLength = 0;
+		for(int i : links) {
+			
+			totalLength += (pt.getLink(i).getDistance());
+		}
+		
+		return totalLength;
+	}
+
 	/**
 	 * 
 	 * @param flow
@@ -377,8 +386,9 @@ public class SCVCRCSA implements RSA{
 			flow.setModulationLevel(modulation);
 			flow.setAccepeted(true);
 
+			flow.setPathLength(getPathLength(links));
 			cp.acceptFlow(flow.getID(), lps);
-			
+
 			//update cross-talk
 //			updateCrosstalk(links, flow);
 	
@@ -419,40 +429,55 @@ public class SCVCRCSA implements RSA{
 			this.pt.getLink(l).resetCrosstalk(flow.getSlotList());
         }
 	}
+	
+	public ArrayList<int []>getKShorstestPaths(Flow flow, int K) {
+		
+		ArrayList<int []> p  = new ArrayList<int []>();
+		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), K);
+		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
+			
+		if(KPaths.size() >= 1)
+		{
+			for (int k = 0; k < KPaths.size(); k++) {
+				
+				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				
+				for (int j = 0; j < listOfVertices.size()-1; j++) {
+					
+					links[j] = pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
+				}
+
+				p.add(links);
+			}
+		}
+		
+		return p;
+	}
 
 	public boolean runRCSA(Flow flow, int[] oldLinks, ArrayList<Slot> oldSlotList) {
 		
-		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(graph, flow.getSource(), flow.getDestination(), 4);
-
-		if(kPaths.length >= 1)
-		{
-			boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		ArrayList<int []>kShortestPaths = getKShorstestPaths(flow, 3);
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
 			
-			for (int k = 0; k < kPaths.length; k++) {
+		for (int []links : kShortestPaths) {
 				
-				spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
-
-				int[] links = new int[kPaths[k].length - 1];
-				for (int j = 0; j < kPaths[k].length - 1; j++) {
-					
-					links[j] = pt.getLink(kPaths[k][j], kPaths[k][j + 1]).getID();
-					bitMap(pt.getLink(kPaths[k][j], kPaths[k][j+1]).getSpectrum(), spectrum, spectrum);
+			spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+			
+			ArrayList<Slot> slotList = searchSlotList(flow, spectrum, links);
+			
+			if(!slotList.isEmpty()) 
+			{
+				if(!isEqual(links, oldLinks)) {
+					return establishConnection(links, slotList, flow.getModulationLevel(), flow);
 				}
 				
-				ArrayList<Slot> slotList = searchSlotList(flow, spectrum, links);
-				
-				if(!slotList.isEmpty()) 
-				{
-					if(!isEqual(links, oldLinks)) {
-						return establishConnection(links, slotList, flow.getModulationLevel(), flow);
-					}
-					
-					if(!isEqual(slotList, oldSlotList)) {
-						return establishConnection(links, slotList, flow.getModulationLevel(), flow);
-					}
+				if(!isEqual(slotList, oldSlotList)) {
+					return establishConnection(links, slotList, flow.getModulationLevel(), flow);
 				}
 			}
+			
 		}
 		
 		return false;

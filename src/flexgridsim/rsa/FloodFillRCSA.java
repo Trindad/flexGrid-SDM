@@ -20,6 +20,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 			
 			if(fitConnection(flow, links)) {
 //				System.out.println("Connection accepted: "+flow);
+				
 				this.paths.clear();
 				return true;
 			}
@@ -171,8 +172,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 		for(int i = coreEnd; i > CoreStart; i--) listOfCores.add(i);
 		
 		int it = 0;
-	
-		while(it <= 3) {
+		while(it  <= 3) {
 			
 //			System.out.println(start+" ... "+ end+ " "+Arrays.toString(listOfCores.toArray()));
 			if(fitConnection(flow, listOfCores, links, start, end)) {
@@ -190,17 +190,13 @@ public class FloodFillRCSA extends SCVCRCSA{
 			
 			start = p.get(0);
 			end = p.get(1);
-			it++;
 		}
 
 		if(flow.getRate() <= 100) {
 			return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(0) ), links, 0, (pt.getNumSlots()-1) );
 		}
-//		
-//		System.out.println("**********************************");
-//		System.out.println(Arrays.toString(listOfCores.toArray()));
+
 		return false;
-//		return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(6, 5, 4 , 3, 2, 1) ), links, 0, (pt.getNumSlots()-1) );
 	}
 
 	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum) {

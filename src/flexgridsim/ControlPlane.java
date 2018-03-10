@@ -5,7 +5,7 @@
 package flexgridsim;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -193,9 +193,10 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	           
 	            this.nExceeds++;
-            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000) {
+	            //before 100
+            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 150 && nConnections < 10000) {
             		this.getFragmentationRatio();
-            		System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
+//            		System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
             		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
             		{
             			
@@ -205,7 +206,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 //    	            	limited = 0.06;
             		}
             	}
-            	else if(RR == true && nExceeds >= 300 && this.activeFlows.size() > 300 && nConnections < 10000) {
+            	else if(RR == true && nExceeds >= 150 && this.activeFlows.size() >= 100 && nConnections < 10000) {
                     		
             		fi = this.getFragmentationRatio();
             		
@@ -223,13 +224,13 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
 	        	this.getFragmentationRatio();
-	        	System.out.println("after df: "+ dfIndex);
+//	        	System.out.println("after df: "+ dfIndex);
 	        	updateCrosstalk();
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	        else if(event instanceof ReroutingArrivalEvent) 
 	        {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.3),"HUSIF", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.30),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
 //	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
@@ -270,8 +271,9 @@ public class ControlPlane implements ControlPlaneForRSA {
     		}
     		else
     		{
+    			double sumXt = 0;
     			for(int l : f.getLinks()) {
-        			pt.getLink(l).updateCrosstalk(f.getSlotList(),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel()]);
+        			sumXt += pt.getLink(l).updateCrosstalk(f.getSlotList(),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel()]);
         		}
     		}
     	}
@@ -429,10 +431,14 @@ public class ControlPlane implements ControlPlaneForRSA {
             if (!activeFlows.containsKey(id)) {
                 return false;
             }
+            
+          
             flow = activeFlows.get(id);
-            if (mappedFlows.containsKey(flow)) {
+
+            if (mappedFlows.containsKey(flow) && !flow.isConnectionDisruption()) {
                 return false;
             }
+            
             activeFlows.remove(id);
             tr.blockFlow(flow);
             st.blockFlow(flow);
@@ -879,8 +885,9 @@ public class ControlPlane implements ControlPlaneForRSA {
 				}
 				else
 				{
-					activeFlows.remove(key);
-					mappedFlows.remove(flows.get(key));
+//					activeFlows.remove(key);
+//					mappedFlows.remove(flows.get(key));
+					blockFlow(flows.get(key).getID());
 				}
 			}
 			

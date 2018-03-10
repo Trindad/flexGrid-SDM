@@ -375,7 +375,7 @@ public class PhysicalTopology {
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
-		
+//		System.out.println(xt);
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
 		return xt >= db;

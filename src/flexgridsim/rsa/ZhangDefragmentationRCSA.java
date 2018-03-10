@@ -40,7 +40,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	public void releaseResourcesAssigned(Map<Long, Flow> flows) {
 		
 		this.activeFlows = new HashMap<Long, Flow>(cp.getActiveFlows());
-		this.allflows = new HashMap<Long, Flow>(cp.getActiveFlows());
+		this.allflows = new HashMap<Long, Flow>();
 		this.allFlowsToReroute = new HashMap<Long, Flow>();
 		
 //		for(int i = 0; i < pt.getNumLinks(); i++) {
@@ -53,7 +53,6 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 		for(Long key: flows.keySet()) {
 			this.allFlowsToReroute.put(key, flows.get(key));
 			this.allflows.remove(key);
-			this.activeFlows.remove(key);
 			cp.removeFlowFromPT(flows.get(key), this.vt.getLightpath(flows.get(key).getLightpathID()), this.pt, this.vt);
 			updateCrosstalk();	
 			
@@ -117,6 +116,7 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 	 */
 	public void runDefragmentantion(Map<Long, Flow> flowsToReroute) {
 		
+		this.nConnectionDisruption = 0;
 		try {
 			
 			releaseResourcesAssigned(flowsToReroute);
@@ -187,15 +187,15 @@ public class ZhangDefragmentationRCSA extends DefragmentationRCSA{
 			
 			accepted.put(flow, lps);
 			
-			for (int j = 0; j < links.length; j++) {
+			for (int j : links) {
 				
-	            this.pt.getLink(links[j]).reserveSlots(slotList);
-	            this.pt.getLink(links[j]).updateNoise(lps.getSlotList(), flow.getModulationLevel());
+	            this.pt.getLink(j).reserveSlots(slotList);
+	            this.pt.getLink(j).updateNoise(lps.getSlotList(), flow.getModulationLevel());
 	        }
 			
 			//update cross-talk
-			for(int i = 0; i < links.length; i++) {
-				this.pt.getLink(links[i]).updateCrosstalk(slotList);
+			for(int i : links) {
+				this.pt.getLink(i).updateCrosstalk(slotList);
 			}
 			
 //			System.out.println("Connection reaccepted: "+flow);
