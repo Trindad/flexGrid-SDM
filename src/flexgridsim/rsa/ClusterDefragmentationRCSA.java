@@ -71,6 +71,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				{
 					this.activeFlows.put(flow.getID(), flow);
 					flow.setAccepeted(true);
+					flow.setCore(sortFreeCore.get(i));
 					break;
 				}
 			}
@@ -204,6 +205,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 						else
 						{
 							this.activeFlows.put(flow.getID(), flow);
+							flow.setCore(flow.getSlotList().get(0).c);
 //							System.out.println(" "+flow);
 						}
 					}

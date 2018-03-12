@@ -367,15 +367,24 @@ public class PhysicalTopology {
 		double xt = 0.0f;
 		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		for(int i : flow.getLinks()) {
+			double xti = 0;
 			for(Slot s: s1) {
 				int controller = 0;
 				if(contains(s2, s) && links.contains(i)) {
 					controller++;
 				}
-				xt += this.getLink(i).getNewXT(s, controller);
+				xti += this.getLink(i).getNewXT(s, controller);
 			}
+			
+			xt += xti;
+			
+			int n = s1.get(0).c == 0 ? 7 : 3; 
+			xti = xti > 0 ? ( 10.0f * Math.log10(xti)/Math.log10(10) ) : 0.0f;//db
+			double worst = xti - (10.0 * Math.log(n));
+			double deltaXT = worst - xti;
+//			System.out.println("xt: "+xti+ " worst: "+worst + " delta: "+deltaXT +" v: "+(10.0 * Math.log(n))+" limit: "+db+" nCores: "+n);
 		}
-//		System.out.println(xt);
+		// System.out.println();
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
 		return xt >= db;

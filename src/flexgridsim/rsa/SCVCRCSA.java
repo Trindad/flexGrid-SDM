@@ -387,6 +387,7 @@ public class SCVCRCSA implements RSA{
 			flow.setAccepeted(true);
 
 			flow.setPathLength(getPathLength(links));
+			flow.setCore(slotList.get(0).c);
 			cp.acceptFlow(flow.getID(), lps);
 
 			//update cross-talk

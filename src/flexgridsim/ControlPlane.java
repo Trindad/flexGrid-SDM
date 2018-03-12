@@ -172,6 +172,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	    	if (event instanceof FlowArrivalEvent)
 	        {
 	    		nConnections++;
+	    		
 	            newFlow(((FlowArrivalEvent) event).getFlow());
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
 	            
@@ -188,7 +189,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            removeFlow(((FlowDepartureEvent) event).getFlow().getID());
 	        	
 	        	if(((FlowDepartureEvent) event).getFlow().isAccepeted()) {
-	        		
+	        		st.updateInterCoreCrosstalk(((FlowDepartureEvent) event).getFlow());
 	 	            updateCrosstalk();
 	        	}
 	           
@@ -261,13 +262,14 @@ public class ControlPlane implements ControlPlaneForRSA {
     		if(f.isMultipath())
     		{
     			ArrayList<ArrayList<Slot>> slotList = f.getMultiSlotList();
-    			
+    			double sumXt = 0;
     			for(int i = 0; i < slotList.size(); i++) {
     				int []links = f.getLinks(i);
 	    			for(int l : links) {
-	        			pt.getLink(l).updateCrosstalk(slotList.get(i),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel(i)]);
+	    				sumXt += pt.getLink(l).updateCrosstalk(slotList.get(i),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel(i)]);
 	        		}
     			}
+    			f.setXTGenerated(sumXt);
     		}
     		else
     		{
@@ -275,6 +277,7 @@ public class ControlPlane implements ControlPlaneForRSA {
     			for(int l : f.getLinks()) {
         			sumXt += pt.getLink(l).updateCrosstalk(f.getSlotList(),  ModulationsMuticore.subcarriersCapacity[f.getModulationLevel()]);
         		}
+    			f.setXTGenerated(sumXt);
     		}
     	}
 	}

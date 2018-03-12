@@ -46,7 +46,10 @@ public class Flow {
     private boolean connectionDisruption = false;
     private int pathLength = 0;
 
-	/**
+    private double sumXT = 0;
+    private double currentXT = 0;
+	
+    /**
 	 * Creates a new Flow object.
 	 *
 	 * @param id            unique identifier
@@ -462,5 +465,19 @@ public class Flow {
 	public double getPathLength() {
 		
 		return this.pathLength;
+	}
+
+	public void setXTGenerated(double xt) {
+		double xti = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		double delta = Math.abs(xti - currentXT) * -1;
+		this.currentXT = xti;
+	
+		if(xti <= 0) {
+			sumXT += delta;
+		}
+	}
+
+	public double getSumOfXT() {
+		return sumXT;
 	}
 }

@@ -40,7 +40,10 @@ public class MyStatistics {
     
     //sum
     private double[]modulationFormat;//sum of each kind of modulation format used 
-    private double[]sumXT;//sum of inter-core crosstalk occured
+    private double[]coreUsed;//core-index used by each connection
+    private double sumXT = 0;//sum of inter-core crosstalk occured
+    private double pathLength = 0;
+    private int nMultipaths = 0;
     
     /**
      * A private constructor that prevents any other class from instantiating.
@@ -127,9 +130,9 @@ public class MyStatistics {
         	modulationFormat[i] = 0;
         }
         
-        sumXT = new double[pt.getNumLinks()];
-        for(int i = 0; i < sumXT.length; i++) {
-        	sumXT[i] = 0;
+        coreUsed = new double[pt.getCores()];
+        for(int i = 0; i < coreUsed.length; i++) {
+        	coreUsed[i] = 0;
         }
     }
 	/**
@@ -177,21 +180,36 @@ public class MyStatistics {
     	plotter.addDotToGraph("ee", load, dataTransmitted/( totalPowerConsumed / 1000));
     	plotter.addDotToGraph("data", load, dataTransmitted);
     	plotter.addDotToGraph("ee2", load, (((float) blockedBandwidth) / ((float) requiredBandwidth)) / (totalPowerConsumed/(simTime*1000)));
+  
+    	int n = accepted;
     	
-    	for(int i = 0; i < modulationFormat.length; i++) {
-    		System.out.println(modulationFormat[i]);
-    		
+    	if(nMultipaths >= 1) {
+    		n = nMultipaths;
     	}
     	
+    	//modulation statistics
     	double []modulationParams = new double[modulationFormat.length + 1];
     	modulationParams[0] = load;
-    	
     	for (int i = 0; i < modulationFormat.length; i++) {
-    		modulationParams[i+1] = modulationFormat[i];
+    		modulationParams[i+1] = (modulationFormat[i]/n);
     	}
-    	
     	plotter.addDotToGraph("modulation", modulationParams);
     	
+    	
+    	//inter-core crosstalk statistics
+    	double xtLevel = 60 + ((double)sumXT / (double)n);//60db is the capacity of switch optical
+    	plotter.addDotToGraph("xt",load, xtLevel);
+    	
+    	//core-index statistics
+    	double []cores = new double[coreUsed.length + 1];
+    	cores[0] = load;
+    	for (int i = 0; i < coreUsed.length; i++) {
+    		cores[i+1] = (coreUsed[i]/n);
+    	}
+    	plotter.addDotToGraph("cores", cores);
+    	
+    	//average path length
+    	plotter.addDotToGraph("avgpathlength", load, (pathLength/(double)n) );
 	}
 	
 	/**
@@ -286,7 +304,7 @@ public class MyStatistics {
 //        	plotter.addDotToGraph("modulation", load, (flow.getModulationLevel()+1) );
             plotter.addDotToGraph("hops", load, links);
            
-            plotter.addDotToGraph("avgpathlength", load, flow.getPathLength());
+           
             
             dataTransmitted += flow.getRate();
             for (int i = 0; i < pt.getCores(); i++) {
@@ -368,6 +386,7 @@ public class MyStatistics {
         	if(flow.isConnectionDisruption()) {
         
                 this.modulationFormat[flow.getModulationLevel()] -= 1;
+                this.pathLength -= flow.getPathLength();
                 this.accepted--;
         	}
     		
@@ -489,4 +508,23 @@ public class MyStatistics {
     {
         singletonObject = null;
     }
+
+	public void updateInterCoreCrosstalk(Flow flow) {
+		nMultipaths = accepted;
+		if(!flow.isMultipath()){ 
+			coreUsed[flow.getSlotList().get(0).c]++;
+		}
+		else
+		{
+			for(ArrayList<Slot> s: flow.getMultiSlotList()) {
+				coreUsed[s.get(0).c]++;
+			}
+			
+			nMultipaths += (flow.getMultipath().size()-1);
+		}
+		
+		if(flow.getPathLength() == 0) System.out.println("ERROR while getting path length");
+		pathLength +=  (double)flow.getPathLength();
+		sumXT += flow.getSumOfXT();
+	}
 }
