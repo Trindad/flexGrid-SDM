@@ -6,6 +6,7 @@ package flexgridsim;
 
 import java.util.ArrayList;
 //import java.util.Arrays;
+import java.util.Arrays;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -320,14 +321,15 @@ public class PhysicalTopology {
 		for(int i : links) {
 			for(Slot s: slotList) {
 				int controller = this.getLink(i).getInterCoreCrosstalkInAdjacent(s);
+//				System.out.println(controller);
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 		
-//		System.out.println(xt + " "+ db + " cond: " + (xt >= db) + " ::: " + Arrays.toString(slotList.toArray()));
-		return xt >= db;
+//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db));
+		return xt == 0 || xt <= db;
     }
     
     public double sumOfInterCoreCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
@@ -352,14 +354,17 @@ public class PhysicalTopology {
 		for(int i : links) {
 			for(Slot s: s1) {
 				int controller = 0;
-				if(contains(s2, s)) controller++;
+				if(contains(s2, s)) {
+					controller++;
+				}
+				System.out.println(controller);
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		
-		return xt >= db;
+//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db));
+		return xt == 0 || xt <= db;
 	}
 
     public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
@@ -373,21 +378,15 @@ public class PhysicalTopology {
 				if(contains(s2, s) && links.contains(i)) {
 					controller++;
 				}
+//				System.out.println(controller);
 				xti += this.getLink(i).getNewXT(s, controller);
 			}
-			
 			xt += xti;
-			
-			int n = s1.get(0).c == 0 ? 7 : 3; 
-			xti = xti > 0 ? ( 10.0f * Math.log10(xti)/Math.log10(10) ) : 0.0f;//db
-			double worst = xti - (10.0 * Math.log(n));
-			double deltaXT = worst - xti;
-//			System.out.println("xt: "+xti+ " worst: "+worst + " delta: "+deltaXT +" v: "+(10.0 * Math.log(n))+" limit: "+db+" nCores: "+n);
 		}
 		// System.out.println();
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		
-		return xt >= db;
+//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db) );
+		return xt == 0 || xt <= db;
 	}
     
     public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, int []l, ArrayList<Slot> s1, ArrayList<Slot> s2) {
@@ -400,13 +399,14 @@ public class PhysicalTopology {
 				if(contains(s2, s) && links.contains(i)) {
 					controller++;
 				}
+//				System.out.println(controller);
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		
-		return xt >= db;
+//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db) );
+		return xt == 0 || xt <= db;
 	}
 	
 	private boolean contains(ArrayList<Slot> slotList, Slot slot) {

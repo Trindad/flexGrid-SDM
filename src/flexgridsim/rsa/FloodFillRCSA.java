@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
@@ -12,12 +13,11 @@ import flexgridsim.Slot;
 public class FloodFillRCSA extends SCVCRCSA{
 
 	protected boolean runRCSA(Flow flow) {
-		
-		kPaths = 3;
+
 		setkShortestPaths(flow);
-	
+//		System.out.println(flow);
 		for(int []links : getkShortestPaths()) {
-			
+//			System.out.println("l: "+ Arrays.toString(links));
 			if(fitConnection(flow, links)) {
 //				System.out.println("Connection accepted: "+flow);
 				
@@ -26,6 +26,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 			}
 			
 		}
+//		System.out.println();
 //		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
 		this.paths.clear();
 //		System.out.println("Connection blocked: "+flow);
@@ -87,7 +88,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 	
 		while (nVisited < t) {
 		
-			int []coreAndSlot = getSeed(listOfCores, ff.getFillMap());
+			int []coreAndSlot = getSeed(listOfCores, ff.getFillMap(), start, end);
 			if(coreAndSlot != null) 
 			{
 				nVisited += ff.runFloodFill(coreAndSlot[0], coreAndSlot[1]);
@@ -105,7 +106,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 	protected boolean fitConnection(Flow flow, ArrayList<Integer> listOfCores, int []links, int start, int end) {
 		
 		int modulationFormat = chooseModulationFormat(flow.getRate(), links);
-		
+//		System.out.println(start + " "+end+ " "+Arrays.toString(listOfCores.toArray()));
 		while(modulationFormat >= 0) {
 			
 			boolean [][]spectrum = bitMapAll(links);
@@ -119,11 +120,11 @@ public class FloodFillRCSA extends SCVCRCSA{
 			if(tryToFitConnection(flow, listOfCores, spectrum, links, demandInSlots, start, end)) {
 				return true;
 			}
-			
+	
 			modulationFormat--;
 			
 		}
-	
+//		System.out.println("-----------------------------");
 		return false;
 	}
 	
@@ -136,19 +137,23 @@ public class FloodFillRCSA extends SCVCRCSA{
 		if(coreEnd == ( pt.getCores() - 1 ) ) {
 			
 			int n = ( pt.getCores() - (pt.getCores()/2) ) - 1;
-			for(int i = n; i >= 1; i--) cores.add(i);
+			for(int i = n; i >= 0; i--) {
+				cores.add(i);
+			}
 		}
 		//3...0 and 0..159
 		else if(coreEnd == ( Math.floorDiv(pt.getCores(), 2) ) && endSlot == k ) {
 			
 			int n = (pt.getCores()/2);//		System.out.println(coreEnd + " "+ endSlot + " " + (coreEnd == (pt.getCores()/2) - 1 ) + " " + (endSlot == ( (pt.getNumSlots()/2)-1)) );
-			for(int i = (pt.getCores()-1); i > n; i--) cores.add(i);
+			for(int i = (pt.getCores()-1); i > n; i--) {
+				cores.add(i);
+			}
 		}
 		
 		return cores;
 	}
 	
-	private ArrayList<Integer> newStartAndEndSlotIndex(int endCore, int endSlot) {
+	private ArrayList<Integer> newStartAndEndSlotIndex(int endSlot) {
 		
 		if(endSlot == (pt.getNumSlots()-1) ) {
 			return new ArrayList<Integer>(Arrays.asList( 0, ( ( pt.getNumSlots() / 2 ) -1) ) );
@@ -165,45 +170,54 @@ public class FloodFillRCSA extends SCVCRCSA{
 	
 		int start = 0;
 		int end = (pt.getNumSlots()/2)-1;
-		int coreEnd = pt.getCores()-1;
-		int CoreStart = Math.floorDiv(pt.getCores(), 2);
 		ArrayList<Integer> listOfCores = new ArrayList<Integer>();
 		
-		for(int i = coreEnd; i > CoreStart; i--) listOfCores.add(i);
-		
 		int it = 0;
-		while(it  <= 3) {
+		while(it <= 3) {
 			
-//			System.out.println(start+" ... "+ end+ " "+Arrays.toString(listOfCores.toArray()));
+			if(it == 0 || it == 3 && flow.getRate() >= 1000) {
+				
+				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1));
+//				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 2, 4));
+			}
+			else if(it == 1 || it == 2 && flow.getRate() < 1000) 
+			{
+				listOfCores = new ArrayList<Integer>(Arrays.asList(5, 2, 4));
+//				listOfCores = new ArrayList<Integer>(Arrays.asList(1, 3, 5));
+			}
+			
+//			System.out.println(start+" ... "+ end + " "+Arrays.toString(listOfCores.toArray()));
 			if(fitConnection(flow, listOfCores, links, start, end)) {
+//				System.out.println("----------------------------");
 				return true;
 			}
 			
-			ArrayList<Integer> p = newStartAndEndSlotIndex(coreEnd, end);
+			ArrayList<Integer> p = newStartAndEndSlotIndex(end);
 			
-			ArrayList<Integer> temp = newListOfCores(coreEnd, end);
-			
-			if(!temp.isEmpty()) {
-				coreEnd = temp.get(0);
-				listOfCores = temp;
-			}
+//			ArrayList<Integer> temp = newListOfCores(coreEnd, end);
+//			
+//			if(!temp.isEmpty()) {
+//				coreEnd = temp.get(0);
+//				listOfCores = temp;
+//			}
 			
 			start = p.get(0);
 			end = p.get(1);
+			it++;
 		}
-
+		
 		if(flow.getRate() <= 100) {
 			return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(0) ), links, 0, (pt.getNumSlots()-1) );
 		}
-
+//		System.out.println("----------------------------");
 		return false;
 	}
 
-	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum) {
+	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum, int start, int end) {
 		
 		for(int it : cores) {
 			
-			int []seed = getRandomNumbers(spectrum,it);
+			int []seed = getRandomNumbers(spectrum,it, start, end);
 			
 			if(seed != null) {
 				return seed;
@@ -213,13 +227,14 @@ public class FloodFillRCSA extends SCVCRCSA{
 		return null;
 	}
 
-	private int[] getRandomNumbers(boolean[][] spectrum, Integer index) {
+	private int[] getRandomNumbers(boolean[][] spectrum, Integer index, int start, int end) {
 
 		int []numbers = new int[2];
 		int i = 0;
-		while(i < 3) {
+		Random rand = new Random();
+		while(i < 10) {
 			
-			int j = (int)(Math.random() * spectrum[index].length + 1);
+			int j = (int)(rand.nextInt(end) +  1);
 			if(spectrum[index][j-1]) {
 				
 				numbers[0] = index;
@@ -230,13 +245,13 @@ public class FloodFillRCSA extends SCVCRCSA{
 			i++;
 		}
 		
-		return getPositionNumbers(spectrum, index);
+		return getPositionNumbers(spectrum, index, start, end);
 	}
 
-	private int[]getPositionNumbers(boolean[][] spectrum, int index) {
+	private int[]getPositionNumbers(boolean[][] spectrum, int index, int start, int end) {
 		
 		int []numbers = new int[2];
-		for(int j = 0; j < spectrum[index].length; j++) {
+		for(int j = start; j <= end; j++) {
 			if(spectrum[index][j]) 
 			{
 				numbers[0] = index;
@@ -342,6 +357,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 					}
 					
 					temp.remove(0);
+//					temp.clear();
 					
 				}
 			}
@@ -354,8 +370,9 @@ public class FloodFillRCSA extends SCVCRCSA{
 
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 4, 1));//15.88
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 2, 5, 0, 1, 4));//15.65
-		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 0, 2, 5));//15.45
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 4, 0, 2, 5));//15.45
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(4, 1, 6, 3, 0, 5, 2));//15.65
+		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2, 1 , 0));
 //		ArrayList<Integer> coreIndex =  new ArrayList<Integer>(Arrays.asList(3, 2, 1, 0, 4, 5, 6));
 		
@@ -366,40 +383,29 @@ public class FloodFillRCSA extends SCVCRCSA{
 			if(spectrumAvailable.containsKey(key)) 
 			{ 
 				ArrayList<Slot> candidate = getSetOfCandidates(spectrumAvailable.get(key), key, demandInSlots, links, flow);
-				if(!candidate.isEmpty()) candidates.add(new ArrayList<Slot>(candidate));
+				if(!candidate.isEmpty()) {
+					candidates.add(candidate);
+//					return establishConnection(links, candidate, flow.getModulationLevel(), flow);
+				}
 			}
 		}
 		
 		
 		if(!candidates.isEmpty()) {
 			
-//			candidates.sort( (a , b) -> a.get(0).s - b.get(0).s);
-//			if(!spectrumAvailable.containsKey(0)) 
-//			{
-//				candidates.sort( (a , b) -> {
-//					int diff = a.get(0).s - b.get(0).s;
-//					
-//					if(diff != 0) {
-//						return diff;
-//					}
-//					
-//					return ( b.get(0).c - a.get(0).c );
-//				});
-//			}
-//			else {
-//				
-//				candidates.sort( (a , b) -> {
-//					int diff = b.get(0).s - a.get(0).s;
-//					
-//					if(diff != 0) {
-//						return diff;
-//					}
-//					
-//					return ( a.get(0).c - b.get(0).c );
-//				});
-//			}
+			candidates.sort( (a , b) -> {
+				if (a.get(0).c != b.get(0).c) {
+					return coreIndex.indexOf(a.get(0).c) - coreIndex.indexOf(b.get(0).c);
+				}
+				
+				return a.get(0).s - b.get(0).s;
+			});
 			
-			return establishConnection(links, candidates.get(0), flow.getModulationLevel(), flow);
+			for (ArrayList<Slot> candidate : candidates) {			
+				if (establishConnection(links, candidate, flow.getModulationLevel(), flow)) {
+					return true;
+				}
+			}
 		}
 		
 		return false;
@@ -416,7 +422,14 @@ public class FloodFillRCSA extends SCVCRCSA{
 		
 		public FloodFill8(boolean[][] matrix) {
 			
-			this.fillMap = matrix.clone();
+			this.fillMap = new boolean[matrix.length][matrix[0].length];
+			
+			for (int i = 0; i < matrix.length; i++) {
+				for (int j = 0; j < matrix[i].length; j++) {
+					this.fillMap[i][j] = matrix[i][j];
+				}
+			}
+			
 			this.painted = new HashMap<Integer, ArrayList<Integer>>();
 			this.n = fillMap.length;
 			this.m = fillMap[0].length;

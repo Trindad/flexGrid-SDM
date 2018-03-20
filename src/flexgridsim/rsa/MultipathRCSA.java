@@ -511,7 +511,7 @@ public class MultipathRCSA extends SCVCRCSA {
 		
 		ArrayList<Long> ids = new ArrayList<Long>();
 		int i = 0;
-		
+		int pathLength = 0;
 		for(int []links : mpaths) {
 			
 			long id = vt.createLightpath(links, slotList.get(i),flow.getModulationLevel(i));
@@ -525,6 +525,7 @@ public class MultipathRCSA extends SCVCRCSA {
 				return false;
 			}
 			
+			pathLength += getPathLength(links);
 //			System.out.println(id);
 			
 			i++;
@@ -533,6 +534,7 @@ public class MultipathRCSA extends SCVCRCSA {
 			
 		if (ids.size() == mpaths.size()) 
 		{
+			flow.setPathLength(pathLength);
 			this.updateData(flow, mpaths, ids, slotList, modulation);
 			return true;
 		} 

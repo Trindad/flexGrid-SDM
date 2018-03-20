@@ -980,7 +980,9 @@ public class ControlPlane implements ControlPlaneForRSA {
 						
 						if(!t.isEmpty()) 
 						{
-							if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t)) return false;
+							if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t)) {
+								return false;
+							}
 						}
 					}
 					i++;
@@ -999,7 +1001,9 @@ public class ControlPlane implements ControlPlaneForRSA {
 					if(!t.isEmpty()) 
 					{
 //						System.out.println(Arrays.toString(matching.toArray()));
-						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t)) return false;
+						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t)) {
+							return false;
+						}
 					}
 				}
 				

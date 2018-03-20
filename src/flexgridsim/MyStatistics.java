@@ -200,6 +200,9 @@ public class MyStatistics {
     	double xtLevel = 60 + ((double)sumXT / (double)n);//60db is the capacity of switch optical
     	plotter.addDotToGraph("xt",load, xtLevel);
     	
+    	double xtAvg = ((double)sumXT / (double)n);
+    	plotter.addDotToGraph("xtavg", load, xtAvg);
+    	
     	//core-index statistics
     	double []cores = new double[coreUsed.length + 1];
     	cores[0] = load;
