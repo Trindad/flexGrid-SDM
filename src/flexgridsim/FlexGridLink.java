@@ -29,6 +29,8 @@ public class FlexGridLink {
 	private int reserved;
 	private boolean isBlocked = false;
 	private int slotsAvailable = 0;
+	private double XT = 0;
+//	private double currentXT = 0;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -154,26 +156,52 @@ public class FlexGridLink {
 			this.xt.setLimitDB(s.c, s.s, dbLimited);
 		}
 		
+//		System.out.println("penalty: "+(-10.0f * Math.log(1- Math.sqrt(sumXT))) +" :: "+(-10.0f * Math.log(1- sumXT))+ " xt: "+(10.0f * Math.log10(sumXT)/Math.log10(10)) );
+		
 		return sumXT;
+	}
+	
+	private double convertToDB(double p) {
+		return 10.0f * Math.log10(p)/Math.log10(10);
+//		return ( 10.0f * Math.log10(p/10.0) );
 	}
 	
 	public void updateCrosstalk() {
 		
+		double xt = 0, xti = 0;
+		int nXT = 0;
 		for(int i = 0; i < this.cores; i++) {
-			
 			for(int j = 0; j < this.slots; j++) {
 				double n = 0;
-				for(Integer c: this.xt.getAdjacentsCores(i) ) {
-				
-					if(reservedSlots[c][j]) {
-						n++;
+				if(reservedSlots[i][j]) {
+					for(Integer c: this.xt.getAdjacentsCores(i) ) {
+						if(reservedSlots[c][j]) {
+							n++;
+						}
 					}
 				}
 				
+				xti = this.xt.interCoreCrosstalk(i, j, n, this.distance);
 				
-				this.xt.interCoreCrosstalk(i, j, n, this.distance);
+				if(xti > 0) {
+//					System.out.println(xti + " "+n+ " c: "+i);
+					nXT++;
+					xt = xt + xti;
+				}
 			}
 		}
+		
+		if( nXT >= 1) {
+			xt = convertToDB(xt);//db
+			if(XT > xt) 
+			{
+				XT = xt;
+			}
+		}
+	}
+	
+	public double getSumOfInterCoreCrosstalk() {
+		return XT;
 	}
 
 	
@@ -233,6 +261,8 @@ public class FlexGridLink {
 				this.noise[i][j]=-100;
 			}
 		}
+		
+		XT = 0;
 	}
 	
 	/**

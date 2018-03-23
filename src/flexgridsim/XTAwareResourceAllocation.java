@@ -61,6 +61,7 @@ public class XTAwareResourceAllocation {
 		}
 
 		double h = (Math.pow(k, 2) / B) * (R / corePitch);
+//		System.out.println(h +" "+  10.0f * Math.log10(h/10.0));
 		L = (L*1000);
 		double exponential = (-1 * (n + 1)) * 2 * h * L;
 		

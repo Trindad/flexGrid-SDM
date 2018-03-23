@@ -42,6 +42,7 @@ public class MyStatistics {
     private double[]modulationFormat;//sum of each kind of modulation format used 
     private double[]coreUsed;//core-index used by each connection
     private double sumXT = 0;//sum of inter-core crosstalk occured
+    private double sumXTLinks = 0;
     private double pathLength = 0;
     private int nMultipaths = 0;
     
@@ -213,6 +214,13 @@ public class MyStatistics {
     	
     	//average path length
     	plotter.addDotToGraph("avgpathlength", load, (pathLength/(double)n) );
+    	
+    	
+    	for(int i = 0; i < pt.getNumLinks(); i++) {
+        	sumXTLinks += pt.getLink(i).getSumOfInterCoreCrosstalk();
+        }
+        
+    	plotter.addDotToGraph("xtmean",load, (sumXTLinks / (double) pt.getNumLinks()));
 	}
 	
 	/**
@@ -475,11 +483,21 @@ public class MyStatistics {
             blockProb = ((float) blocked) / ((float) arrivals) * 100;
             bbr = ((float) blockedBandwidth) / ((float) requiredBandwidth) * 100;
         }
+        
+        double ct = ((double)sumXT / (double)accepted);
+        
+        for(int i = 0; i < pt.getNumLinks(); i++) {
+        	sumXTLinks += pt.getLink(i).getSumOfInterCoreCrosstalk();
+        }
+        
+        double ctLinks = sumXTLinks / (double) pt.getNumLinks();
 
         String stats = "Arrivals \t: " + Integer.toString(arrivals) + "\n";
         stats += "Required BW \t: " + Integer.toString(requiredBandwidth) + "\n";
         stats += "Departures \t: " + Integer.toString(departures) + "\n";
         stats += "Accepted \t: " + Integer.toString(accepted) + "\t(" + Float.toString(acceptProb) + "%)\n";
+        stats += "XT-flow: "+ "\t" + Double.toString(ct) + "\n";
+        stats += "XT-links: "+ "\t" + Double.toString(ctLinks) + "\n";
         stats += "Blocked \t: " + Integer.toString(blocked) + "\t(" + Float.toString(blockProb) + "%)\n";
         stats += "BBR     \t: " + Float.toString(bbr) + "%\n";
         stats += "\n";
@@ -513,6 +531,7 @@ public class MyStatistics {
     }
 
 	public void updateInterCoreCrosstalk(Flow flow) {
+		
 		nMultipaths = accepted;
 		if(!flow.isMultipath()){ 
 			coreUsed[flow.getSlotList().get(0).c]++;
@@ -526,7 +545,10 @@ public class MyStatistics {
 			nMultipaths += (flow.getMultipath().size()-1);
 		}
 		
-		if(flow.getPathLength() == 0) System.out.println("ERROR while getting path length");
+		if(flow.getPathLength() == 0) {
+			System.out.println("ERROR while getting path length");
+		}
+//		System.out.println(flow.getSumOfXT());
 		pathLength +=  (double)flow.getPathLength();
 		sumXT += flow.getSumOfXT();
 	}

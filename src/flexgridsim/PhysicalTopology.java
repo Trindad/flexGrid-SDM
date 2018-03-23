@@ -315,7 +315,7 @@ public class PhysicalTopology {
     }
     
     
-    public boolean canAcceptCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
+    public double canAcceptCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
     	
     	double xt = 0.0f;
 		for(int i : links) {
@@ -326,10 +326,7 @@ public class PhysicalTopology {
 			}
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		
-//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db));
-		return xt == 0 || xt <= db;
+		return xt;
     }
     
     public double sumOfInterCoreCrosstalk(int[] links, ArrayList<Slot> slotList, double db) {
@@ -357,20 +354,17 @@ public class PhysicalTopology {
 				if(contains(s2, s)) {
 					controller++;
 				}
-				System.out.println(controller);
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db));
 		return xt == 0 || xt <= db;
 	}
 
-    public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+    public double canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
 
 		double xt = 0.0f;
-		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+//		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		for(int i : flow.getLinks()) {
 			double xti = 0;
 			for(Slot s: s1) {
@@ -383,30 +377,54 @@ public class PhysicalTopology {
 			}
 			xt += xti;
 		}
-		// System.out.println();
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-//		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db) );
-		return xt == 0 || xt <= db;
+		
+		return xt;
 	}
     
-    public boolean canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, int []l, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+    public double canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> slots) {
 
 		double xt = 0.0f;
-		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+//		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		for(int i : links) {
+			for(Slot s: slots) {
+				xt += this.getLink(i).getNewXT(s, 0);
+			}
+		}
+//		System.out.println("xt: "+( 10.0f * Math.log10(0.0000005/10.0) )+ " "+10.0f * Math.log10(0.0000005)/Math.log10(10));
+		return xt;
+	}
+    
+    public double canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, int []l, ArrayList<Slot> s1, ArrayList<Slot> s2) {
+
+		double xt = 0.0f;
+//		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
 		for(int i : l) {
 			for(Slot s: s1) {
 				int controller = 0;
 				if(contains(s2, s) && links.contains(i)) {
 					controller++;
 				}
-//				System.out.println(controller);
+//				System.out.println(controller + " "+  10.0f * Math.log10(xt/10.0));
 				xt += this.getLink(i).getNewXT(s, controller);
 			}
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
 //		System.out.println(xt + " "+ db + " cond: " + ( xt == 0 || xt <= db) );
-		return xt == 0 || xt <= db;
+		return xt;
+	}
+    
+    public double canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, int []l, ArrayList<Slot> slots) {
+
+		double xt = 0.0f;
+//		double db =  ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+		for(int i : l) {
+			for(Slot s: slots) {
+				
+				xt += this.getLink(i).getNewXT(s, 0);
+			}
+		}
+
+		return xt;
 	}
 	
 	private boolean contains(ArrayList<Slot> slotList, Slot slot) {

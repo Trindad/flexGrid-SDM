@@ -468,13 +468,16 @@ public class Flow {
 	}
 
 	public void setXTGenerated(double xt) {
+		
 		double xti = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		double delta = Math.abs(xti - currentXT) * -1;
-		this.currentXT = xti;
-	
-		if(xti <= 0) {
+		double delta = (xti - currentXT);
+		
+		if(xti <= 0) 
+		{
 			sumXT += delta;
 		}
+		
+		this.currentXT = xti;
 	}
 
 	public double getSumOfXT() {

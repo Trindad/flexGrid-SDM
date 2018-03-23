@@ -19,11 +19,12 @@ public class ClusterRCSA extends XTFFRCSA {
 			
 			if(c.getNumberOfFeatures() == 3) {
 				
+				//nHops, bw, duration
 				distances[i] = euclidianDistance( c.getX(), c.getY(), c.getZ(), (double)(h * 100), (double)flow.getRate(), (flow.getDuration()*100) );
 			}
 			else if(c.getNumberOfFeatures() == 2)
 			{
-				distances[i] = euclidianDistanceTwoFeatures(c.getX(), c.getY(),flow.getRate(), (double)(h * 100));
+				distances[i] = euclidianDistanceTwoFeatures(c.getX(), c.getY(), (double)(h * 100) ,  (flow.getRate() * 10));
 			}
 
 			sortClusters.add(i);
@@ -33,6 +34,17 @@ public class ClusterRCSA extends XTFFRCSA {
 		sortClusters.sort((a,b) -> (int)(distances[a] * 1000) - (int)(distances[b] * 1000) );
 		
 		return sortClusters;
+	}
+	
+	/**
+	 * Two dimensions
+	 * @return
+	 */
+	private double euclidianDistanceTwoFeatures(double p1, double p2, double q1, double q2) {
+		
+		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2);
+		
+		return Math.sqrt(t);
 	}
 	
 	/**
@@ -46,16 +58,7 @@ public class ClusterRCSA extends XTFFRCSA {
 		return Math.sqrt(t);
 	}
 	
-	/**
-	 * Two dimensions
-	 * @return
-	 */
-	private double euclidianDistanceTwoFeatures(double p1, double p2, double q1, double q2) {
-		
-		double t = Math.pow(p1 - q1, 2) + Math.pow(p2 - q2, 2);
-		
-		return Math.sqrt(t);
-	}
+	
 	
 	
 	protected boolean runRCSA(Flow flow) {

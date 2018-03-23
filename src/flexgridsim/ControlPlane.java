@@ -177,60 +177,48 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            rsa.flowArrival(((FlowArrivalEvent) event).getFlow());
 	            
 	            if(((FlowArrivalEvent) event).getFlow().isAccepeted()) {
-	            	
 	 	            updateCrosstalk();
+	 	            updateLinksCrosstalk(((FlowArrivalEvent) event).getFlow());
 	        	}
 	            
 	        } 
 	        else if (event instanceof FlowDepartureEvent) 
 	        {
-	        	
 	        	rsa.flowDeparture(((FlowDepartureEvent) event).getFlow());
 	            removeFlow(((FlowDepartureEvent) event).getFlow().getID());
-	        	
 	        	if(((FlowDepartureEvent) event).getFlow().isAccepeted()) {
 	        		st.updateInterCoreCrosstalk(((FlowDepartureEvent) event).getFlow());
 	 	            updateCrosstalk();
 	        	}
-	           
 	            this.nExceeds++;
-	            //before 100
-            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 150 && nConnections < 10000) {
+	            //defragmentation tecnhiques
+            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000) {
             		this.getFragmentationRatio();
-//            		System.out.println("before df: "+dfIndex+ " n: "+this.activeFlows.size());
-            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
-            		{
-            			
+            		if(this.dfIndex >= 0.2 && this.dfIndex <= 0.27) {
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
-//    	            	limited = 0.06;
             		}
             	}
-            	else if(RR == true && nExceeds >= 150 && this.activeFlows.size() >= 100 && nConnections < 10000) {
-                    		
+            	else if(RR == true && nExceeds >= 150 && this.activeFlows.size() >= 100 && nConnections < 10000) {		
             		fi = this.getFragmentationRatio();
-            		
-            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) 
-            		{
-//            			System.out.println("before df: "+dfIndex);
+            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) {
 	        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
 	            		eventScheduler.addEvent(reroutingnEvent);
 	            		this.nExceeds = 0;
             		}
             	}
 	        }
-	        else if (event instanceof DefragmentationArrivalEvent) 
-	        {
+	        else if (event instanceof DefragmentationArrivalEvent)  {
+	        	System.out.println("before df: "+ dfIndex);
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
 	        	this.getFragmentationRatio();
-//	        	System.out.println("after df: "+ dfIndex);
+	        	System.out.println("after df: "+ dfIndex);
 	        	updateCrosstalk();
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
-	        else if(event instanceof ReroutingArrivalEvent) 
-	        {
+	        else if(event instanceof ReroutingArrivalEvent)  {
 	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.30),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
@@ -253,7 +241,20 @@ public class ControlPlane implements ControlPlaneForRSA {
 	    }
     }
 
-    private void updateCrosstalk() {
+    private void updateLinksCrosstalk(Flow flow) {
+	
+    	if(flow.isMultipath()) {
+    		
+    	}
+    	else {
+    		
+    		for(int i: flow.getLinks()) {
+    			pt.getLink(i).updateCrosstalk();
+    		}
+    	}
+	}
+
+	private void updateCrosstalk() {
 		
     	for(Long key: this.activeFlows.keySet()) {
     		
@@ -957,9 +958,22 @@ public class ControlPlane implements ControlPlaneForRSA {
 		return links;
 	}
 	
+	private double convertToDB(double p) {
+		return 10.0f * Math.log10(p)/Math.log10(10);
+//		return ( 10.0f * Math.log10(p/10.0) );
+	}
+	
+	/**
+	 * Checking the inter-core crosstalk if it's possible to fit a connection
+	 */
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
 		
-		if(!pt.canAcceptCrosstalk(links, slotList, db)) {
+		double xt = 0;
+		xt = xt + pt.canAcceptCrosstalk(links, slotList, db);
+		
+		double xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+		
+		if(xti < 0 && xti >= db) {
 			return false;
 		}
 		
@@ -980,11 +994,26 @@ public class ControlPlane implements ControlPlaneForRSA {
 						
 						if(!t.isEmpty()) 
 						{
-							if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t)) {
+							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t);
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
+								return false;
+							}
+						}
+						else
+						{
+							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s);
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
 								return false;
 							}
 						}
 					}
+					
 					i++;
 				}
 			}
@@ -1001,7 +1030,23 @@ public class ControlPlane implements ControlPlaneForRSA {
 					if(!t.isEmpty()) 
 					{
 //						System.out.println(Arrays.toString(matching.toArray()));
-						if(!pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t)) {
+						xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t);
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+//							System.out.println(xti+ " " + db + " " + (xti == 0 || xti < db) + " flow: "+flow);
+							return false;
+						}
+					}
+					else
+					{
+						xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList());
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+//							System.out.println(xt+ " " + db + " " + (xt == 0 || xt < db) + " flow: "+flow);
 							return false;
 						}
 					}
@@ -1009,7 +1054,10 @@ public class ControlPlane implements ControlPlaneForRSA {
 				
 			}
 		}
-		
-		return true;
+//		double num = xt;
+//		System.out.println(xt+" "+ db+" "+ (10.0f * Math.log10(xt)/Math.log10(10))+" "+( 10.0f * Math.log10(xt/10.0) ));
+		xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
+//		System.out.println(Math.pow(10, xt / 10)+ " "+10 * Math.log10(num));
+		return (xt == 0 || xt < db);
 	}
 }

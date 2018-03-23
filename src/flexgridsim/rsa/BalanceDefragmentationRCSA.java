@@ -96,7 +96,8 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
 		
-		if(!this.pt.canAcceptCrosstalk(links, slotList, db)) return false;
+		double xt = 0;
+		xt += this.pt.canAcceptCrosstalk(links, slotList, db);
 		
 		for(Long key: this.activeFlows.keySet()) {
 		
@@ -113,13 +114,17 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 				if(!t.isEmpty()) 
 				{
 					
-					if(!this.pt.canAcceptInterCrosstalk(this.activeFlows.get(key), match, slotList, t)) return false;
+					xt += this.pt.canAcceptInterCrosstalk(this.activeFlows.get(key), match, slotList, t);
+				}
+				else
+				{
+					xt += pt.canAcceptInterCrosstalk(this.activeFlows.get(key), match, this.activeFlows.get(key).getSlotList());
 				}
 			}
 			
 		}
-		
-		return true;
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		return xt == 0 || xt <= db;
 	}
 	
 	@SuppressWarnings("unused")

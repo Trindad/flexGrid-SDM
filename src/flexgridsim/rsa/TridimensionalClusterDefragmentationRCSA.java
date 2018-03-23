@@ -28,9 +28,9 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		for(Long f: flows.keySet()) {
 			
 //			features[i][1] = (flows.get(f).getDuration() - (time - flows.get(f).getTime())) * 1000;
-			features[i][0] = flows.get(f).getLinks().length * 100;
-			features[i][1] = flows.get(f).getRate();
-			features[i][2] = flows.get(f).getDuration() * 100;
+			features[i][0] = (flows.get(f).getLinks().length * 100);
+			features[i][1] = (flows.get(f).getRate() * 10);
+			features[i][2] = (flows.get(f).getDuration() * 100);
 			
 			listOfFlows.add(flows.get(f));
 			i++;
@@ -42,7 +42,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 		double [][]centroids = result.getCentroids();
 		
 //		System.out.println(result.getSilhouette());
-		if(result.getSilhouette() < 0.60) {
+		if(result.getSilhouette() < 0.7) {
 			
 			return false;
 		}
@@ -78,7 +78,7 @@ public class TridimensionalClusterDefragmentationRCSA extends ClusterDefragmenta
 
 		for(int i = 0; i < centroids.length; i++) {
 			
-			Cluster c = new Cluster( centroids[i][0] , centroids[i][1], centroids[i][2], 3);
+			Cluster c = new Cluster( centroids[i][0] , centroids[i][1], centroids[i][2], centroids.length);
 			
 			int []temp = new int[cores[i]];
 			index = nextLimit(index, i);

@@ -129,6 +129,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 	}
 	
 	
+	@SuppressWarnings("unused")
 	private ArrayList<Integer> newListOfCores(int coreEnd, int endSlot) {
 	
 		ArrayList<Integer> cores = new ArrayList<Integer>();
@@ -175,12 +176,12 @@ public class FloodFillRCSA extends SCVCRCSA{
 		int it = 0;
 		while(it <= 3) {
 			
-			if(it == 0 || it == 3 && flow.getRate() >= 1000) {
+			if(it == 0 || it == 3 ) {
 				
 				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1));
 //				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 2, 4));
 			}
-			else if(it == 1 || it == 2 && flow.getRate() < 1000) 
+			else if(it == 1 || it == 2 ) 
 			{
 				listOfCores = new ArrayList<Integer>(Arrays.asList(5, 2, 4));
 //				listOfCores = new ArrayList<Integer>(Arrays.asList(1, 3, 5));
@@ -296,7 +297,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 						return temp;
 					}
 					
-					temp.remove(0);
+					break;
 				}
 			}
 		}   
@@ -356,8 +357,8 @@ public class FloodFillRCSA extends SCVCRCSA{
 						return temp;
 					}
 					
-					temp.remove(0);
-//					temp.clear();
+//					temp.remove(0);
+					temp.clear();
 					
 				}
 			}

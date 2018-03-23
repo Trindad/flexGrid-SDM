@@ -23,7 +23,7 @@ import flexgridsim.util.WeightedGraph;
  * Paper: Crosstalk-aware cross-core virtual concatenation in spatial division multiplexing elastic optical networks
  * Authors: Zhao and Zhang
  * Published: September 2016
- * 
+ * Fi
  * @author trindade
  *
  */
@@ -130,13 +130,13 @@ public class SCVCRCSA implements RSA{
 		for(int []links: this.paths) {
 			
 			if(fitConnection(flow, bitMapAll(links), links)) {
-					this.paths.clear();
-//					System.out.println("ACCEPTED: "+flow+ " m: "+flow.getModulationLevel());
-					return true;
+				this.paths.clear();
+			System.out.println("accepted: "+flow+ " m: "+flow.getModulationLevel());
+				return true;
 			}
 		}
 //		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
-//		System.out.println("BLOCKED:"+ flow);
+		System.out.println("blocked:"+ flow);
 		this.paths.clear();
 		
 		return false;
@@ -220,7 +220,7 @@ public class SCVCRCSA implements RSA{
 		
 		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
 //		printSpectrum(spectrum);
-		for(int i = 0; i < spectrum.length ; i++) {
+		for(int i = (spectrum.length-1); i >= 0; i--) {
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
@@ -236,9 +236,13 @@ public class SCVCRCSA implements RSA{
 				}
 				
 				if(temp.size() == demandInSlots) {
-					setOfSlots.add(new ArrayList<Slot>(temp));
-					break;
 					
+					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
+						setOfSlots.add(new ArrayList<Slot>(temp));
+						break;
+					}
+					
+					temp.remove(0);
 				}
 			}
 		}
@@ -257,12 +261,7 @@ public class SCVCRCSA implements RSA{
 			});
 			
 			
-			for(ArrayList<Slot> set: setOfSlots) {
-				
-				if(cp.CrosstalkIsAcceptable(flow, links, set, ModulationsMuticore.inBandXT[modulation])) {
-					return set;
-				}
-			}
+			return setOfSlots.get(0);
 					
 		}
 	    
@@ -397,7 +396,7 @@ public class SCVCRCSA implements RSA{
 		} 
 		else 
 		{
-			System.out.println("ID error");
+			System.out.println("ID error: "+flow+ " "+links.length + " "+slotList.size());
 			return false;
 		}
 	}
