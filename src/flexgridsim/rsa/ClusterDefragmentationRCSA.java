@@ -79,8 +79,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			if(!flow.isAccepeted()) 
 			{
 //				System.out.println(flow);
-//				flow.setConnectionDisruption(true);
-//				cp.blockFlow(flow.getID());
+				flow.setConnectionDisruption(true);
+				cp.blockFlow(flow.getID());
 				this.nConnectionDisruption++;	
 			}
 		}
@@ -498,11 +498,10 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 					
 					if(CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
 						setOfSlots.add(new ArrayList<Slot>(temp));
-//						break;
-						return temp;
+//						return temp;
 					}
 					
-					temp.clear();
+					break;
 				}
 			}
 		}
@@ -553,7 +552,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		KMeansResult result = caller.kmeans(features, k);
 		
 		System.out.println(result.getSilhouette());
-		if(result.getSilhouette() < 0.7) {
+		if(result.getSilhouette() < 0.6) {
 			
 			cp.setClusters(new ArrayList<Cluster>());
 			return false;

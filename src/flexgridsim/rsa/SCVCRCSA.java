@@ -131,12 +131,12 @@ public class SCVCRCSA implements RSA{
 			
 			if(fitConnection(flow, bitMapAll(links), links)) {
 				this.paths.clear();
-			System.out.println("accepted: "+flow+ " m: "+flow.getModulationLevel());
+//			System.out.println("accepted: "+flow+ " m: "+flow.getModulationLevel());
 				return true;
 			}
 		}
 //		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
-		System.out.println("blocked:"+ flow);
+//		System.out.println("blocked:"+ flow);
 		this.paths.clear();
 		
 		return false;

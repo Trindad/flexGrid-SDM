@@ -127,7 +127,9 @@ public class ClusterRCSA extends XTFFRCSA {
 			}
 			
 			it++;
-			if(it >= 2) break;
+			if(it >= 2) {
+				break;
+			}
 		}
 	
 		return false;

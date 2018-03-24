@@ -12,15 +12,13 @@ import flexgridsim.Slot;
 public class LoadBalancingRCSA extends XTFFRCSA {
 	
 	protected boolean runRCSA(Flow flow) {
-		
+		kPaths = 5;
 		setkShortestPaths(flow);
 		ArrayList<Integer> indices = orderByClosenessCentralityAndFragmentationIndex(getkShortestPaths());
-
-		for(Integer i: indices) {
-			
-			if(fitConnection(flow, bitMapAll(this.paths.get(i)), this.paths.get(i))) {
+		for(int i = 0; i < 3; i++) {
+			int []links = this.paths.get(indices.get(i));
+			if(fitConnection(flow, bitMapAll(links), links)) {
 				this.paths.clear();
-//				System.out.println("ACCEPTED: "+flow);
 				return true;
 			}
 		}
@@ -53,7 +51,7 @@ public class LoadBalancingRCSA extends XTFFRCSA {
 						return temp;
 					}
 					
-					temp.clear();
+					break;
 				}
 			}
 		}
@@ -70,7 +68,7 @@ public class LoadBalancingRCSA extends XTFFRCSA {
     	
     	for(int i = 0; i < nLinks; i++) {
     		
-    		fi[i] =  (double)(nSlots - (double)pt.getLink(i).getSlotsAvailable()) / nSlots;
+    		fi[i] =  (double)(nSlots - (double)pt.getLink(i).getNumFreeSlots()) / nSlots;
     	}
     	
     	return fi;
@@ -87,34 +85,23 @@ public class LoadBalancingRCSA extends XTFFRCSA {
     	double []fi = getFragmentationRatio();
     	int i = 0;
     	for(int []links: p) {
-    		
     		sumRisc[i] = 0;
     		double a = 0, b = 0;
     		for(int index : links) {
-    			double cci = cc.getVertexScore(pt.getLink(index).getDestination()) + cc.getVertexScore(pt.getLink(index).getSource());
+    			b += (cc.getVertexScore(pt.getLink(index).getDestination()) + cc.getVertexScore(pt.getLink(index).getSource()) * 2.0);
     			a += fi[index];
-    			b += cci;
     		}
-//    		a = 1 + Math.exp(a);
-//    		b = 1 + Math.exp(b);
     		
-    		double k1 = 50, k2 = 50;
-//    		System.out.println("fi: "+a + " cc: "+ b);
-    		a = 1 + Math.exp(k1 * (1 - a) );
-    		a = 1 + Math.exp(k2 * (1 - b) );
-    		
-//    		sumRisc[i] = ( 1.0 / a ) + ( 1.0 / b ) ;
-    		sumRisc[i] = ( 1.0 / a ) * ( 1.0 / b ) ;
-//    		System.out.println("risc: "+sumRisc[i]);
+    		double k1 = 1, k2 = 1;
+    		a = 1 + Math.exp(k1 * (a - 0.8) );
+    		b = 1 + Math.exp(k2 * ( b - 0.5) );
+    		sumRisc[i] = ( ( 1.0 / a ) * ( 1.0 / b ) ) * 100;
     		indices.add(i);
     		i++;
     	}
     	
-    	indices.sort((a,b) -> (int)(sumRisc[a]) - (int)(sumRisc[b]) );
-    	
+    	indices.sort((a,b) -> (int)(sumRisc[b] - sumRisc[a]) );
     	return indices;
     }
-	
-
 }
 

@@ -194,7 +194,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	            //defragmentation tecnhiques
             	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000) {
             		this.getFragmentationRatio();
-            		if(this.dfIndex >= 0.2 && this.dfIndex <= 0.27) {
+            		if(this.dfIndex <= 0.27) {
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
     	            	eventScheduler.addEvent(defragmentationEvent);
     	            	this.nExceeds = 0; 
@@ -219,11 +219,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	        else if(event instanceof ReroutingArrivalEvent)  {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.30),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.2),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
-//	        	System.out.println("before df: "+dfIndex);
+	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
+	        	System.out.println("before df: "+dfIndex);
 	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
 		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 		        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
@@ -235,7 +235,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	        	
 	        	this.getFragmentationRatio();
-//	        	System.out.println("after df: "+dfIndex);
+	        	System.out.println("after df: "+dfIndex);
 	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
 	        }
 	    }
@@ -889,8 +889,8 @@ public class ControlPlane implements ControlPlaneForRSA {
 				}
 				else
 				{
-//					activeFlows.remove(key);
-//					mappedFlows.remove(flows.get(key));
+					activeFlows.remove(key);
+					mappedFlows.remove(flows.get(key));
 					blockFlow(flows.get(key).getID());
 				}
 			}

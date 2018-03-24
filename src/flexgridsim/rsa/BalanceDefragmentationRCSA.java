@@ -22,7 +22,6 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	
 	public void flowArrival(Flow flow) {
 		
-		kPaths = 5;
 		ArrayList<int[]> kPaths = findKPaths(flow);//find K-Shortest paths using Dijkstra
 		ArrayList<Integer> indices = orderKPaths(kPaths);//sort paths by the fragmentation index from each link
 
@@ -124,7 +123,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 			
 		}
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
-		return xt == 0 || xt <= db;
+		return xt == 0 || xt < db;
 	}
 	
 	@SuppressWarnings("unused")
@@ -165,7 +164,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 
 		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
 	
-		for(int i = 0; i < spectrum.length ; i++) {
+		for(int i = (spectrum.length-1); i >= 0; i--) {
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
@@ -184,10 +183,9 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 					
 					if(CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
 						setOfSlots.add(new ArrayList<Slot>(temp));
-						break;
 					}
 					
-					temp.remove(0);
+					break;
 				}
 			}
 		}
