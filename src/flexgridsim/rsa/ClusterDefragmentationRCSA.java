@@ -25,7 +25,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
 	protected Map<Integer, ArrayList<Flow> > clusters;
 	protected int cores[];
-	protected int k = 5;//number of clusters
+	protected int k = 4;//number of clusters
 	private int nConnectionDisruption = 0;
 	protected double time;
 	private Map<Long, Flow>  activeFlows;
@@ -202,6 +202,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		if(removeFlowsInCorrectCore(flows)) {
 			return;
 		}
+		this.distributeCores();
 		System.out.println("nFlows after: "+flows.size());
 
 		//re-assigned resources in the same link, but using clustering
@@ -210,6 +211,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				index = nextLimit(index, key);
 				next = (next - cores[key]);
 				clusters.get(key).sort((a, b) -> b.getRate() - a.getRate());
+//				System.out.println(""+ key + " n: " +clusters.get(key).size());
 				for(Flow flow: clusters.get(key)) {	
 //					System.out.println(" "+flow);
 					if(flows.containsKey(flow.getID())) {
@@ -280,39 +282,34 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		int []totalSlots = new int[this.clusters.size()];
 		int []nLinks = new int[this.clusters.size()];
-		int avgSlots = 0;
 		ArrayList<Integer> indexes = new ArrayList<Integer>();
 		
+		int nCores = pt.getCores() - 1;
 		for(Integer k: clusters.keySet()) {
 			
-			int rate = 0;
+			int slots = 0;
 			int links = 0;
 			
 			for(int i = 0; i < clusters.get(k).size(); i++) {
-				rate += (int)(clusters.get(k).get(i).getRate());
-				links += (clusters.get(k).get(i).getLinks().length);
+				Flow flow = clusters.get(k).get(i);
+				slots +=  flow.getSlotListSize() ;
+				links += (flow.getLinks().length);
 			}
 			
-			totalSlots[k] = (int) Math.ceil( (double) rate / pt.getSlotCapacity() );
-			avgSlots += rate;
+			totalSlots[k] = slots / (int)Math.ceil((double)links/(double)clusters.get(k).size());
 			nLinks[k] = (int) Math.ceil((double)links/(double)clusters.get(k).size());
 			indexes.add(k);
 		}
 		
-		avgSlots =  (int) Math.ceil( (double)avgSlots / (double)clusters.size());
-		indexes.sort((a,b) -> totalSlots[b] - totalSlots[a]);
-		int nCores = pt.getCores();
-
-		int diff = (int)Math.ceil( ( (double)avgSlots / ( (double)pt.getCores() * (double)pt.getNumSlots()) ) );
-		
 		for(int i = 0; i < cores.length; i++) {
 			
-			int n = Math.abs( (int)Math.ceil( ( (double)totalSlots[i] / ( (double)pt.getCores() * (double)pt.getNumSlots()) ) ) - diff)/100;
-			this.cores[i] = n <= 0? 1 : n;
-//			System.out.println("cluster-"+i+": "+this.cores[i]+" rate: "+ totalSlots[i]);
+			int n = (int)Math.ceil( (double)totalSlots[i] / (double)pt.getNumSlots() );
+			this.cores[i] = n <= 0 || n >= pt.getCores() ? 1 : n;
+			System.out.println("cluster-"+i+": "+n+" nslots: "+ totalSlots[i]);
 			nCores -= this.cores[i];
 		}
 		
+		indexes.sort((a,b) -> totalSlots[b] - totalSlots[a]);
 		if(nCores >= 1)
 		{	
 			int n = (int) Math.ceil( (double)nCores/ (double)cores.length);
@@ -322,7 +319,9 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 				this.cores[indexes.get(i)] = this.cores[indexes.get(i)] + n;
 				nCores -= n;
 				
-				if(nCores < n) n = nCores;
+				if(nCores < n) {
+					n = nCores;
+				}
 			}
 		}
 	}
@@ -541,7 +540,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		for(Long f: flows.keySet()) {
 			
-			features[i][1] = (flows.get(f).getLinks().length * 1000);
+			features[i][1] = (flows.get(f).getLinks().length * 100);
 			features[i][0] = (flows.get(f).getRate() * 10);
 			
 			listOfFlows.add(flows.get(f));
@@ -552,7 +551,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		KMeansResult result = caller.kmeans(features, k);
 		
 		System.out.println(result.getSilhouette());
-		if(result.getSilhouette() < 0.6) {
+		if(result.getSilhouette() < 0.7) {
 			
 			cp.setClusters(new ArrayList<Cluster>());
 			return false;
