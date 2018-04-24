@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 //import java.util.Collections;
@@ -65,7 +66,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			
 			sortFreeCore.sort((a,b) -> coreSlots[a] - coreSlots[b]);
 			flow.setAccepeted(false);
-			for(int i = ( this.pt.getCores() -1 ); i >= 0; i--) {
+			ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
+			for(Integer i: priorityCores) {
 
 				if(fitConnection(flow, spectrum, flow.getLinks(), sortFreeCore.get(i), sortFreeCore.get(i) )) 
 				{
@@ -78,13 +80,20 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			
 			if(!flow.isAccepeted()) 
 			{
-//				System.out.println(flow);
-				flow.setConnectionDisruption(true);
-				cp.blockFlow(flow.getID());
-				this.nConnectionDisruption++;	
+				flowArrival(flow);
+				if(!flow.isAccepeted()) {
+				
+					flow.setConnectionDisruption(true);
+					cp.blockFlow(flow.getID());
+					this.nConnectionDisruption++;	
+				}
+				else {
+					this.activeFlows.put(flow.getID(), flow);
+				}
 			}
 		}
-		System.out.println("nDisruption: " +this.nConnectionDisruption);
+		
+//		if(this.nConnectionDisruption >= 1)System.out.println("nDisruption: " +this.nConnectionDisruption);
 		return (this.nConnectionDisruption >= 1);
 	}
 	
@@ -198,12 +207,12 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		
 		this.activeFlows = new HashMap<Long, Flow>(); 
 		this.pt.resetAllSpectrum();
-		System.out.println("nFlows before: "+flows.size());
+//		System.out.println("nFlows before: "+flows.size());
 		if(removeFlowsInCorrectCore(flows)) {
 			return;
 		}
 		this.distributeCores();
-		System.out.println("nFlows after: "+flows.size());
+//		System.out.println("nFlows after: "+flows.size());
 
 		//re-assigned resources in the same link, but using clustering
 		for(Integer key: clusters.keySet()) {
@@ -284,7 +293,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		int []nLinks = new int[this.clusters.size()];
 		ArrayList<Integer> indexes = new ArrayList<Integer>();
 		
-		int nCores = pt.getCores() - 1;
+		int nCores = pt.getCores();
 		for(Integer k: clusters.keySet()) {
 			
 			int slots = 0;
@@ -292,7 +301,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			
 			for(int i = 0; i < clusters.get(k).size(); i++) {
 				Flow flow = clusters.get(k).get(i);
-				slots +=  flow.getSlotListSize() ;
+				slots +=  Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[0]) ;
 				links += (flow.getLinks().length);
 			}
 			
@@ -305,7 +314,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			
 			int n = (int)Math.ceil( (double)totalSlots[i] / (double)pt.getNumSlots() );
 			this.cores[i] = n <= 0 || n >= pt.getCores() ? 1 : n;
-			System.out.println("cluster-"+i+": "+n+" nslots: "+ totalSlots[i]);
+			this.cores[i] = this.cores[i] >= 3 ? 2 :  this.cores[i];
+//			System.out.println("cluster-"+i+": "+n+" nslots: "+ totalSlots[i]);
 			nCores -= this.cores[i];
 		}
 		
@@ -550,8 +560,8 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		PythonCaller caller = new PythonCaller();
 		KMeansResult result = caller.kmeans(features, k);
 		
-		System.out.println(result.getSilhouette());
-		if(result.getSilhouette() < 0.7) {
+//		System.out.println(result.getSilhouette());
+		if(result.getSilhouette() <= 0.7) {
 			
 			cp.setClusters(new ArrayList<Cluster>());
 			return false;

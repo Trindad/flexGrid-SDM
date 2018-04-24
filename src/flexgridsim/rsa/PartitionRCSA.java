@@ -6,106 +6,59 @@ import flexgridsim.Flow;
 import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
 
-public class PartitionRCSA extends SCVCRCSA{
+public class PartitionRCSA extends FCFFRCSA {
 
-	/**
-	 * 
-	 * @param flow
-	 * @param spectrum
-	 * @param links
-	 * @return
-	 */
-	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
+	public ArrayList<Slot> FirstFitPolicy(Flow flow, int []links, int demandInSlots, int modulation) {
 		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		int start = 0, stop = spectrum.length-1;
-		
-		if(flow.getRate() == 10) {
-		
-			start = stop = 0;
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>();
+		if(flow.getRate() == 50) {
+			priorityCores.add(6);
+			priorityCores.add(3);
 		}
-		else if(flow.getRate() == 40) {
-			
-			start = stop = 1;
+		else if(flow.getRate() == 400) {
+			priorityCores.add(2);
+			priorityCores.add(5);
 		}
-		else if(flow.getRate() == 100) {
-			
-			start = 2;
-			start = 3;
+		else {
+			priorityCores.add(1);
+			priorityCores.add(4);
 		}
 		
-		//400 Gb free cores
+		priorityCores.add(0);//the lowest priority 
+		boolean [][]spectrum = bitMapAll(links);
+		int maxSlotIndex = preProcessSpectrumResources(spectrum);
 		
-		
-		for (int i = start; i <= stop; i++) {
-			
-			fittedSlotList  = canBeFitConnection(flow, links, spectrum[i], i, flow.getRate());
-			
-			if(!fittedSlotList.isEmpty()) {
-				if (establishConnection(links, fittedSlotList, flow.getModulationLevel(), flow)) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
-	public ArrayList<Slot> canBeFitConnection(Flow flow, int[]links, boolean []spectrum,int i,  int rate) {
-		
-		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
-		int modulation = chooseModulationFormat(rate, links);
-	
-		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-		int demandInSlots = (int) Math.ceil((double)rate / subcarrierCapacity);
-		fittedSlotList = this.FirstFitPolicy(flow, spectrum, i, links, demandInSlots, modulation);
-		
-		if(fittedSlotList.size() == demandInSlots) {
+		for(int c = 0; c < priorityCores.size(); c++) {
+			ArrayList<Slot> slots = new ArrayList<Slot>();
+			int k = priorityCores.get(c);
+			for(int j = 0; j <= maxSlotIndex; j++) {
 				
-			if(!flow.isMultipath()) 
-			{
-				flow.setModulationLevel(modulation);
-			}
-			else 
-			{
-				flow.addModulationLevel(modulation);
-			}
-			
-			return fittedSlotList;
-			
-		}
-		
-		fittedSlotList.clear();
-		
-		return new ArrayList<Slot>();
-	}
+				int limit = j + (demandInSlots - 1);
 
-	
-
-	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean []spectrum, int i, int[] links, int demandInSlots, int modulation) {
-		
-		ArrayList<Slot> temp = new ArrayList<Slot>();
-		for(int j = 0; j < spectrum.length; j++) {	
-			
-			if(spectrum[j] == true) {
-				temp.add( new Slot(i,j) );
-			}
-			else {
-				temp.clear();
-				if(Math.abs(spectrum.length-j) < demandInSlots) return new ArrayList<Slot>();
-			}
-			
-			if(temp.size() == demandInSlots) {
-				
-				if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
-
-					return temp;
+				if(limit >= pt.getNumSlots()) {
+					break;
 				}
 				
-				temp.remove(0);
+				int n = j;
+				ArrayList<Slot> candidate = new ArrayList<Slot>();
+				while(n <= limit && spectrum[k][n] == true ) {
+					candidate.add( new Slot(k,n) );
+					n++;
+				}
+				
+				if(candidate.size() == demandInSlots) {
+					if(cp.CrosstalkIsAcceptable(flow, links, candidate, ModulationsMuticore.inBandXT[modulation])) {
+						slots.addAll(new ArrayList<Slot>(candidate));
+						break;
+					}
+				}
 			}
+			
+			if(slots.size() == demandInSlots) {
+				return slots;
+			}	
 		}
-		
+			
 		return new ArrayList<Slot>();
 	}
 	

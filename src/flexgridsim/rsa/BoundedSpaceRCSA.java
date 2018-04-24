@@ -8,99 +8,56 @@ import flexgridsim.Slot;
 
 public class BoundedSpaceRCSA extends SCVCRCSA{
 
-	private int k = 10;
-	
-	private boolean kBoundedSpacePolicy(Flow flow, boolean [][]spectrum, int []links, int demandInSlots) {
-	
-		ArrayList<ArrayList<Slot>> slotList = new ArrayList< ArrayList<Slot> >();
+	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation)  {
 		
-		for (int i = 0; i < spectrum.length; i++) {
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>();
+		if(flow.getRate() == 50) {
 			
-			ArrayList<Slot> s = new ArrayList<Slot>();
-			for (int j = 0; j < spectrum[i].length; j++) {
+			priorityCores.add(3);
+			priorityCores.add(6);
+		}
+		else if(demandInSlots == 400) {
+			priorityCores.add(2);
+			priorityCores.add(5);
+			
+		}
+		else {
+			priorityCores.add(1);
+			priorityCores.add(4);
+			
+		}
+		priorityCores.add(0);//the lowest priority 
+		
+//		boolean [][]spectrum = bitMapAll(links);
+		
+		for(int c = 0; c < priorityCores.size() ; c++) {
+			int i = priorityCores.get(c);
+			ArrayList<Slot> temp = new ArrayList<Slot>();
+			for(int j = 0; j < spectrum[i].length; j++) {	
 				
 				if(spectrum[i][j] == true) 
 				{
-					if(s.size() <= 0) {
-						s.add(new Slot(i, j));
-					}
-					else if( Math.abs(j - s.get(s.size()-1).s) == 1 ) {
-						s.add(new Slot(i, j));
-					}
-					else {
-						
-						if(s.size() >= demandInSlots) {
-							slotList.add(s);
-							break;
-						}
-						
-						s.clear();
-						s.add(new Slot(i, j));
-					}
+					temp.add( new Slot(i,j) );
 				}
-			}
+				else {
+					
+					temp.clear();
+					if(Math.abs(spectrum[i].length-j) < demandInSlots) break;
+				}
 				
-			if(s.size() >= demandInSlots) {
-				slotList.add(s);
-			}
-			
-			if(slotList.size() >= k) 
-			{
-				break;
-			}
-			
-		}
-		
-//		System.out.println(slotList.size());
-		slotList.sort((a, b) -> a.size() - b.size());
-		
-		for(ArrayList<Slot> set: slotList) {
-			
-			if(set.size() < demandInSlots) continue;
-			ArrayList<Slot> slots = new ArrayList<Slot>();
-			
-			for(Slot s: set) {
-				
-				slots.add(s);
-				if(slots.size() == demandInSlots) 
-				{
-					if(cp.CrosstalkIsAcceptable(flow, links, slots, ModulationsMuticore.inBandXT[flow.getModulationLevel()])) {
-						
-						if(establishConnection(links, slots, flow.getModulationLevel(), flow)) 
-						{
-							return true;
-						}
+				if(temp.size() == demandInSlots) {
+					
+					if(cp.CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
+
+						return temp;
 					}
 					
-					slots.remove(0);
+					break;
 				}
 			}
 		}
-		
-		return false;
-	}
-	
-	private int getDemandInSlots(Flow flow, int []links) {
-		
-		int modulation = chooseModulationFormat(flow.getRate(), links);
-		double subcarrierCapacity = ModulationsMuticore.subcarriersCapacity[modulation];
-		flow.setModulationLevel(modulation);
-		return (int) Math.ceil((double)flow.getRate() / subcarrierCapacity);
-	}
-	
-	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
-		
-		int demand = getDemandInSlots(flow, links);
-		int modulation = flow.getModulationLevel();
-		while(modulation >= 0) {
 			
-			demand = (int) Math.ceil((double)flow.getRate() / ModulationsMuticore.subcarriersCapacity[modulation]);
-			flow.setModulationLevel(modulation);
-			if(kBoundedSpacePolicy(flow, spectrum, links, demand)) return true;
-			modulation--;
-		}
-		
-		return false;
+		return new ArrayList<Slot>();
 	}
 	
 }

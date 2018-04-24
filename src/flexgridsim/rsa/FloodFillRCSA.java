@@ -172,19 +172,19 @@ public class FloodFillRCSA extends SCVCRCSA{
 		int start = 0;
 		int end = (pt.getNumSlots()/2)-1;
 		ArrayList<Integer> listOfCores = new ArrayList<Integer>();
-		
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(1, 5, 3, 4, 6 , 2 , 0));
 		int it = 0;
 		while(it <= 3) {
 			
-			if(it == 0 || it == 3 ) {
+			if(it == 0 || it == 3) {
 				
 				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1));
-//				listOfCores = new ArrayList<Integer>(Arrays.asList(6, 2, 4));
+//				listOfCores = new ArrayList<Integer>(Arrays.asList(1, 5, 3));
 			}
-			else if(it == 1 || it == 2 ) 
+			else if(it == 1 || it == 2) 
 			{
 				listOfCores = new ArrayList<Integer>(Arrays.asList(5, 2, 4));
-//				listOfCores = new ArrayList<Integer>(Arrays.asList(1, 3, 5));
+//				listOfCores = new ArrayList<Integer>(Arrays.asList(4, 6, 2));
 			}
 			
 //			System.out.println(start+" ... "+ end + " "+Arrays.toString(listOfCores.toArray()));
@@ -207,11 +207,11 @@ public class FloodFillRCSA extends SCVCRCSA{
 			it++;
 		}
 		
-		if(flow.getRate() <= 100) {
+//		if(flow.getRate() <= 100) {
 			return fitConnection(flow, new ArrayList<Integer>( Arrays.asList(0) ), links, 0, (pt.getNumSlots()-1) );
-		}
+//		}
 //		System.out.println("----------------------------");
-		return false;
+//		return false;
 	}
 
 	private int[]getSeed(ArrayList<Integer> cores, boolean[][]spectrum, int start, int end) {
@@ -268,6 +268,8 @@ public class FloodFillRCSA extends SCVCRCSA{
 	private ArrayList<Slot> getSetOfCandidatesRight(ArrayList<Integer> slots, int core, int demandInSlots, int []links, Flow flow) {
 		
 		double db = ModulationsMuticore.inBandXT[flow.getModulationLevel()];
+
+//		System.out.println(slots.get(0) +" " +slots.get(slots.size()-1));
 		if(slots.size() >= demandInSlots) {
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
@@ -297,7 +299,7 @@ public class FloodFillRCSA extends SCVCRCSA{
 						return temp;
 					}
 					
-					break;
+					temp.clear();
 				}
 			}
 		}   
@@ -310,16 +312,15 @@ public class FloodFillRCSA extends SCVCRCSA{
 		if(slots.size() >= demandInSlots) {	
 			
 			Collections.sort(slots);
-//			int n = (pt.getNumSlots()/2);
 			
-			if(core >= 1) 
-			{
-				return getSetOfCandidatesRight(slots,core,demandInSlots, links, flow);
-			}
-			else 
-			{
-				return getSetOfCandidatesLeft(slots,core,demandInSlots, links, flow);
-			}
+//			if(demandInSlots % 2 >= 1) 
+//			{
+			return getSetOfCandidatesRight(slots,core,demandInSlots, links, flow);
+//			}
+//			else 
+//			{
+//				return getSetOfCandidatesLeft(slots,core,demandInSlots, links, flow);
+//			}
 			
 		}
 		
@@ -376,35 +377,58 @@ public class FloodFillRCSA extends SCVCRCSA{
 		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
 //		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2, 1 , 0));
 //		ArrayList<Integer> coreIndex =  new ArrayList<Integer>(Arrays.asList(3, 2, 1, 0, 4, 5, 6));
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>();
 		
-		
+//		if(flow.getRate() == 50) {
+//			coreIndex.addAll(Arrays.asList(6));
+//		}
+//		else if(flow.getRate() == 100) {
+//			coreIndex.addAll(Arrays.asList(1, 4, 5));
+//		}
+//		else
+//		{
+//			coreIndex.addAll(Arrays.asList(2, 3));
+//		}
+//		
+//		coreIndex.add(0);
+		//1,3,5,4,6,2,0
+//		ArrayList<Integer> coreIndex = new ArrayList<Integer>(Arrays.asList(1, 5, 3, 4, 6 , 2 , 0));
 		ArrayList<ArrayList<Slot>> candidates = new ArrayList<ArrayList<Slot>>();
+		
+		double []icXT = {1, 1 , 1, 1, 1, 1, 1};
+		ArrayList<Integer> indices = new ArrayList<Integer>();
 		for(Integer key: coreIndex) {
 			
 			if(spectrumAvailable.containsKey(key)) 
 			{ 
+//				System.out.println(key+" "+spectrumAvailable.get(key).size()+" "+flow);
 				ArrayList<Slot> candidate = getSetOfCandidates(spectrumAvailable.get(key), key, demandInSlots, links, flow);
 				if(!candidate.isEmpty()) {
-					candidates.add(candidate);
-//					return establishConnection(links, candidate, flow.getModulationLevel(), flow);
-				}
+					candidates.add(new ArrayList<Slot> (candidate) ); 
+					return establishConnection(links, candidate, flow.getModulationLevel(), flow);
+				}   
 			}
 		}
 		
-		
+//		System.out.println();
 		if(!candidates.isEmpty()) {
 			
-			candidates.sort( (a , b) -> {
-				if (a.get(0).c != b.get(0).c) {
-					return coreIndex.indexOf(a.get(0).c) - coreIndex.indexOf(b.get(0).c);
+			indices.sort( (a , b) ->  {
+				if(icXT[a] < icXT[b]) {
+					return -1;
+				}
+				else if(icXT[a] > icXT[b]) {
+					return 1;
 				}
 				
-				return a.get(0).s - b.get(0).s;
+				return 0;
 			});
 			
-			for (ArrayList<Slot> candidate : candidates) {			
-				if (establishConnection(links, candidate, flow.getModulationLevel(), flow)) {
-					return true;
+			for(Integer index : indices) {			
+				if(icXT[index] < 0 ) {
+					if (establishConnection(links, candidates.get(index), flow.getModulationLevel(), flow)) {
+						return true;
+					}
 				}
 			}
 		}

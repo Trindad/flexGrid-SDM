@@ -127,6 +127,8 @@ public class FlexGridLink {
 				this.xt.resetCrosstalk(k, i);
 			}
 		}
+		
+		XT = 0;
 	}
 	
 	public void resetCrosstalk(ArrayList<Slot> slotList) {

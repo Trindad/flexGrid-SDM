@@ -70,7 +70,6 @@ public class ClusterRCSA extends XTFFRCSA {
 			if(cp.getClusters().isEmpty())
 			{
 				if(fitConnection(flow, bitMapAll(links), links)) {
-//						 System.out.println("Connection accepted: "+flow);
 						return true;
 				}
 			}
@@ -78,13 +77,11 @@ public class ClusterRCSA extends XTFFRCSA {
 			{
 				if( fitConnectionUsingClustering(flow, bitMapAll(links), links)) 
 				{
-//					System.out.println("Connection accepted: "+flow);
 					return true;
 				}
 			}
 		}
 		
-//		System.out.println("Connection blocked: "+flow);
 		return false;
 	}
 	

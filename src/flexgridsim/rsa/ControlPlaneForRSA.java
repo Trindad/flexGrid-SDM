@@ -152,4 +152,6 @@ public interface ControlPlaneForRSA {
 
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> fittedSlotList, double db);
 
+	public double CrosstalkCost(Flow flow, int[] links, ArrayList<Slot> candidate, double d);
+
 }

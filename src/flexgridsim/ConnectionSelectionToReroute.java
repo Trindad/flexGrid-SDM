@@ -420,7 +420,7 @@ public class ConnectionSelectionToReroute {
 		
 		public ArrayList<Long>getConnections(Map<Long, Flow> flows) {
 			
-			ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
+//			ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(pt.getGraph());
 			
 			ArrayList<Double> sumLightpath = new ArrayList<Double>();
 			ArrayList<Long> indices = new ArrayList<Long>();
@@ -433,8 +433,8 @@ public class ConnectionSelectionToReroute {
 				int []links = flow.getLinks();
 				double s = 0;
 				for(int i : links) {
-					double cci = cc.getVertexScore(pt.getLink(i).getDestination()) + cc.getVertexScore(pt.getLink(i).getSource());
-					s += (fi[i] + cci);
+//					double cci = cc.getVertexScore(pt.getLink(i).getDestination()) + cc.getVertexScore(pt.getLink(i).getSource());
+					s += (fi[i] * 100);
 				}
 				
 				sumLightpath.add(s);
@@ -473,7 +473,7 @@ public class ConnectionSelectionToReroute {
 		
 			for (Long key: orderConnections) { 
 				
-				if(k < nConnections && !connections.containsKey(key)) 
+				if(k < nConnections && !connections.containsKey(key) && flows.get(key).getRate() < 400) 
 				{
 					connections.put(key, flows.get(key));
 					k++;

@@ -143,7 +143,7 @@ public class MyStatistics {
 		
 		//bandwidth block graph
 		plotter.addDotToGraph("mbbr", load, ((float) blockedBandwidth) / ((float) requiredBandwidth));
-		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals) * 100);
+		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals));
 		int count = 0;
         float bbr, jfi, sum1 = 0, sum2 = 0;
         if (blocked == 0) {
@@ -153,23 +153,27 @@ public class MyStatistics {
             bbr = ((float) blockedBandwidth) / ((float) requiredBandwidth) * 100;
         }
         
+        System.out.println(bbr);
+        
+        double bbrJFI = 0;
         for (int i = 0; i < numNodes; i++) {
             for (int j = i + 1; j < numNodes; j++) {
                 if (i != j) {
-                    if (blockedPairs[i][j] == 0) {
-                        bbr = 0;
-                    } else {
+//                    if (blockedPairs[i][j] == 0) {
+//                        bbr = 0;
+//                    } else {
                         bbr = ((float) blockedBandwidthPairs[i][j]) / ((float) requiredBandwidthPairs[i][j]) * 100;
-                    }
+                        bbrJFI = ((float) ((float) requiredBandwidthPairs[i][j] - blockedBandwidthPairs[i][j]) ) / ((float) requiredBandwidthPairs[i][j]) * 100;
+//                    }
                     count++;
-                    sum1 += bbr;
-                    sum2 += bbr * bbr;
+                    sum1 += bbrJFI;
+                    sum2 += bbrJFI * bbrJFI;
                 }
             }
         }
         jfi = (sum1 * sum1) / ((float) count * sum2);
         plotter.addDotToGraph("jfi", load, jfi);
-       // System.out.println("jfi="+jfi);
+//        System.out.println("jfi= "+jfi+ "sum1= "+sum1+" sum2="+sum2 + " "+count);
     	//POWE CONSUPTION
     	double PCoxc = 0;
     	for (int i = 0; i < pt.getNumNodes(); i++) {
@@ -215,12 +219,17 @@ public class MyStatistics {
     	//average path length
     	plotter.addDotToGraph("avgpathlength", load, (pathLength/(double)n) );
     	
-    	
+    	int nlinks = 0;
     	for(int i = 0; i < pt.getNumLinks(); i++) {
-        	sumXTLinks += pt.getLink(i).getSumOfInterCoreCrosstalk();
+    		double xt = pt.getLink(i).getSumOfInterCoreCrosstalk();
+    		if(xt < 0) {
+    			sumXTLinks += xt;
+    			nlinks++;
+    		}
+        	
         }
         
-    	plotter.addDotToGraph("xtmean",load, (sumXTLinks / (double) pt.getNumLinks()));
+    	plotter.addDotToGraph("xtmean",load, (sumXTLinks / (double) nlinks));
 	}
 	
 	/**

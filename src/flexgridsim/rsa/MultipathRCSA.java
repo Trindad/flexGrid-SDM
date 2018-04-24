@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import flexgridsim.Flow;
 import flexgridsim.LightPath;
@@ -9,7 +10,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends XTFFRCSA {
 	
-	private int TH = 100;//limit to use multipath
+	private int TH = 400;//limit to use multipath
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 
@@ -33,7 +34,7 @@ public class MultipathRCSA extends XTFFRCSA {
 			if(multipathEstablishConnection(flow)) 
 			{
 				this.paths.clear();
-				System.out.println("Connection accepted using multipath: "+flow);
+//				System.out.println("Connection accepted using multipath: "+flow);
 				return;
 			}
 		}
@@ -66,7 +67,7 @@ public class MultipathRCSA extends XTFFRCSA {
 	}
 	
 	
-	private ArrayList<Slot> getSetOfSlotsAvailableModified(int[] links, ArrayList<int[]> lightpathsAvailableTemp , ArrayList< ArrayList< Slot > > slotList, Flow flow, int rate) {
+	protected ArrayList<Slot> getSetOfSlotsAvailableModified(int[] links, ArrayList<int[]> lightpathsAvailableTemp , ArrayList< ArrayList< Slot > > slotList, Flow flow, int rate) {
 		
 		boolean [][]spectrum = bitMapAll(links);
 		int index = 0;
@@ -86,14 +87,14 @@ public class MultipathRCSA extends XTFFRCSA {
 	}
 
 
-	private ArrayList<Slot> getSetOfSlotsAvailable(int[] lightpath, Flow flow, int rate ) {
+	protected ArrayList<Slot> getSetOfSlotsAvailable(int[] lightpath, Flow flow, int rate ) {
 		
 		return getSlotsAvailable(lightpath, flow, rate);
 	}
 	
 
 	
-	private ArrayList<int[]>  getPathsCandidates(ArrayList<int[]> paths, int demandInSlots) {
+	protected ArrayList<int[]>  getPathsCandidates(ArrayList<int[]> paths, int demandInSlots) {
 
 		
 		ArrayList<int[]> selectedPaths = new ArrayList<int[]>();
@@ -110,7 +111,9 @@ public class MultipathRCSA extends XTFFRCSA {
 		return selectedPaths;
 	}
 	
-	private int getMatchingLinks(ArrayList<int[]> lightpaths, int []l2) {
+	protected int getMatchingLinks(ArrayList<int[]> lightpaths, int []l2) {
+		
+		if(lightpaths.isEmpty() || l2.length == 0) return -2;
 		
 		int index = 0;
 		for(int []l1: lightpaths) {
@@ -128,7 +131,7 @@ public class MultipathRCSA extends XTFFRCSA {
 	}
 	
 	
-	private boolean getMatchingLinks(int[] l1, int []l2) {
+	protected boolean getMatchingLinks(int[] l1, int []l2) {
 		for(int i: l1) {
 			for(int j: l2) {
 				if(i == j) {
@@ -140,7 +143,8 @@ public class MultipathRCSA extends XTFFRCSA {
 		
 		return false;
 	}
-	private int getDemandInSlots(int t) {
+	
+	protected int getDemandInSlots(int t) {
 		
 		double requestedBandwidthInGHz = ( (double)t / (double)decreaseModulation(5, t) );
 		double requiredBandwidthInGHz = requestedBandwidthInGHz;
@@ -230,7 +234,7 @@ public class MultipathRCSA extends XTFFRCSA {
 		return new ArrayList<ArrayList<Slot>>();
 	}
 
-	private ArrayList<Slot> tryToFit(Flow flow, boolean [][]spectrum, int rate, int []links) {
+	protected ArrayList<Slot> tryToFit(Flow flow, boolean [][]spectrum, int rate, int []links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		int modulation = chooseModulationFormat(rate, links);
@@ -270,8 +274,11 @@ public class MultipathRCSA extends XTFFRCSA {
 
 	
 	public ArrayList<Slot> FirstFitPolicyModified(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
-		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
-		for(int i = (spectrum.length-1); i >= 0 ; i--) {
+
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
+		for(int c = 0; c < priorityCores.size() ; c++) {
+			int i = priorityCores.get(c);
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
@@ -298,22 +305,6 @@ public class MultipathRCSA extends XTFFRCSA {
 			}
 		}
 		
-		if(!setOfSlots.isEmpty()) {
-			
-			setOfSlots.sort( (a , b) -> {
-				int diff = a.get(0).s - b.get(0).s;
-				
-				if(diff != 0) {
-					return diff;
-				}
-				
-				return ( b.get(0).c - a.get(0).c );
-			});
-			
-			
-			return setOfSlots.get(0);
-					
-		}
 	    
 		return new ArrayList<Slot>();
 	}

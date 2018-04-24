@@ -8,7 +8,7 @@ import flexgridsim.Slot;
 
 public class FCFFRCSA extends SCVCRCSA {
 	
-	private int preProcessSpectrumResources(boolean [][]spectrum) {
+	protected int preProcessSpectrumResources(boolean [][]spectrum) {
 		
 		int maxSlotIndex = 0;
 		

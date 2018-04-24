@@ -49,7 +49,7 @@ public class ControlPlane implements ControlPlaneForRSA {
      */
     private boolean DFR = false;
     private double dfIndex = 0;
-    private double limited = 0.03;
+    private int rejectedRequests = 0;
     private ArrayList<Cluster> clusters;
     private String typeOfReroutingAlgorithm;
 	private int nExceeds = 0;
@@ -190,9 +190,14 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        		st.updateInterCoreCrosstalk(((FlowDepartureEvent) event).getFlow());
 	 	            updateCrosstalk();
 	        	}
+	        	else
+	        	{
+	        		rejectedRequests++;
+	        	}
+	        	
 	            this.nExceeds++;
 	            //defragmentation tecnhiques
-            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000) {
+            	if(this.DFR == true && this.activeFlows.size() >= 100 && this.nExceeds >= 100 && nConnections < 10000 && rejectedRequests >= 1) {
             		this.getFragmentationRatio();
             		if(this.dfIndex <= 0.27) {
             			DefragmentationArrivalEvent defragmentationEvent = new DefragmentationArrivalEvent(0);
@@ -200,9 +205,9 @@ public class ControlPlane implements ControlPlaneForRSA {
     	            	this.nExceeds = 0; 
             		}
             	}
-            	else if(RR == true && nExceeds >= 150 && this.activeFlows.size() >= 100 && nConnections < 10000) {		
+            	else if(RR == true && nExceeds >= 300 && this.activeFlows.size() >= 100 && nConnections < 10000) {		
             		fi = this.getFragmentationRatio();
-            		if(this.dfIndex >= limited && this.dfIndex <= 0.65) {
+            		if(this.dfIndex <= 0.27) {
 	        			ReroutingArrivalEvent reroutingnEvent = new ReroutingArrivalEvent(0);
 	            		eventScheduler.addEvent(reroutingnEvent);
 	            		this.nExceeds = 0;
@@ -210,20 +215,20 @@ public class ControlPlane implements ControlPlaneForRSA {
             	}
 	        }
 	        else if (event instanceof DefragmentationArrivalEvent)  {
-	        	System.out.println("before df: "+ dfIndex);
+//	        	System.out.println("before df: "+ dfIndex);
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
 	        	this.getFragmentationRatio();
-	        	System.out.println("after df: "+ dfIndex);
+//	        	System.out.println("after df: "+ dfIndex);
 	        	updateCrosstalk();
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
 	        else if(event instanceof ReroutingArrivalEvent)  {
-	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.2),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
+	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.30),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
-	        	System.out.println("before df: "+dfIndex);
+//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
+//	        	System.out.println("before df: "+dfIndex);
 	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
 		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 		        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
@@ -235,7 +240,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	        	
 	        	this.getFragmentationRatio();
-	        	System.out.println("after df: "+dfIndex);
+//	        	System.out.println("after df: "+dfIndex);
 	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
 	        }
 	    }
@@ -889,9 +894,10 @@ public class ControlPlane implements ControlPlaneForRSA {
 				}
 				else
 				{
+					blockFlow(flows.get(key).getID());
 					activeFlows.remove(key);
 					mappedFlows.remove(flows.get(key));
-					blockFlow(flows.get(key).getID());
+					
 				}
 			}
 			
@@ -1019,7 +1025,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 			}
 			else 
 			{
-//				System.out.println(Arrays.toString(slotList.toArray()) + "\n" +this.activeFlows.get(key).getSlotList());
 				ArrayList<Integer> matching =  getMatchingLinks(links, this.activeFlows.get(key).getLinks());
 				
 				if(!matching.isEmpty()) {
@@ -1029,13 +1034,11 @@ public class ControlPlane implements ControlPlaneForRSA {
 					
 					if(!t.isEmpty()) 
 					{
-//						System.out.println(Arrays.toString(matching.toArray()));
 						xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t);
 						
 						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
 						
 						if(xti < 0 && xti >= db) {
-//							System.out.println(xti+ " " + db + " " + (xti == 0 || xti < db) + " flow: "+flow);
 							return false;
 						}
 					}
@@ -1046,7 +1049,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
 						
 						if(xti < 0 && xti >= db) {
-//							System.out.println(xt+ " " + db + " " + (xt == 0 || xt < db) + " flow: "+flow);
 							return false;
 						}
 					}
@@ -1054,10 +1056,95 @@ public class ControlPlane implements ControlPlaneForRSA {
 				
 			}
 		}
-//		double num = xt;
-//		System.out.println(xt+" "+ db+" "+ (10.0f * Math.log10(xt)/Math.log10(10))+" "+( 10.0f * Math.log10(xt/10.0) ));
 		xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//		System.out.println(Math.pow(10, xt / 10)+ " "+10 * Math.log10(num));
 		return (xt == 0 || xt < db);
+	}
+	
+	public double CrosstalkCost(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
+		
+		double xt = 0;
+		xt = xt + pt.canAcceptCrosstalk(links, slotList, db);
+		
+		double xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+		
+		if(xti < 0 && xti >= db) {
+			return xt;
+		}
+		
+		for(Long key: this.activeFlows.keySet()) {
+			
+			if(key == flow.getID()) {
+				continue;
+			}
+			else if(this.activeFlows.get(key).isMultipath()) 
+			{
+				int i = 0;
+				for(ArrayList<Slot> s: this.activeFlows.get(key).getMultiSlotList()) {
+					
+					ArrayList<Integer> matching = getMatchingLinks(links, this.activeFlows.get(key).getLinks(i));
+					
+					if(!matching.isEmpty()) {
+						ArrayList<Slot> t = getMatchingSlots(slotList, s, pt.getLink(0).getAdjacentCores(slotList.get(0).c));
+						
+						if(!t.isEmpty()) 
+						{
+							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t);
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
+								return xt;
+							}
+						}
+						else
+						{
+							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s);
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
+								return xt;
+							}
+						}
+					}
+					
+					i++;
+				}
+			}
+			else 
+			{
+				ArrayList<Integer> matching =  getMatchingLinks(links, this.activeFlows.get(key).getLinks());
+				
+				if(!matching.isEmpty()) {
+					int c = slotList.get(0).c;
+					LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
+					ArrayList<Slot> t = getMatchingSlots(slotList, this.activeFlows.get(key).getSlotList(), adj);
+					
+					if(!t.isEmpty()) 
+					{
+						xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t);
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+							return xt;
+						}
+					}
+					else
+					{
+						xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList());
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+							return xt;
+						}
+					}
+				}
+				
+			}
+		}
+		xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
+		return xt;
 	}
 }

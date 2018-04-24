@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import org.jgrapht.alg.scoring.ClosenessCentrality;
@@ -11,7 +12,7 @@ import flexgridsim.ModulationsMuticore;
 import flexgridsim.Slot;
 import flexgridsim.rsa.ZhangDefragmentationRCSA;
 
-public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
+public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA {
 
 	protected double []fi;
 
@@ -21,7 +22,7 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	}
 	
 	public void flowArrival(Flow flow) {
-		
+//		kPaths = 5;
 		ArrayList<int[]> kPaths = findKPaths(flow);//find K-Shortest paths using Dijkstra
 		ArrayList<Integer> indices = orderKPaths(kPaths);//sort paths by the fragmentation index from each link
 
@@ -163,8 +164,9 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 	private ArrayList<Slot> FirstFitPolicy(boolean [][]spectrum, int demandInSlots, int []links, Flow flow, int modulation) {
 
 		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
-	
-		for(int i = (spectrum.length-1); i >= 0; i--) {
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
+		for(int c = 0; c < priorityCores.size() ; c++) {
+			int i = priorityCores.get(c);
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
@@ -182,7 +184,8 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
 				if(temp.size() == demandInSlots) {
 					
 					if(CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
-						setOfSlots.add(new ArrayList<Slot>(temp));
+//						setOfSlots.add(new ArrayList<Slot>(temp));
+						return temp;
 					}
 					
 					break;
@@ -266,20 +269,22 @@ public class BalanceDefragmentationRCSA extends ZhangDefragmentationRCSA{
     	double []fi = getFragmentationRatio();
     	int i = 0;
     	for(int []links: p) {
-    		
     		sumRisc[i] = 0;
-    		
+    		double a = 0, b = 0;
     		for(int index : links) {
-    			double cci = cc.getVertexScore(this.pt.getLink(index).getDestination()) + cc.getVertexScore(this.pt.getLink(index).getSource());
-    			sumRisc[i] += (fi[index] + cci);
+    			b += (cc.getVertexScore(pt.getLink(index).getDestination()) + cc.getVertexScore(pt.getLink(index).getSource()) * 2.0);
+    			a += fi[index];
     		}
     		
+    		double k1 = 1, k2 = 1;
+    		a = 1 + Math.exp(k1 * (a - 0.8) );
+    		b = 1 + Math.exp(k2 * ( b - 0.5) );
+    		sumRisc[i] = ( ( 1.0 / a ) * ( 1.0 / b ) ) * 100;
     		indices.add(i);
     		i++;
     	}
     	
-    	indices.sort((a,b) -> (int)(sumRisc[a] * 100) - (int)(sumRisc[b] * 100) );
-    	
+    	indices.sort((a,b) -> (int)(sumRisc[b] - sumRisc[a]) );
     	return indices;
 	}
 	

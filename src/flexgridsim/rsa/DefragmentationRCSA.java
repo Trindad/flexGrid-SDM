@@ -1,6 +1,6 @@
 package flexgridsim.rsa;
 
-public abstract class DefragmentationRCSA extends SCVCRCSA {
+public abstract class DefragmentationRCSA extends XTFFRCSA {
 	
 	public abstract void runDefragmentantion();
 

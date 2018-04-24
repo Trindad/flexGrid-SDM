@@ -1,6 +1,7 @@
 package flexgridsim.rsa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -12,7 +13,7 @@ import flexgridsim.Slot;
 public class LoadBalancingRCSA extends XTFFRCSA {
 	
 	protected boolean runRCSA(Flow flow) {
-		kPaths = 5;
+		kPaths = 3;
 		setkShortestPaths(flow);
 		ArrayList<Integer> indices = orderByClosenessCentralityAndFragmentationIndex(getkShortestPaths());
 		for(int i = 0; i < 3; i++) {
@@ -29,8 +30,13 @@ public class LoadBalancingRCSA extends XTFFRCSA {
 	
 	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
-		for(int i = (spectrum.length-1); i >= 0 ; i--) {
-			
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(5, 1, 3, 4, 6 , 2 , 0));
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(1, 3, 5, 4, 6, 2, 0));
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(1, 5, 3, 4, 6 , 2 , 0));
+		for(int c = 0; c < priorityCores.size() ; c++) {
+			int i = priorityCores.get(c);
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
 				
