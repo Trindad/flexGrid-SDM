@@ -1,6 +1,10 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import org.jgrapht.GraphPath;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 /**
  * The Class MyStatistics.
@@ -153,7 +157,7 @@ public class MyStatistics {
             bbr = ((float) blockedBandwidth) / ((float) requiredBandwidth) * 100;
         }
         
-        System.out.println(bbr);
+//        System.out.println(bbr);
         
         double bbrJFI = 0;
         for (int i = 0; i < numNodes; i++) {
@@ -232,10 +236,95 @@ public class MyStatistics {
     	plotter.addDotToGraph("xtmean",load, (sumXTLinks / (double) nlinks));
 	}
 	
+	
+	public boolean[][]bitMapAll(int []links) {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		for (int i = 0; i < pt.getCores(); i++) {
+			for (int j = 0; j < pt.getNumSlots(); j++) {
+				spectrum[i][j] = true;
+			}
+		}
+		
+		for(int i : links) {
+			bitMap(pt.getLink(i).getSpectrum(), spectrum, spectrum);
+		}
+		
+		return spectrum;
+	}
+	
+	public void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] result) {
+
+	for (int i = 0; i < result.length; i++) {
+		
+		for (int j = 0; j < result[i].length; j++) {
+			result[i][j] = s1[i][j] && s2[i][j];
+		}
+	}
+}
+	/**
+	 * This metric is based on: Spectrum Management in Heterogeneous Bandwidth Networks
+	 * Authors: Rui Wang and Biswananth Mukherjee
+	 * Globecom 2012
+	 * @return
+	 */
+	public void setFragmentatioRatio() {
+		double fragmentationRatio = 0;
+		
+		double w = 0;
+		int count = 0;
+		for (int i = 0; i < pt.getNumNodes()-1; i++) {
+			for (int j = i+1; j < pt.getNumNodes(); j++) {
+				
+				org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 1);
+				List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( i, j );
+				
+				List<Integer> listOfVertices = KPaths.get(0).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				for (int a = 0; a < listOfVertices.size()-1; a++) {
+					
+					links[a] = pt.getLink(listOfVertices.get(a), listOfVertices.get(a+1)).getID();
+				}
+				
+				int maxG = pt.getNumSlots() + 1;
+				boolean [][]spectrum = bitMapAll(links);
+				for (int a = 0; a < spectrum.length; a++) {
+					int n = 0;
+					int max = 0;
+					for (int b = 0; b < spectrum[a].length; b++) {
+						if(spectrum[a][b]) {
+							n++;
+							
+							if(n > max) {
+								max = n;
+							}
+						}
+						else
+						{
+							n = 0; 
+						}
+					}
+					maxG = Math.min(maxG, max);
+				}
+				w += ((double) (maxG) / (double)(pt.getNumSlots()));
+				count++;
+			}
+			
+		}
+
+		fragmentationRatio = w / (double)count  ;
+		plotter.addDotToGraph("availableslotratio", load, fragmentationRatio);
+		fragmentationRatio = 1.0 - fragmentationRatio;
+		
+		plotter.addDotToGraph("fragmentationratio", load, fragmentationRatio);
+	}
 	/**
 	 * Calculate periodical statistics.
 	 */
 	public void calculatePeriodicalStatistics(){
+		
+		setFragmentatioRatio();
+		
 		
 		//fragmentation graph
 		double fragmentationMean = 0;
@@ -247,6 +336,7 @@ public class MyStatistics {
     		}
 		}
     	fragmentationMean = fragmentationMean / pt.getNumLinks();
+    	
     	plotter.addDotToGraph("fragmentation", load, fragmentationMean);
     	double meanTransponders = 0;
     	for (int i = 0; i < numberOfUsedTransponders.length; i++) {
@@ -256,6 +346,7 @@ public class MyStatistics {
 				}
 			}
 		}
+    	
 //    	meanTransponders = meanTransponders / size;
     	if (Double.compare(meanTransponders, Double.NaN)!=0){
     		plotter.addDotToGraph("transponders", load, meanTransponders);
