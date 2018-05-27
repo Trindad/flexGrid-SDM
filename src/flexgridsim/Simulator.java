@@ -21,7 +21,7 @@ import org.xml.sax.SAXParseException;
 public class Simulator {
 
     private static final String simName = new String("flexgridsim");
-    private static final Float simVersion = new Float(2.0);
+    private static final Float simVersion = new Float(2.1);
     
     public static String PYTHON_PATH = null;
     
@@ -129,7 +129,9 @@ public class Simulator {
 	            }
 	
 	            EventScheduler events = new EventScheduler();
-	            TrafficGenerator traffic = new TrafficGenerator((Element) doc.getElementsByTagName("traffic").item(0), forcedLoad);
+	            
+	            
+	            TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("traffic").item(0), forcedLoad);
 	            traffic.generateTraffic(pt, events, seed);
 	
 	            if (Simulator.verbose) {

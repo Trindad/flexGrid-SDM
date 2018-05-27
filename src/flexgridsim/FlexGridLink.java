@@ -9,7 +9,7 @@ import flexgridsim.util.Decibel;
  * This class is based on the WDMLink but it's adapted to RSA operations for
  * contiguous slots allocation.
  * 
- * @author pedrom
+ * @author pedrom, trindade
  */
 public class FlexGridLink {
 
@@ -31,6 +31,12 @@ public class FlexGridLink {
 	private int slotsAvailable = 0;
 	private double XT = 0;
 //	private double currentXT = 0;
+	
+	/**
+	 * Data for virtual topology constraints
+	 */
+	private int numberOfReceivers;
+	private int numberOfTranceivers;
 
 	/**
 	 * Creates a new Fiberlink object.
@@ -44,7 +50,7 @@ public class FlexGridLink {
 	 * @param cores
 	 *            number of fiber cores
 	 * @param delay
-	 *            propagation delay (miliseconds)
+	 *            propagation delay (ms)
 	 * @param slots
 	 *            number of slots available
 	 * @param weight
@@ -723,6 +729,22 @@ public class FlexGridLink {
 	public LinkedList<Integer> getAdjacentCores(int c) {
 
 		return xt.getAdjacentsCores(c);
+	}
+
+	public int getNumberOfTranceivers() {
+		return numberOfTranceivers;
+	}
+
+	public void setNumberOfTranceivers(int numberOfTranceivers) {
+		this.numberOfTranceivers = numberOfTranceivers;
+	}
+
+	public int getNumberOfReceivers() {
+		return numberOfReceivers;
+	}
+
+	public void setNumberOfReceivers(int numberOfReceivers) {
+		this.numberOfReceivers = numberOfReceivers;
 	}
 
 }

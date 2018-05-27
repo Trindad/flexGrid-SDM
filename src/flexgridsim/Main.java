@@ -8,7 +8,7 @@ package flexgridsim;
  * The Main class takes care of the execution of the simulator, which includes
  * dealing with the arguments called (or not) on the command line.
  * 
- * @author andred
+ * @author andred, trindade
  */
 public class Main {
 

@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * transmitted through lightpaths does not undergo any conversion to or from
  * electrical form.
  * 
- * @author andred
+ * @author andred, trindade
  */
 public class LightPath {
 
@@ -21,6 +21,7 @@ public class LightPath {
 	private int dst;
 	private int[] links;
 	private ArrayList<Slot> slotList;
+	private int numberOfSlotsAvailable = 0;
 	private int modulationLevel;
 
 	/**
@@ -43,6 +44,7 @@ public class LightPath {
 			this.links = links;
 			this.slotList = slotList;
 			this.modulationLevel = modulationLevel;
+			this.setNumberOfSlotsAvailable(Math.abs(numberOfSlotsAvailable-slotList.size()));
 		}
 	}
 
@@ -63,6 +65,7 @@ public class LightPath {
 	public void setModulationLevel(int modulationLevel) {
 		this.modulationLevel = modulationLevel;
 	}
+	
 
 	/**
 	 * Retrieves the unique identifier of a given LightPath.
@@ -165,5 +168,13 @@ public class LightPath {
 			lightpath += Integer.toString(links[i]);				
 		}
 		return lightpath;
+	}
+
+	public int getNumberOfSlotsAvailable() {
+		return numberOfSlotsAvailable;
+	}
+
+	public void setNumberOfSlotsAvailable(int numberOfSlotsAvailable) {
+		this.numberOfSlotsAvailable = numberOfSlotsAvailable;
 	}
 }

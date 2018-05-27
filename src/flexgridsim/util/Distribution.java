@@ -9,11 +9,14 @@ import java.util.Random;
 /**
  * Extends Java Random Class in order to provide good random number sequences.
  * 
- * @author andred
+ * @author andred, trindade
  */
 public class Distribution extends Random {
 	
-    /**
+	private double mu = 15.45;
+	private double sigma = 0.885;
+    
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3171571957478515367L;
@@ -82,6 +85,28 @@ public class Distribution extends Random {
 //        System.out.println(min+" "+max+" "+randomValue+" "+result);
         return result;
     }
+    
+    public void setSigma(double s) {
+    	System.out.println("sigma: "+sigma+" "+s);
+    	sigma = s;
+    }
+    
+    /**
+     * Log normal distribution
+     * @return
+     */
+    public double getLogNormal() {
+    	
+    	
+    	double x = nextDoubleInTheInterval(0, 1);
+    	
+    	double a = -1.0 * Math.pow( Math.log(x) - mu, 2 );
+    	double b = 2 * Math.pow(sigma, 2);
+    	double c = x * Math.sqrt(2* Math.PI) * sigma;
+    	
+    	return  Math.exp(a / b) * (1.0 / c);
+    }
+    
     /* 100 seeds spaced by 1.000.000 values
      *
      * multiplier = 0x5DEECE66DL
