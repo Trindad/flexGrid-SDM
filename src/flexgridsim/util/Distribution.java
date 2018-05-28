@@ -87,7 +87,7 @@ public class Distribution extends Random {
     }
     
     public void setSigma(double s) {
-    	System.out.println("sigma: "+sigma+" "+s);
+    	
     	sigma = s;
     }
     

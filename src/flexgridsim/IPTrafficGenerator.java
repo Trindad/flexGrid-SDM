@@ -15,8 +15,8 @@ public class IPTrafficGenerator extends TrafficGenerator{
 	
 	private double T;//cycle of changes in seconds
 	private double a = Math.sqrt(2);//constant value to ensure the non-negative result
-	private double changeTrafficPeriod;
-	private double suddenTrafficChanges;
+	private double abruptTrafficChanges;
+	private double gradualTrafficChanges;
 	private int rate;
 	
 	private double hours;
@@ -40,9 +40,9 @@ public class IPTrafficGenerator extends TrafficGenerator{
      
         T = hours * 3600;
         load = forcedLoad;
-        changeTrafficPeriod = T / 100; 
-        suddenTrafficChanges = T/200;
-        System.out.println(changeTrafficPeriod);
+        abruptTrafficChanges = T / 100; 
+        gradualTrafficChanges = T/200;
+        System.out.println(abruptTrafficChanges+ " "+ gradualTrafficChanges);
         if (load == 0) {
             load = Double.parseDouble(xml.getAttribute("load"));
         }
@@ -108,8 +108,11 @@ public class IPTrafficGenerator extends TrafficGenerator{
         
         double minSigma = 3;
         double maxSigma = 7;
-        double currentSigma = 1;
+        double lastSigma = 1;
         double changesCycle = 0;
+        double nextGradualChange = gradualTrafficChanges;
+        double nextAbruptChange = abruptTrafficChanges;
+        
         while(time < T) {
         	
             type = dist1.nextInt(TotalWeight);
@@ -118,17 +121,20 @@ public class IPTrafficGenerator extends TrafficGenerator{
                 dst = dist2.nextInt(numNodes);
             }
             
-            if(changesCycle >= changeTrafficPeriod) {
+            if(changesCycle >= nextAbruptChange) {
         		
             	double sigma = dist5.nextDoubleInTheInterval(minSigma, maxSigma);
-        		changeTrafficPeriod += changesCycle;
+            	nextAbruptChange = changesCycle + abruptTrafficChanges;
+            	lastSigma = sigma;
+            	System.out.println("sigma-abrupt: "+sigma);
         		distributionLogNormal.setSigma(sigma);
             }
-            else if(changesCycle >= suddenTrafficChanges) {
+            else if(changesCycle >= nextGradualChange) {
             	
-            	double sigma = dist5.nextDoubleInTheInterval(currentSigma, currentSigma+2);
-            	currentSigma = sigma;
-            	suddenTrafficChanges += changesCycle;
+            	double sigma = dist5.nextDoubleInTheInterval(lastSigma-1, lastSigma+1);
+            	lastSigma = sigma;
+            	System.out.println("sigma-sudden: "+sigma);
+            	nextGradualChange = changesCycle + gradualTrafficChanges;
         		distributionLogNormal.setSigma(sigma);
             }
             
@@ -147,7 +153,7 @@ public class IPTrafficGenerator extends TrafficGenerator{
             events.addEvent(event);
             event = new FlowDepartureEvent(time + holdingTime, id, newFlow);
             events.addEvent(event);
-            changesCycle += time;
+            changesCycle = time;
             
             id++;
         }
