@@ -30,8 +30,8 @@ public class LoadBalancingRCSA extends XTFFRCSA {
 	
 	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
-		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
-//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
+//		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
 //		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(5, 1, 3, 4, 6 , 2 , 0));
 //		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(1, 3, 5, 4, 6, 2, 0));
 //		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(1, 5, 3, 4, 6 , 2 , 0));
