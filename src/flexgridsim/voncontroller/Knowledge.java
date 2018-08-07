@@ -15,6 +15,5 @@ import flexgridsim.LightPath;
 public class Knowledge {
 	
 	private Map<Flow, ArrayList<LightPath> > activeFlows; 
-	
 
 }

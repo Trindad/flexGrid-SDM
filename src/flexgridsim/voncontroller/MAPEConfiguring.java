@@ -7,4 +7,8 @@ package flexgridsim.voncontroller;
  */
 public class MAPEConfiguring {
 
+	private Monitor monitor;
+	private Analyze analyzer;
+	private Plane plane;
+	private Execute execute;
 }
