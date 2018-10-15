@@ -10,7 +10,7 @@ import flexgridsim.Slot;
 
 public class MultipathRCSA extends XTFFRCSA {
 	
-	private int TH = 400;//limit to use multipath
+	private int TH = 100;//limit to use multipath
 	
 	/**
 	 * Traditional algorithm RCSA using First-fit 

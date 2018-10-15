@@ -149,7 +149,7 @@ public class MyStatistics {
 		plotter.addDotToGraph("mbbr", load, ((float) blockedBandwidth) / ((float) requiredBandwidth));
 		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals));
 		int count = 0;
-        float bbr, jfi, sum1 = 0, sum2 = 0;
+        float bbr = 0, jfi, sum1 = 0, sum2 = 0;
         if (blocked == 0) {
             bbr = 0;
         } 
