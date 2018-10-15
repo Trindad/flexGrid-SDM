@@ -79,35 +79,34 @@ public class FFCFRCSA extends SCVCRCSA {
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		int modulation = chooseModulationFormat(rate, links);
 		
-		while(modulation >= 0) {
+//		while(modulation >= 0) {
 			
-			double requestedBandwidthInGHz = ( ((double)rate) / ((double)modulation + 1) );
-			double requiredBandwidthInGHz = requestedBandwidthInGHz;
-			double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
-			int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
-			
-			demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
-			demandInSlots++;//adding guardband
-			
-			fittedSlotList = FirstFitPolicy(flow, links, demandInSlots, modulation);
-			
-			if(fittedSlotList.size() == demandInSlots) {
-					
-				if(!flow.isMultipath()) 
-				{
-					flow.setModulationLevel(modulation);
-				}
-				else 
-				{
-					flow.addModulationLevel(modulation);
-				}
+		double requestedBandwidthInGHz = ( ((double)rate) / ((double)modulation + 1) );
+		double requiredBandwidthInGHz = requestedBandwidthInGHz;
+		double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+		int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+		
+		demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+		demandInSlots++;//adding guardband
+		
+		fittedSlotList = FirstFitPolicy(flow, links, demandInSlots, modulation);
+		
+		if(fittedSlotList.size() == demandInSlots) {
 				
-				return fittedSlotList;
-				
+			if(!flow.isMultipath()) 
+			{
+				flow.setModulationLevel(modulation);
+			}
+			else 
+			{
+				flow.addModulationLevel(modulation);
 			}
 			
-			modulation--;
+			return fittedSlotList;
 		}
+//			
+//			modulation--;
+//		}
 		
 		
 		return new ArrayList<Slot>();
