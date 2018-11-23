@@ -153,6 +153,7 @@ public class SCVCRCSA implements RSA{
 		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), kPaths);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( flow.getSource(), flow.getDestination() );
 			
+//		if(flow.getSource() == 0 && flow.getDestination() == 13) System.out.println(KPaths);
 		if(KPaths.size() >= 1)
 		{
 			for (int k = 0; k < KPaths.size(); k++) {

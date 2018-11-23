@@ -255,21 +255,16 @@ public class MyStatistics {
 	
 	public void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] result) {
 
-	for (int i = 0; i < result.length; i++) {
-		
-		for (int j = 0; j < result[i].length; j++) {
-			result[i][j] = s1[i][j] && s2[i][j];
+		for (int i = 0; i < result.length; i++) {
+			
+			for (int j = 0; j < result[i].length; j++) {
+				result[i][j] = s1[i][j] && s2[i][j];
+			}
 		}
 	}
-}
-	/**
-	 * This metric is based on: Spectrum Management in Heterogeneous Bandwidth Networks
-	 * Authors: Rui Wang and Biswananth Mukherjee
-	 * Globecom 2012
-	 * @return
-	 */
-	public void setFragmentatioRatio() {
-		double fragmentationRatio = 0;
+	
+	public double getFragmentatioRatio() {
+		double availableSlots = 0;
 		
 		double w = 0;
 		int count = 0;
@@ -294,7 +289,6 @@ public class MyStatistics {
 					for (int b = 0; b < spectrum[a].length; b++) {
 						if(spectrum[a][b]) {
 							n++;
-							
 							if(n > max) {
 								max = n;
 							}
@@ -312,9 +306,63 @@ public class MyStatistics {
 			
 		}
 
-		fragmentationRatio = w / (double)count  ;
-		plotter.addDotToGraph("availableslotratio", load, fragmentationRatio);
-		fragmentationRatio = 1.0 - fragmentationRatio;
+		availableSlots = w / (double)count  ;
+		return (1.0 - availableSlots);
+		
+	}
+	
+	/**
+	 * This metric is based on: Spectrum Management in Heterogeneous Bandwidth Networks
+	 * Authors: Rui Wang and Biswananth Mukherjee
+	 * Globecom 2012
+	 * @return
+	 */
+	public void setFragmentatioRatio() {
+		double availableSlots = 0;
+		
+		double w = 0;
+		int count = 0;
+		for (int i = 0; i < pt.getNumNodes()-1; i++) {
+			for (int j = i+1; j < pt.getNumNodes(); j++) {
+				
+				org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 1);
+				List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( i, j );
+				
+				List<Integer> listOfVertices = KPaths.get(0).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				for (int a = 0; a < listOfVertices.size()-1; a++) {
+					
+					links[a] = pt.getLink(listOfVertices.get(a), listOfVertices.get(a+1)).getID();
+				}
+				
+				int maxG = pt.getNumSlots() + 1;
+				boolean [][]spectrum = bitMapAll(links);
+				for (int a = 0; a < spectrum.length; a++) {
+					int n = 0;
+					int max = 0;
+					for (int b = 0; b < spectrum[a].length; b++) {
+						if(spectrum[a][b]) {
+							n++;
+							if(n > max) {
+								max = n;
+							}
+						}
+						else
+						{
+							n = 0; 
+						}
+					}
+					maxG = Math.min(maxG, max);
+				}
+				w += ((double) (maxG) / (double)(pt.getNumSlots()));
+				count++;
+			}
+			
+		}
+
+		availableSlots = w / (double)count  ;
+		plotter.addDotToGraph("availableslotratio", load, availableSlots);
+		double fragmentationRatio = 1.0 - availableSlots;
 		
 		plotter.addDotToGraph("fragmentationratio", load, fragmentationRatio);
 	}

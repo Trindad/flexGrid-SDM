@@ -30,6 +30,7 @@ public class MultipathRCSA extends XTFFRCSA {
 		//execute Multipath algorithm
 		if(flow.getRate() >= TH)
 		{
+//			System.out.println("Connection accepted using multipath: "+flow);
 			flow.setMultipath(true);
 			if(multipathEstablishConnection(flow)) 
 			{
@@ -160,7 +161,7 @@ public class MultipathRCSA extends XTFFRCSA {
 	private ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
 
 		ArrayList<int[]> temp = new ArrayList<int[]>();
-		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/2.0) ) );
+		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/4.0) ) );
 		
 		if(temp.size() <= 1) {
 			return new ArrayList< ArrayList<Slot> >();

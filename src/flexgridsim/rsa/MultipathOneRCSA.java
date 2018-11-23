@@ -18,6 +18,22 @@ import flexgridsim.Slot;
 public class MultipathOneRCSA extends MultipathRCSA {
 	
 	
+	public void flowArrival(Flow flow) {
+		
+		setkShortestPaths(flow);
+
+		flow.setMultipath(true);
+		if(multipathEstablishConnection(flow)) 
+		{
+			this.paths.clear();
+			return;
+		}
+	
+		this.paths.clear();
+		cp.blockFlow(flow.getID());
+		
+	}
+	
 	
 	protected boolean multipathEstablishConnection(Flow flow) {
 
@@ -118,14 +134,14 @@ public class MultipathOneRCSA extends MultipathRCSA {
 	private ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
 
 		ArrayList<int[]> temp = new ArrayList<int[]>();
-		int tam = 6;
+		int tam = paths.size() * 3;
 		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/tam) ) );
 		
 		if(temp.size() <= 1) {
 			return new ArrayList< ArrayList<Slot> >();
 		}
 		
-		int n = 2;
+		int n = 1;
 		
 		while(n <= tam) 
 		{
@@ -178,7 +194,7 @@ public class MultipathOneRCSA extends MultipathRCSA {
 					lightpathsAvailable.add(lightpathsAvailableTemp.get(k));
 				}
 				
-				System.out.println("::"+lightpathsAvailable.size());
+//				System.out.println("::"+lightpathsAvailable.size());
 				return slotList;
 			}
 			

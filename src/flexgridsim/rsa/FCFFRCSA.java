@@ -76,7 +76,7 @@ public class FCFFRCSA extends SCVCRCSA {
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		int modulation = chooseModulationFormat(rate, links);
 		
-//		while(modulation >= 0) {
+		while(modulation >= 0) {
 //			
 			double requestedBandwidthInGHz = ( ((double)rate) / ((double)modulation + 1) );
 			double requiredBandwidthInGHz = requestedBandwidthInGHz;
@@ -103,8 +103,8 @@ public class FCFFRCSA extends SCVCRCSA {
 				
 			}
 			
-//			modulation--;
-//		}
+			modulation--;
+		}
 		
 		
 		return new ArrayList<Slot>();

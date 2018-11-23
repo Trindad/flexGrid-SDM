@@ -26,7 +26,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 
 	protected Map<Integer, ArrayList<Flow> > clusters;
 	protected int cores[];
-	protected int k = 4;//number of clusters
+	protected int k = 2;//number of clusters
 	private int nConnectionDisruption = 0;
 	protected double time;
 	private Map<Long, Flow>  activeFlows;
@@ -93,7 +93,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 			}
 		}
 		
-//		if(this.nConnectionDisruption >= 1)System.out.println("nDisruption: " +this.nConnectionDisruption);
+		if(this.nConnectionDisruption >= 1)System.out.println("nDisruption: " +this.nConnectionDisruption);
 		return (this.nConnectionDisruption >= 1);
 	}
 	
@@ -561,7 +561,7 @@ public class ClusterDefragmentationRCSA extends DefragmentationRCSA {
 		KMeansResult result = caller.kmeans(features, k);
 		
 //		System.out.println(result.getSilhouette());
-		if(result.getSilhouette() <= 0.7) {
+		if(result.getSilhouette() <= 0.75) {
 			
 			cp.setClusters(new ArrayList<Cluster>());
 			return false;
