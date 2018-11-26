@@ -6,16 +6,18 @@ import flexgridsim.Flow;
 
 public class VirtualLink {
 
-	private ArrayList<VirtualNode> nodes;
+	public static int ID = 1;
+	
+	private VirtualNode source;
+	private VirtualNode destination;
 	private int slotsRequired;
 	private int id;
 	
-	public ArrayList<VirtualNode> getNodes() {
-		return nodes;
-	}
-	
-	public void setNodes(ArrayList<VirtualNode> nodes) {
-		this.nodes = nodes;
+	public VirtualLink(VirtualNode source, VirtualNode destination) {
+		id = VirtualLink.ID++;
+		
+		this.setSource(source);
+		this.setDestination(destination);
 	}
 	
 	public int getSlotsRequired() {
@@ -32,6 +34,22 @@ public class VirtualLink {
 	
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public VirtualNode getDestination() {
+		return destination;
+	}
+
+	public void setDestination(VirtualNode destination) {
+		this.destination = destination;
+	}
+
+	public VirtualNode getSource() {
+		return source;
+	}
+
+	public void setSource(VirtualNode source) {
+		this.source = source;
 	}
 	
 	

@@ -13,4 +13,5 @@ public class VirtualTopology {
 	public ArrayList<VirtualLink> links;
 	public ArrayList<VirtualNode> nodes;
 	public ArrayList<Request> requests;
+	 
 }

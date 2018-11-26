@@ -13,8 +13,8 @@ import flexgridsim.PhysicalTopology;
  */
 public class VirtualTopologyGenerator {
 	
-	public static VirtualTopology generate(PhysicalTopology physicalTopology,int minNodes, int maxNodes, double connectivityProbability, int minAlternativeNodes, int maxAlternativeNodes,
-											int minComputingResources, int maxComputingResources, int minCapacity, int maxCapacity)
+	public static VirtualTopology generate(PhysicalTopology physicalTopology,int minNodes, int maxNodes, int connectivityProbability, int minAlternativeNodes, int maxAlternativeNodes,
+											int minComputingResources, int maxComputingResources, int minCapacity, int maxCapacity, int minRequestCapacity, int maxRequestCapacity)
 	{
 		VirtualTopology topology = new VirtualTopology();
 		
@@ -28,10 +28,30 @@ public class VirtualTopologyGenerator {
 			ArrayList<Integer> candidateNodes = getNRandomNodes(minAlternativeNodes, maxAlternativeNodes, physicalNodes);
 			node.setCandidatePhysicalNodes(candidateNodes);
 			
-		
+			//adding computing resource
+			int computingResource = getRandomValue(minComputingResources, maxComputingResources);
+			node.setComputeResource(computingResource);
 			
 			topology.nodes.add(node);
 		}
+		
+		//Connecting virtual nodes
+		for(int u = 0; u < (topology.nodes.size()-1); u++) {
+			
+			for(int v = u; v < topology.nodes.size(); v++) {
+					
+				boolean connect = new Random().nextInt(101) < connectivityProbability;
+				
+				if(connect == true) {
+					
+					VirtualLink link = new VirtualLink(topology.nodes.get(u), topology.nodes.get(v));
+					
+					topology.links.add(link);
+				}
+				
+			}
+		}
+		
 		
 		return topology;
 	}
