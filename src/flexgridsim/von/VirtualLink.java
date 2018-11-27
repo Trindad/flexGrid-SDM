@@ -10,7 +10,7 @@ public class VirtualLink {
 	
 	private VirtualNode source;
 	private VirtualNode destination;
-	private int slotsRequired;
+	private int bandwidth;
 	private int id;
 	
 	public VirtualLink(VirtualNode source, VirtualNode destination) {
@@ -20,12 +20,12 @@ public class VirtualLink {
 		this.setDestination(destination);
 	}
 	
-	public int getSlotsRequired() {
-		return slotsRequired;
+	public int getBandwidth() {
+		return bandwidth;
 	}
 	
-	public void setSlotsRequired(int slotsRequired) {
-		this.slotsRequired = slotsRequired;
+	public void setBandwidth(int slotsRequired) {
+		this.bandwidth = slotsRequired;
 	}
 	
 	public int getId() {

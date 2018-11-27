@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+import org.apache.commons.math3.distribution.PoissonDistribution;
+
 import flexgridsim.PhysicalTopology;
 
 /**
@@ -45,14 +47,15 @@ public class VirtualTopologyGenerator {
 				if(connect == true) {
 					
 					VirtualLink link = new VirtualLink(topology.nodes.get(u), topology.nodes.get(v));
-					
+					link.setBandwidth(getRandomValue(minCapacity, maxCapacity));
 					topology.links.add(link);
 				}
 				
 			}
 		}
 		
-		
+		topology.calculateTotalRequestResources(maxComputingResources, maxCapacity);
+	
 		return topology;
 	}
 	

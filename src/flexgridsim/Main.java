@@ -24,6 +24,8 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
+		
+		
 		Simulator flexgridsim;
 		String usage = "Usage: flexgridsim simulation_file seed [-trace] [-verbose] [minload maxload step]";
 		String simConfigFile;
@@ -32,7 +34,18 @@ public class Main {
 		int seed = 1;
 		double minload = 0, maxload = 0, step = 1;
 
-		if (args.length < 2 || args.length > 7) {
+		if(args.length <= 3 && args.length >= 2 && args[1].equals("virtualization") == true) {
+			
+			System.out.println("Network virtualization");
+			simConfigFile = args[0];
+			int nSimulations = Integer.parseInt(args[1]);
+			
+			flexgridsim = new VirtualizationSimulator();
+			((VirtualizationSimulator)flexgridsim).Execute(simConfigFile, verbose, nSimulations);
+			
+			return;
+		}
+		else if (args.length < 2 || args.length > 7) {
 			System.out.println(usage);
 			System.exit(0);
 		} else {

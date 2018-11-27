@@ -48,6 +48,12 @@ public class Flow {
 
     private double sumXT = 0;
     private double currentXT = 0;
+    
+    /**
+     * VON informations
+     */
+    private int vonID;
+    private int vLinkID;
 	
     /**
 	 * Creates a new Flow object.
@@ -482,5 +488,21 @@ public class Flow {
 
 	public double getSumOfXT() {
 		return sumXT;
+	}
+
+	public int getVonID() {
+		return vonID;
+	}
+
+	public void setVonID(int vonID) {
+		this.vonID = vonID;
+	}
+
+	public int getvLinkID() {
+		return vLinkID;
+	}
+
+	public void setvLinkID(int vLinkID) {
+		this.vLinkID = vLinkID;
 	}
 }
