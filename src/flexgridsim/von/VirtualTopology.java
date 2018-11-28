@@ -21,7 +21,7 @@ public class VirtualTopology {
 	public double sigma = 0.5;
 	
 	public VirtualTopology() {
-		setId(VirtualLink.ID++);
+		setID(VirtualLink.ID++);
 		
 	}
 	
@@ -44,12 +44,12 @@ public class VirtualTopology {
 	}
 
 
-	public int getId() {
+	public int getID() {
 		return id;
 	}
 
 
-	public void setId(int id) {
+	public void setID(int id) {
 		this.id = id;
 	}
 	 

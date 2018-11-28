@@ -12,7 +12,9 @@ import java.util.ArrayList;
  * transmitted through lightpaths does not undergo any conversion to or from
  * electrical form.
  * 
- * @author andred, trindade
+ * SINGLE CORE
+ * 
+ * @author andred
  */
 public class LightPath {
 

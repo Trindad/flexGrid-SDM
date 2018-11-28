@@ -8,7 +8,7 @@ package flexgridsim;
 /**
  * Methods to treat the outgoing of a Flow object.
  * 
- * @author andred, pedrom
+ * @author andred, pedrom, trindade
  */
 public class FlowDepartureEvent extends Event{
 

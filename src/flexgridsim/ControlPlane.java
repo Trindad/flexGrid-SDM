@@ -25,7 +25,7 @@ import flexgridsim.rsa.BalanceDefragmentationRCSA;
  * The Control Plane is responsible for managing resources and
  * connection within the network.
  */
-public class ControlPlane implements ControlPlaneForRSA {
+public class ControlPlane implements ControlPlaneForRSA{
 
     private RSA rsa;
     private DefragmentationRCSA defragmentation;
@@ -168,8 +168,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	    } 
     	else 
     	{
-    		
-	    	if (event instanceof FlowArrivalEvent)
+    		if (event instanceof FlowArrivalEvent)
 	        {
 	    		nConnections++;
 	    		
@@ -214,12 +213,10 @@ public class ControlPlane implements ControlPlaneForRSA {
             		}
             	}
 	        }
-	        else if (event instanceof DefragmentationArrivalEvent)  {
-//	        	System.out.println("before df: "+ dfIndex);
+	        else if (event instanceof DefragmentationArrivalEvent) {
 	        	this.defragmentation.setTime(this.time);
 	        	this.defragmentation.runDefragmentantion();
 	        	this.getFragmentationRatio();
-//	        	System.out.println("after df: "+ dfIndex);
 	        	updateCrosstalk();
 	        	eventScheduler.removeDefragmentationEvent((DefragmentationArrivalEvent)event);
 	        }
@@ -227,8 +224,7 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	ConnectionSelectionToReroute c = new ConnectionSelectionToReroute((int) Math.ceil(this.activeFlows.size() * 0.30),"ConnectionsInBottleneckLink", this, this.pt, this.vt);
 	        	c.setFragmentationIndexForEachLink(fi);
 	        	Map<Long, Flow> connections = c.getConnectionsToReroute();
-//	        	System.out.println("connections selected: "+connections.size()+ " from n: "+this.activeFlows.size());
-//	        	System.out.println("before df: "+dfIndex);
+
 	        	if(typeOfReroutingAlgorithm.equals("ZhangDefragmentationRCSA") == true) {
 		        	((ZhangDefragmentationRCSA) rerouting).copyStrutures(this.pt, this.vt);
 		        	((ZhangDefragmentationRCSA) rerouting).runDefragmentantion(connections);
@@ -240,7 +236,6 @@ public class ControlPlane implements ControlPlaneForRSA {
 	        	}
 	        	
 	        	this.getFragmentationRatio();
-//	        	System.out.println("after df: "+dfIndex);
 	        	eventScheduler.removeReroutingEvent((ReroutingArrivalEvent)event);
 	        }
 	    }

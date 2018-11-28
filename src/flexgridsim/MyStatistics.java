@@ -6,6 +6,8 @@ import java.util.List;
 import org.jgrapht.GraphPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import flexgridsim.von.VirtualTopology;
+
 /**
  * The Class MyStatistics.
  */
@@ -651,5 +653,10 @@ public class MyStatistics {
 //		System.out.println(flow.getSumOfXT());
 		pathLength +=  (double)flow.getPathLength();
 		sumXT += flow.getSumOfXT();
+	}
+
+	public void acceptVon(VirtualTopology virtualTopology, ArrayList<Flow> flows) {
+		// TODO Auto-generated method stub
+		
 	}
 }

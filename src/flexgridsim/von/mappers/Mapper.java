@@ -1,5 +1,9 @@
 package flexgridsim.von.mappers;
 
+import flexgridsim.PhysicalTopology;
+import flexgridsim.rsa.RSA;
+import flexgridsim.von.VirtualTopology;
+
 /**
  * A load balancing algorithm based on Key-Link and resources contribution degree for virtual optical networks mapping
  * 
@@ -11,5 +15,17 @@ package flexgridsim.von.mappers;
  *
  */
 public class Mapper {
+	
+	private RSA rsa;
+
+	public void vonArrival(VirtualTopology von, RSA rsa, PhysicalTopology pt) {
+		this.rsa = rsa;
+		
+	}
+
+	public void vonDeparture(VirtualTopology von) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

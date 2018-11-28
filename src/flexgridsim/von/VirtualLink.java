@@ -1,9 +1,5 @@
 package flexgridsim.von;
 
-import java.util.ArrayList;
-
-import flexgridsim.Flow;
-
 public class VirtualLink {
 
 	public static int ID = 1;
