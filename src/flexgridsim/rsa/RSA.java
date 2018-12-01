@@ -32,6 +32,8 @@ public interface RSA {
      */
     public void simulationInterface(Element xml, PhysicalTopology pt, VirtualTopology vt, ControlPlaneForRSA cp, TrafficGenerator traffic);
 
+    public void simulationInterface(Element xml, PhysicalTopology pt, TrafficGenerator traffic);
+
     /**
      * Flow arrival.
      *

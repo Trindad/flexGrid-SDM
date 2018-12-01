@@ -15,6 +15,9 @@ public class VirtualTopology {
 	public ArrayList<VirtualNode> nodes;
 	public ArrayList<Request> requests;
 	
+	public double arrivalTime;
+	public double holdingTime;
+	
 	private int id;
 	
 	public double totalResources = 0;
@@ -23,6 +26,9 @@ public class VirtualTopology {
 	public VirtualTopology() {
 		setID(VirtualLink.ID++);
 		
+		this.links = new ArrayList<VirtualLink>();
+		this.nodes = new ArrayList<VirtualNode>();
+		this.requests = new ArrayList<Request>();
 	}
 	
 	public void calculateTotalRequestResources(int maxComputing, int maxBandwith) {

@@ -302,4 +302,10 @@ public class ShortestPathRSA implements RSA {
 		}
 		return sp;
 	}
+
+	@Override
+	public void simulationInterface(Element xml, PhysicalTopology pt, TrafficGenerator traffic) {
+		// TODO Auto-generated method stub
+		
+	}
 }

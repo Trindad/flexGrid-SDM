@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-import org.apache.commons.math3.distribution.PoissonDistribution;
 
 import flexgridsim.PhysicalTopology;
 
@@ -15,14 +14,14 @@ import flexgridsim.PhysicalTopology;
  */
 public class VirtualTopologyGenerator {
 	
-	public static VirtualTopology generate(PhysicalTopology physicalTopology,int minNodes, int maxNodes, int connectivityProbability, int minAlternativeNodes, int maxAlternativeNodes,
-											int minComputingResources, int maxComputingResources, int minCapacity, int maxCapacity, int minRequestCapacity, int maxRequestCapacity)
+	public static VirtualTopology generate(PhysicalTopology physicalTopology, int minNodes, int maxNodes, int connectivityProbability, int minAlternativeNodes, int maxAlternativeNodes,
+											int minComputingResources, int maxComputingResources, int minCapacity, int maxCapacity)
 	{
 		VirtualTopology topology = new VirtualTopology();
 		
 		int n = getRandomValue(minNodes, maxNodes);
-		
-		for(int i = 0; i < n; n++) {
+		System.out.println(n);
+		for(int i = 0; i < n; i++) {
 			VirtualNode node = new VirtualNode();
 			
 			//adding candidate physical nodes
@@ -30,12 +29,14 @@ public class VirtualTopologyGenerator {
 			ArrayList<Integer> candidateNodes = getNRandomNodes(minAlternativeNodes, maxAlternativeNodes, physicalNodes);
 			node.setCandidatePhysicalNodes(candidateNodes);
 			
+			
 			//adding computing resource
 			int computingResource = getRandomValue(minComputingResources, maxComputingResources);
 			node.setComputeResource(computingResource);
 			
 			topology.nodes.add(node);
 		}
+		
 		
 		//Connecting virtual nodes
 		for(int u = 0; u < (topology.nodes.size()-1); u++) {

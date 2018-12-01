@@ -250,4 +250,10 @@ public class EnergyEfficientRMLSA implements RSA {
 			return bestModulationLevel;
 		}
 	}
+
+	@Override
+	public void simulationInterface(Element xml, PhysicalTopology pt, TrafficGenerator traffic) {
+		// TODO Auto-generated method stub
+		
+	}
 }

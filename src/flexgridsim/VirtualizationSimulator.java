@@ -6,6 +6,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Centralizes the simulation execution specific for VONs. Defines what the command line
@@ -56,8 +57,45 @@ public class VirtualizationSimulator extends Simulator {
 	            System.exit(0);
 	        }
 	        
+	        String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
+	        String mapperModule = ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
 	        
+	        if (Simulator.verbose) 
+	        {
+                System.out.println("RSA module: " + rsaModule);
+                System.out.println("VON module: " + mapperModule);
+            }
 	        
+	        OutputManager gp = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
+            PhysicalTopology pt = new PhysicalTopology((Element) doc.getElementsByTagName("physical-topology").item(0));
+	        
+	        for (int i = 1; i <= numberOfSimulations; i++) {
+	        	
+	        	EventScheduler events = new EventScheduler();
+	        	
+	        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), -1);
+	            ((VonTrafficGenerator)traffic).generateTraffic(pt, events, i);
+	            
+	            MyStatistics st = MyStatistics.getMyStatisticsObject();
+	            st.statisticsSetup(gp, pt, traffic, pt.getNumNodes(), 3, 0, 0);
+
+	        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
+	 	        
+	 	        new SimulationRunner(cp, events);
+	 	        
+	 	        if(Simulator.verbose) 
+	 	        {
+	 	        	//TODO
+	 	        }
+	 	        else {
+	 	        	
+	 	        	st.calculateLastStatistics();
+	 	        }
+	 	        
+	 	       st.finish();
+	        }
+	        
+	    	
 		}
 		catch (Exception e) {
 			e.printStackTrace();

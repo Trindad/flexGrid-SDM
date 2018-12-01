@@ -29,4 +29,16 @@ public class SimulationRunner {
             cp.newEvent(event);
         }
     }
+	
+	public SimulationRunner(VonControlPlane cp, EventScheduler events) {
+        Event event;
+        Tracer tr = Tracer.getTracerObject();
+        MyStatistics st = MyStatistics.getMyStatisticsObject();
+        
+        while ((event = events.popEvent()) != null) {
+            tr.add(event);
+            st.addEvent(event);
+            cp.newEvent(event);
+        }
+    }
 }

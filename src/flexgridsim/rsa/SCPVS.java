@@ -196,5 +196,11 @@ public class SCPVS implements RSA {
 		}
 		return result;
 	}
+
+	@Override
+	public void simulationInterface(Element xml, PhysicalTopology pt, TrafficGenerator traffic) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 

@@ -23,14 +23,39 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 EventScheduler eventScheduler;
 	 private MyStatistics statistics = MyStatistics.getMyStatisticsObject();
 	 
-	 public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, Mapper mapper, PhysicalTopology pt) {
+	 public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic) {
+		 @SuppressWarnings("rawtypes")
+		 Class RSAClass;
+		 @SuppressWarnings("rawtypes")
+		 Class VonClass;
 		 
 		 this.pt = pt;
 		 this.activeVons = new HashMap<Integer, VirtualTopology>();
 		 this.mappedFlows = new HashMap<VirtualTopology, ArrayList<Flow>>();
-		 this.mapper = mapper;
 		 this.xml = xml;
 		 this.eventScheduler = eventScheduler;
+		 
+		 try 
+		 {
+            VonClass = Class.forName(mapper);
+            this.mapper = (Mapper) VonClass.newInstance();
+            this.mapper.simulationInterface(xml, pt, this, traffic);     
+        } 
+		catch (Throwable t) 
+		{
+            t.printStackTrace();
+        }
+		 
+		 try 
+		 {
+            RSAClass = Class.forName(rsaAlgorithm);
+            rsa = (RSA) RSAClass.newInstance();
+            rsa.simulationInterface(xml, pt, traffic);     
+        } 
+		catch (Throwable t) 
+		{
+            t.printStackTrace();
+        }
 	 }
 	 
 	 public void newEvent(Event event) {

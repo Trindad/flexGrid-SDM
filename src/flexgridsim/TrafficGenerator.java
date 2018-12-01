@@ -33,10 +33,14 @@ public class TrafficGenerator {
     		return new IPTrafficGenerator(xml, forcedLoad);
     		
     	}
+    	else if(xml.getAttribute("type").equals("poisson")) {
+    		return new VonTrafficGenerator(xml);
+    	}
     	else
     	{
     		return new TrafficGeneratorDefault(xml, forcedLoad);
     	}
+    	
     }
 
     /**
