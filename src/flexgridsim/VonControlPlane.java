@@ -63,7 +63,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 if(event instanceof VonArrivalEvent) {
 			 
 			 newVon(((VonArrivalEvent) event).getVon());
-	         mapper.vonArrival(((VonArrivalEvent) event).getVon(), rsa, pt);
+	         mapper.vonArrival(((VonArrivalEvent) event).getVon());
 			 
 		 }
 		 else if(event instanceof VonDepartureEvent) {

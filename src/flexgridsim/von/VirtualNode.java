@@ -9,6 +9,7 @@ public class VirtualNode {
 	private int computeResource;
 	private int id;
 	private int physicalNode;
+	private double requestResource;
 	
 	public VirtualNode() {
 		id = VirtualNode.ID++;
@@ -54,10 +55,16 @@ public class VirtualNode {
 		return physicalNode;
 	}
 
-
-
 	public void setPhysicalNode(int physicalNode) {
 		this.physicalNode = physicalNode;
+	}
+
+	public double getRequestResource() {
+		return requestResource;
+	}
+
+	public void setRequestResource(double requestResource) {
+		this.requestResource = requestResource;
 	}
 
 }

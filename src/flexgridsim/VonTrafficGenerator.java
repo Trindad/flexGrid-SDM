@@ -25,7 +25,7 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	private int minCapacity;
 	private int maxCapacity;
 	
-	private double meanHoldingTime = 1000;
+	private double meanHoldingTime = 100;
 	private double averageRate = 5;//average rate of 5 requests per 100 time units
 	private double timeUnits = 100;
 	
@@ -97,7 +97,7 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	            
 	            System.out.println("holdingTime: "+newVon.holdingTime);
 //	            time += poisson.sample();
-	            time += nextTime(averageRate/timeUnits);
+	            
 	            newVon.arrivalTime = time;
 		    	System.out.println("arrivalTime: "+newVon.arrivalTime);
 	            
@@ -105,6 +105,8 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	            events.addEvent(event);
 	            event = new VonDepartureEvent(time + newVon.holdingTime, i, newVon);
 	            events.addEvent(event);
+	            
+	            time += nextTime(averageRate/timeUnits);
 
 	    	}
 	 }

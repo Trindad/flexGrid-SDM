@@ -1,6 +1,6 @@
 package flexgridsim.von;
 
-import java.util.ArrayList;
+import java.util.ArrayList;import java.util.Comparator;
 
 /**
  * 
@@ -20,7 +20,7 @@ public class VirtualTopology {
 	
 	private int id;
 	
-	public double totalResources = 0;
+	public double totalResources;
 	public double sigma = 0.5;
 	
 	public VirtualTopology() {
@@ -31,19 +31,23 @@ public class VirtualTopology {
 		this.requests = new ArrayList<Request>();
 	}
 	
-	public void calculateTotalRequestResources(int maxComputing, int maxBandwith) {
+	public void calculateTotalRequestResources() {
 		
 		double sumComputing = 0;
 		double sumBandwidth = 0;
 		
+		links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
+		double maxBandwith = (double)links.get(0).getBandwidth();
 		for(VirtualLink link : links) {
 			
-			sumBandwidth += ((double)link.getBandwidth()/ (double)maxBandwith);
+			sumBandwidth += ((double)link.getBandwidth()/ maxBandwith);
 		}
 		
+		nodes.sort(Comparator.comparing(VirtualNode::getComputeResource).reversed());
+		double maxComputing = (double)nodes.get(0).getComputeResource();
 		for(VirtualNode node: nodes) {
 			
-			sumComputing += ((double)node.getComputeResource()/ (double)maxComputing);
+			sumComputing += ((double)node.getComputeResource()/ maxComputing);
 		}
 		
 		totalResources = sigma * (sumComputing)/ ((double)nodes.size()) + (1.0 - sigma) * (sumBandwidth) / ((double)links.size());
@@ -57,6 +61,10 @@ public class VirtualTopology {
 
 	public void setID(int id) {
 		this.id = id;
+	}
+	
+	public double getTotalResources() {
+		return totalResources;
 	}
 	 
 }

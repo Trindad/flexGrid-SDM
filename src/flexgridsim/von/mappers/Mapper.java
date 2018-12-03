@@ -1,5 +1,7 @@
 package flexgridsim.von.mappers;
 
+import java.util.ArrayList;
+
 import org.w3c.dom.Element;
 
 import flexgridsim.PhysicalTopology;
@@ -9,35 +11,33 @@ import flexgridsim.rsa.RSA;
 import flexgridsim.von.VirtualTopology;
 
 /**
- * A load balancing algorithm based on Key-Link and resources contribution degree for virtual optical networks mapping
- * 
- * Authors: G. Zhao, Z. Xu, Z. Ye, K. Wang and J. Wu
- * 
- * IEEE 2017
  * 
  * @author trindade
  *
  */
 public class Mapper {
 	
-	private RSA rsa;
-	private PhysicalTopology pt;
-	private VirtualTopology von;
+	public RSA rsa;
+	public PhysicalTopology pt;
+	public ArrayList<VirtualTopology> vons;
 
-	public void vonArrival(VirtualTopology von, RSA rsa, PhysicalTopology pt) {
-		this.rsa = rsa;
-		this.pt = pt;
-		this.von = von;
+	public void vonArrival(ArrayList<VirtualTopology> vons, RSA rsa, PhysicalTopology pt) {
+		
+	}
+	
+	public void vonArrival(VirtualTopology von) {
+		this.vons.add(von);
 	}
 
 	public void vonDeparture(VirtualTopology von) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane vonControlPlane, TrafficGenerator traffic) {
-		// TODO Auto-generated method stub
-		
+	
+		this.rsa = rsa;
+		this.pt = pt;
+		this.vons = new ArrayList<VirtualTopology>();
 	}
 
 }
