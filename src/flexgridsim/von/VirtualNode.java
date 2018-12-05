@@ -66,5 +66,4 @@ public class VirtualNode {
 	public void setRequestResource(double requestResource) {
 		this.requestResource = requestResource;
 	}
-
 }

@@ -16,10 +16,11 @@ package flexgridsim;
  * into larger units, so they can be processed as single units.
  * Grooming in OXCs has the objective of minimizing the cost of the network.
  * 
- * @author andred
+ * @author andred, trindade
  */
 public class OXC {
 	private static int idCount;
+	private double computeResource;
     private int id;
     
     /**
@@ -29,6 +30,8 @@ public class OXC {
     public OXC() {
         this.id = idCount;
         idCount++;
+        
+        computeResource = 500;
     }
     
     /**
@@ -39,5 +42,9 @@ public class OXC {
     public int getID() {
         return id;
     }
+
+	public double getComputeResource() {
+		return this.computeResource;
+	}
     
 }
