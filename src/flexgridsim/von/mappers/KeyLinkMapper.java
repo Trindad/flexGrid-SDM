@@ -45,6 +45,7 @@ public class KeyLinkMapper extends Mapper {
 			
 			nodeMapping(sortResourceContributionDegree(von, shortestPaths), von);
 			
+			getLinkWeight(shortestPaths);
 			
 			von.links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
 			for(VirtualLink link : von.links) {
@@ -147,17 +148,88 @@ public class KeyLinkMapper extends Mapper {
 		
 		return nodeIndex;
 	}
-
-	public double getLinkWeight() {
 	
-		double linkWeight = 0;
-		
-		
-		
-		return linkWeight;
-		
+	public void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] result) {
+
+		for (int i = 0; i < result.length; i++) {
+			
+			for (int j = 0; j < result[i].length; j++) {
+				result[i][j] = s1[i][j] && s2[i][j];
+			}
+		}
 	}
 	
+	public int getNumberOfAvailableSLots(int id) {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		for (int i = 0; i < pt.getCores(); i++) {
+			for (int j = 0; j < pt.getNumSlots(); j++) {
+				spectrum[i][j] = true;
+			}
+		}
+		
+		
+		bitMap(pt.getLink(id).getSpectrum(), spectrum, spectrum);
+		
+		
+		int totalSlotsAvailable = 0;
+		for(int i = 0; i < spectrum.length; i++) {
+			for(int j = 0; j < spectrum[i].length; j++) {
+				
+				if(spectrum[i][j]) {
+					totalSlotsAvailable++;
+				}
+				
+			}
+		}
+		
+		return totalSlotsAvailable;
+	}
+		
+
+	public double getLinkWeight(Map<Integer[], List<Integer>> shortestPaths) {
+	
+		double linkWeight = 0;
+		double lMax = getLongestLinkLength();
+		
+		Map<Integer, Double> weights = new HashMap<Integer, Double>();
+	
+		/**
+		 * Number of all shortest paths
+		 */
+		double n = pt.getNumNodes();
+		n = shortestPaths.size(); 
+		
+		double a = 0.2, b = 0.2, c = 0.6;
+		
+		for(int i = 0; i < pt.getNumLinks(); i++) {
+			
+			double nAppearances = getNumberOfAppearances(shortestPaths, i);
+			double k = nAppearances / n;
+			int availableSlots = getNumberOfAvailableSLots(i);
+			int totalSlots = (pt.getCores() * pt.getNumSlots());
+			int occupiedSlots = totalSlots - availableSlots;
+			double weight = a * ( pt.getLink(i).getDistance() / lMax ) + b * ( occupiedSlots / totalSlots ) + c * k * ( occupiedSlots / totalSlots );
+			weights.put(i, weight); 
+		}
+		
+		return linkWeight;
+	}
+	
+	private double getNumberOfAppearances(Map<Integer[], List<Integer>> shortestPaths, int id) {
+		
+		int count = 0;
+		
+		for(Integer []key : shortestPaths.keySet()) {
+			
+			if(shortestPaths.get(key).contains(id)) {
+				count++;
+			}
+		}
+		
+		return count;
+	}
+
 	public double getLongestLinkLength() {
 		
 		int length = 0, temp = 0;
