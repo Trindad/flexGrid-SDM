@@ -10,6 +10,7 @@ import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
+import flexgridsim.von.mappers.KeyLinkMapper;
 
 public class VonControlPlane implements ControlPlaneForVon {
 	

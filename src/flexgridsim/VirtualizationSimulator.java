@@ -58,7 +58,7 @@ public class VirtualizationSimulator extends Simulator {
 	        }
 	        
 	        String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
-	        String mapperModule = ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
+	        String mapperModule = "flexgridsim.von.mappers." + ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
 	        
 	        if (Simulator.verbose) 
 	        {
