@@ -15,35 +15,179 @@ import flexgridsim.ModulationsMuticore;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
 import flexgridsim.TrafficGenerator;
-import flexgridsim.VirtualTopology;
-import flexgridsim.util.KShortestPaths;
-import flexgridsim.util.WeightedGraph;
+
 
 /**
+ * 
+ * RCSA based on "A load balancing algorithm based on Key-Link and resources contribution degree for virtual optical networks mapping"
+ * 
+ * Authors: G. Zhao, Z. Xu, Z. Ye, K. Wang and J. Wu
  * 
  * @author trindade
  *
  */
 
-public class VONRCSA implements RSA{
+public class VONRCSA extends SCVCRCSA {
 
-	@Override
-	public void simulationInterface(Element xml, PhysicalTopology pt, VirtualTopology vt, ControlPlaneForRSA cp,
-			TrafficGenerator traffic) {
-		// TODO Auto-generated method stub
-		
+	
+	public void flowArrival(Flow flow) {
+		kPaths = 3;
+
+		setkShortestPaths(flow);
+
+		if(selectPath( getBlockOfSlots(flow) ) ) {
+			
+		}
 	}
 
-	@Override
-	public void flowArrival(Flow flow) {
-		// TODO Auto-generated method stub
+	protected int preProcessSpectrumResources(boolean [][]spectrum) {
 		
+		int maxSlotIndex = 0;
+		
+		for(int core = (spectrum.length-1); core >= 0 ; core--) {
+			int s = getMaximumIndexOfUsed(spectrum[core]);
+			if(s > maxSlotIndex) {
+				maxSlotIndex = s;
+			}
+		}
+		
+		
+		return maxSlotIndex;
+	}
+	
+	private int getMaximumIndexOfUsed(boolean[] core) {
+
+		for(int i = (core.length-1); i >= 0; i--) {
+			if(!core[i]) {
+				return i;
+			}
+		}
+		
+		return 0;
+	}
+
+	public ArrayList<Slot> FirstFitPolicy(Flow flow, int []links, int demandInSlots, int modulation) {
+		
+		boolean [][]spectrum = bitMapAll(links);
+		int maxSlotIndex = preProcessSpectrumResources(spectrum);
+		
+		for(int k = (spectrum.length-1); k >= 0; k--) {
+			ArrayList<Slot> slots = new ArrayList<Slot>();
+			for(int j = 0; j <= maxSlotIndex; j++) {
+				
+				int limit = j + (demandInSlots - 1);
+				
+				if(limit >= pt.getNumSlots()) {
+					break;
+				}
+				
+				int n = j;
+				ArrayList<Slot> candidate = new ArrayList<Slot>();
+				while(n <= limit && spectrum[k][n] == true ) {
+					candidate.add( new Slot(k,n) );
+					n++;
+				}
+				
+				if(candidate.size() == demandInSlots) {
+					if(cp.CrosstalkIsAcceptable(flow, links, candidate, ModulationsMuticore.inBandXT[modulation])) {
+						slots.addAll(new ArrayList<Slot>(candidate));
+						break;
+					}
+				}
+			}
+			
+			if(slots.size() == demandInSlots) {
+				return slots;
+			}	
+		}
+		
+		return new ArrayList<Slot>();
+	}
+	
+	
+	private boolean selectPath(ArrayList<ArrayList<Slot>> blockOfSlots) {
+		
+		int selectedPath = 0;
+		Slot last = null;
+		
+		for(int i = 0; i < blockOfSlots.size(); i++) {
+		
+			if(blockOfSlots.get(i).size() >= 1) {
+				Slot temp = blockOfSlots.get(i).get(blockOfSlots.get(i).size()-1);
+				if(last == null) 
+				{
+					selectedPath = i;
+				}
+				else if(last.c <= temp.c && last.s > temp.s) 
+				{
+					selectedPath = i;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	private ArrayList<ArrayList<Slot>> getBlockOfSlots(Flow flow) {
+		
+		ArrayList<ArrayList<Slot>> blockOfSlots = new ArrayList<ArrayList<Slot>>();
+		int []modulationFormats = getModulationFormat(flow);
+		
+		for(int p = 0; p < paths.size(); p++) {
+			
+			double requestedBandwidthInGHz = ( ((double)flow.getRate()) / ((double)modulationFormats[p] + 1) );
+			double requiredBandwidthInGHz = requestedBandwidthInGHz;
+			double slotGranularityInGHz = ModulationsMuticore.subcarriersCapacity[0];
+			int demandInSlots = (int) Math.ceil(requiredBandwidthInGHz / slotGranularityInGHz);
+			
+			demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
+			demandInSlots++;//adding guardband
+			
+			blockOfSlots.add(FirstFitPolicy(flow, paths.get(p), demandInSlots, modulationFormats[p]));
+		}
+		
+		return blockOfSlots;
+	}
+
+	private int []getModulationFormat(Flow flow) {
+		
+		int []modulationFormats = new int[paths.size()];
+		
+		for(int i = 0; i < paths.size(); i++) {
+			
+			modulationFormats[i] = chooseModulationFormat(flow.getRate(), paths.get(i));
+		}
+		
+		return modulationFormats;
 	}
 
 	@Override
 	public void flowDeparture(Flow flow) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public void setkShortestPaths(Flow flow) {
+		
+		this.paths  = new ArrayList<int []>();
+		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getVONGraph(), kPaths);
+		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kSP.getPaths( flow.getSource(), flow.getDestination() );
+			
+		if(KPaths.size() >= 1)
+		{
+			for (int k = 0; k < KPaths.size(); k++) {
+				
+				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				
+				for (int j = 0; j < listOfVertices.size()-1; j++) {
+					
+					links[j] = pt.getLink(listOfVertices.get(j), listOfVertices.get(j+1)).getID();
+				}
+
+				this.paths.add(links);
+			}
+		}
 	}
 
 	@Override

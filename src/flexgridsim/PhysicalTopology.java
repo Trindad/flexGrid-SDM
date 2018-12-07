@@ -7,6 +7,7 @@ package flexgridsim;
 import java.util.ArrayList;
 //import java.util.Arrays;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -34,6 +35,7 @@ public class PhysicalTopology {
     private FlexGridLink[][] adjMatrix;
     
     private SimpleWeightedGraph<Integer, DefaultWeightedEdge> graph;
+    private SimpleWeightedGraph<Integer, DefaultWeightedEdge> vonGraph;
     
     /**
      * Creates a new PhysicalTopology object.
@@ -477,5 +479,36 @@ public class PhysicalTopology {
 		}
 		
 		return n;
+	}
+	
+	public void setVonGraph(Map<Integer, Double> weights) {
+		
+		vonGraph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+		
+    	for(int i = 0; i < nodes; i++) {
+    		graph.addVertex(i);
+    	}
+    	
+    	for (Integer key : weights.keySet()) {
+               
+             DefaultWeightedEdge edge = vonGraph.addEdge(linkVector[key].getSource(), linkVector[key].getDestination());
+             vonGraph.setEdgeWeight(edge, weights.get(key));
+        }
+	}
+
+	public Graph<Integer, DefaultWeightedEdge> getVONGraph() {
+		
+		WeightedGraph g = new WeightedGraph(nodes);
+        
+		for (int i = 0; i < nodes; i++) {
+            for (int j = 0; j < nodes; j++) {
+                if (hasLink(i, j)) {
+                    g.addEdge(i, j, getLink(i, j).getWeight());
+                }
+            }
+        }
+        
+		
+		return vonGraph;
 	}
 }

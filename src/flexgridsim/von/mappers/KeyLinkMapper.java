@@ -45,7 +45,8 @@ public class KeyLinkMapper extends Mapper {
 			
 			nodeMapping(sortResourceContributionDegree(von, shortestPaths), von);
 			
-			getLinkWeight(shortestPaths);
+			Map<Integer, Double> weights = getLinkWeight(shortestPaths);
+			pt.setVonGraph(weights);
 			
 			von.links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
 			for(VirtualLink link : von.links) {
@@ -187,9 +188,8 @@ public class KeyLinkMapper extends Mapper {
 	}
 		
 
-	public double getLinkWeight(Map<Integer[], List<Integer>> shortestPaths) {
+	public Map<Integer, Double> getLinkWeight(Map<Integer[], List<Integer>> shortestPaths) {
 	
-		double linkWeight = 0;
 		double lMax = getLongestLinkLength();
 		
 		Map<Integer, Double> weights = new HashMap<Integer, Double>();
@@ -213,7 +213,7 @@ public class KeyLinkMapper extends Mapper {
 			weights.put(i, weight); 
 		}
 		
-		return linkWeight;
+		return weights;
 	}
 	
 	private double getNumberOfAppearances(Map<Integer[], List<Integer>> shortestPaths, int id) {
