@@ -326,8 +326,7 @@ public class MyStatistics {
 	public void calculatePeriodicalStatistics(){
 		
 		setFragmentatioRatio();
-		
-		
+
 		//fragmentation graph
 		double fragmentationMean = 0;
     	for (int i = 0; i < pt.getNumLinks(); i++) {
@@ -548,7 +547,7 @@ public class MyStatistics {
                 	this.numberOfUsedTransponders[f.getSource()][f.getDestination()]--;
                 }
             }
-            if (this.numberArrivals % 100 == 0){
+            if (this.numberArrivals % 100 == 0) {
             	calculatePeriodicalStatistics();
             	
             }

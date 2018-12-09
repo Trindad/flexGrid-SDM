@@ -66,9 +66,11 @@ public class PhysicalTopology {
             if (Simulator.verbose) {
                 System.out.println(Integer.toString(nodes) + " nodes");
             }
+            System.out.println(Integer.toString(nodes) + " nodes");
             nodeVector = new OXC[nodes];
             //<node id="0" grooming-in-ports="16" grooming-out-ports="16" wlconverters="4" wlconversion-range="2"/>
             for (int i = 0; i < nodes; i++) {
+            	nodeVector[i] = new OXC();
                 id = Integer.parseInt(((Element) nodelist.item(i)).getAttribute("id"));
             }
 
@@ -109,6 +111,7 @@ public class PhysicalTopology {
         this.linkVector = p.linkVector.clone();
         
         this.graph = p.graph;
+        this.vonGraph = p.vonGraph;
         
         this.adjMatrix = new FlexGridLink[this.nodes][this.nodes];
         for(int i = 0; i < p.adjMatrix.length; i++) {
@@ -240,11 +243,16 @@ public class PhysicalTopology {
         return g;
     }
     
+    /**
+     * Graph configuration
+     */
     public void setGraph() {
     	
     	graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
     			
-    	for(int i = 0; i < nodes; i++) graph.addVertex(i);
+    	for(int i = 0; i < nodes; i++) {
+    		graph.addVertex(i);
+    	}
     	
     	for (int i = 0; i < nodes-1; i++) {
             
@@ -486,13 +494,24 @@ public class PhysicalTopology {
 		vonGraph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 		
     	for(int i = 0; i < nodes; i++) {
-    		graph.addVertex(i);
+    		vonGraph.addVertex(i);
     	}
     	
     	for (Integer key : weights.keySet()) {
                
-             DefaultWeightedEdge edge = vonGraph.addEdge(linkVector[key].getSource(), linkVector[key].getDestination());
-             vonGraph.setEdgeWeight(edge, weights.get(key));
+    		int source = linkVector[key].getSource(),  destination = linkVector[key].getDestination();
+    		if (!hasLink(source, destination)) 
+        	{
+    			System.out.println("source and destination not connected");
+        	}
+    		else if(!vonGraph.containsEdge(source, destination)){
+    			double w = weights.get(key);
+    			
+    			DefaultWeightedEdge edge = vonGraph.addEdge(source, destination);
+               
+                vonGraph.setEdgeWeight(edge, w);
+               
+    		} 
         }
 	}
 

@@ -4,7 +4,10 @@
  */
 package flexgridsim;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
 /**
@@ -49,6 +52,12 @@ public class EventScheduler {
     public EventScheduler() {
         EventSort eventSort = new EventSort();
         eventQueue = new PriorityQueue<Event>(100, eventSort);
+    }
+    
+    public Iterator<Event> getEvents()
+    {
+//    	System.out.println(eventQueue.size());
+    	return eventQueue.iterator();
     }
     
     /**

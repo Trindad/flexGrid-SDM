@@ -66,5 +66,17 @@ public class VirtualTopology {
 	public double getTotalResources() {
 		return totalResources;
 	}
+
+	public boolean isNodeConnected(VirtualNode node) {
+		
+		for(VirtualLink link : links) {
+			
+			if(link.getSource().getId() == node.getId() || link.getDestination().getId() == node.getId()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	 
 }

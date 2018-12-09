@@ -15,6 +15,9 @@ import flexgridsim.ModulationsMuticore;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.Slot;
 import flexgridsim.TrafficGenerator;
+import flexgridsim.VonControlPlane;
+import flexgridsim.util.WeightedGraph;
+import flexgridsim.von.VirtualTopology;
 
 
 /**
@@ -28,10 +31,11 @@ import flexgridsim.TrafficGenerator;
  */
 
 public class VONRCSA extends SCVCRCSA {
-
+	private VonControlPlane cp;
 	
 	public void flowArrival(Flow flow) {
 		kPaths = 3;
+		System.out.println("RCSA for VON");
 
 		setkShortestPaths(flow);
 
@@ -89,6 +93,7 @@ public class VONRCSA extends SCVCRCSA {
 				}
 				
 				if(candidate.size() == demandInSlots) {
+					
 					if(cp.CrosstalkIsAcceptable(flow, links, candidate, ModulationsMuticore.inBandXT[modulation])) {
 						slots.addAll(new ArrayList<Slot>(candidate));
 						break;
@@ -125,6 +130,8 @@ public class VONRCSA extends SCVCRCSA {
 			}
 		}
 		
+		System.out.println("NEEDs to be implemented");
+		
 		return false;
 	}
 
@@ -155,7 +162,23 @@ public class VONRCSA extends SCVCRCSA {
 		
 		for(int i = 0; i < paths.size(); i++) {
 			
-			modulationFormats[i] = chooseModulationFormat(flow.getRate(), paths.get(i));
+			int totalLength = 0;
+			
+			for(int link : paths.get(i)) {
+				
+				totalLength += (pt.getLink(link).getDistance());
+			}
+			
+			//invalid path
+			if(totalLength > ModulationsMuticore.maxDistance[0]) {
+				System.out.println("Error. Invalid path");
+			}
+			
+			int modulationLevel =  ModulationsMuticore.getModulationByDistance(totalLength);
+			
+			modulationLevel = flow.getRate() < ModulationsMuticore.subcarriersCapacity[modulationLevel] &&  modulationLevel > 0 ? decreaseModulation(modulationLevel, flow.getRate()) : modulationLevel;
+
+			modulationFormats[i] = modulationLevel;
 		}
 		
 		return modulationFormats;
@@ -170,6 +193,10 @@ public class VONRCSA extends SCVCRCSA {
 	public void setkShortestPaths(Flow flow) {
 		
 		this.paths  = new ArrayList<int []>();
+		
+		if(pt == null) System.out.println("Physical topology is NULL");
+		System.out.println(flow.getSource() +" "+flow.getDestination());
+		
 		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getVONGraph(), kPaths);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kSP.getPaths( flow.getSource(), flow.getDestination() );
 			
@@ -192,8 +219,15 @@ public class VONRCSA extends SCVCRCSA {
 
 	@Override
 	public void simulationInterface(Element xml, PhysicalTopology pt, TrafficGenerator traffic) {
-		// TODO Auto-generated method stub
-		
+		this.pt = pt;
+	}
+	
+	public void setVonControlPlane(VonControlPlane cp) 
+	{
+		this.cp = cp;
 	}
 
+	public void setPhysicalTopology(PhysicalTopology ptCopy) {
+		this.pt = ptCopy;
+	}
 }

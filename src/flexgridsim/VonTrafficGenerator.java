@@ -33,16 +33,6 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	
 		this.xml = xml;
         this.calls = Integer.parseInt(xml.getAttribute("calls"));
-        
-//        <setting name="minNodes">3</setting>
-//        <setting name="maxNodes">10</setting>
-//        <setting name="connectivityProbability">50</setting>
-//        <setting name="minAlternativeNodes">2</setting>
-//        <setting name="maxAlternativeNodes">4</setting>
-//        <setting name="minComputingResources">1</setting>
-//        <setting name="maxComputingResources">4</setting>
-//        <setting name="minCapacity">50</setting>
-//        <setting name="maxCapacity">400</setting>
         NodeList settings = xml.getElementsByTagName("setting");
         
         for (int i = 0; i < settings.getLength(); i++) {
@@ -87,19 +77,18 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	    	ExponentialDistribution exp = new ExponentialDistribution(meanHoldingTime);
 	    	double time = 0;
 //	    	PoissonDistribution poisson = new PoissonDistribution();
-	    	
-	    	
+	    		    	
 	    	for(int i = 0; i < calls; i++) {
 	    		
 	    		VirtualTopology newVon = VirtualTopologyGenerator.generate(pt, minNodes, maxNodes, connectivityProbability, minAlternativeNodes, maxAlternativeNodes,
 						minComputingResources, maxComputingResources, minCapacity, maxCapacity);
 	            newVon.holdingTime = exp.sample();
 	            
-	            System.out.println("holdingTime: "+newVon.holdingTime);
+//	            System.out.println("holdingTime: "+newVon.holdingTime);
 //	            time += poisson.sample();
 	            
 	            newVon.arrivalTime = time;
-		    	System.out.println("arrivalTime: "+newVon.arrivalTime);
+//		    	System.out.println("arrivalTime: "+newVon.arrivalTime);
 	            
 		    	Event event = new VonArrivalEvent(time, newVon);
 	            events.addEvent(event);

@@ -68,7 +68,7 @@ public class SCVCRCSA implements RSA{
 		int totalLength = 0;
 		
 		for(int i : links) {
-			
+			System.out.println(i);
 			totalLength += (pt.getLink(i).getDistance());
 		}
 		

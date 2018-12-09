@@ -20,12 +20,14 @@ public class Mapper {
 	public RSA rsa;
 	public PhysicalTopology pt;
 	public ArrayList<VirtualTopology> vons;
+	public VonControlPlane cp;
 
-	public void vonArrival(ArrayList<VirtualTopology> vons, RSA rsa, PhysicalTopology pt) {
+	public void vonArrival(ArrayList<VirtualTopology> vons) {
 		
 	}
 	
 	public void vonArrival(VirtualTopology von) {
+		
 		this.vons.add(von);
 	}
 
@@ -33,11 +35,11 @@ public class Mapper {
 		
 	}
 
-	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane vonControlPlane, TrafficGenerator traffic) {
-	
+	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane cp, TrafficGenerator traffic, RSA rsa) {
 		this.rsa = rsa;
 		this.pt = pt;
 		this.vons = new ArrayList<VirtualTopology>();
+		this.cp = cp;
 	}
 
 }

@@ -1,6 +1,7 @@
 package flexgridsim.von.mappers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import flexgridsim.PhysicalTopology;
 import flexgridsim.TrafficGenerator;
 import flexgridsim.VonControlPlane;
 import flexgridsim.rsa.RSA;
+import flexgridsim.rsa.VONRCSA;
 import flexgridsim.von.VirtualLink;
 import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
@@ -33,11 +35,17 @@ import flexgridsim.von.VirtualTopology;
 public class KeyLinkMapper extends Mapper {
 
 	
-	public void vonArrival(ArrayList<VirtualTopology> vons, RSA rsa, PhysicalTopology pt) {
+	public void vonArrival(ArrayList<VirtualTopology> vons) {
 	
+		System.out.println("Key-Link Mapper");
 		vons.sort(Comparator.comparing(VirtualTopology::getTotalResources).reversed());
 		
-		Map<Integer[], List<Integer>> shortestPaths = shortestPaths();
+		if (rsa instanceof VONRCSA) {
+			
+			((VONRCSA) rsa).setVonControlPlane(cp);
+		}
+		
+		Map<List<Integer>, List<Integer>> shortestPaths = shortestPaths();
 		
 		for(VirtualTopology von: vons) {
 			
@@ -49,33 +57,55 @@ public class KeyLinkMapper extends Mapper {
 			pt.setVonGraph(weights);
 			
 			von.links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
+			
+			boolean blocked = false;
+			PhysicalTopology ptCopy = new PhysicalTopology(pt);
 			for(VirtualLink link : von.links) {
 				
+				System.out.println(link.getSource().getPhysicalNode()+" "+link.getDestination().getPhysicalNode());
+				if (rsa instanceof VONRCSA) {
+					
+					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
+				}
 				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
 				rsa.flowArrival(flow);
+			
+				if(!flow.isAccepeted()) {
+					blocked = true;
+					break;
+				}
+			}
+			
+			if(!blocked) {
+				pt.updateEverything(ptCopy);
 			}
 		}
 		
 	}
 	
-	private Map<Integer[], List<Integer>> shortestPaths() {
+	private Map<List<Integer>, List<Integer>> shortestPaths() {
 		
-		Map<Integer[], List<Integer>> shortestPaths = new HashMap<Integer[], List<Integer>>();
+		Map<List<Integer>, List<Integer>> shortestPaths = new HashMap<List<Integer>, List<Integer>>();
 		
 		for(int source = 0; source < pt.getNumNodes(); source++) {
 			for(int destination = 0; destination < pt.getNumNodes(); destination++) {
 				
 				if(destination != source) {
-					
-					org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge> shortestPath = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge>(pt.getGraph(), 1);
+					org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge> shortestPath = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge>(pt.getGraph());
 					GraphPath<Integer, DefaultWeightedEdge> path = shortestPath.getPath( source, destination );
 					
-					List<Integer> listOfVertices = path.getVertexList();
-					Integer[]nodes = new Integer[2];
-					nodes[0] = source;
-					nodes[1] = destination;
-					
-					shortestPaths.put(nodes, listOfVertices);
+					try {
+						
+						List<Integer> listOfVertices = path.getVertexList();
+						List<Integer> nodes = new ArrayList<Integer>();
+						nodes.add(source);
+						nodes.add(destination);
+						
+						shortestPaths.put(nodes, listOfVertices);
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -83,7 +113,7 @@ public class KeyLinkMapper extends Mapper {
 		return shortestPaths;
 	}
 
-	private ArrayList<Integer> sortResourceContributionDegree(VirtualTopology von, Map<Integer[], List<Integer>> shortestPaths) {
+	private ArrayList<Integer> sortResourceContributionDegree(VirtualTopology von, Map<List<Integer>, List<Integer>> shortestPaths) {
 		
 		ArrayList<Integer> nodeIndices = new ArrayList<Integer>();
 		double []rcd = new double[pt.getNumNodes()];
@@ -99,11 +129,12 @@ public class KeyLinkMapper extends Mapper {
 					
 				if(source != destination) 
 				{
-					List<Integer> listOfVertices = shortestPaths.get(new Integer[] {source, destination});
+					List<Integer> listOfVertices = shortestPaths.get(Arrays.asList(new Integer[] {source, destination}));
 					
 					for(int i = 0; i < (listOfVertices.size()-1); i++) {
 						
-						double c = pt.getNode(listOfVertices.get(i)).getComputeResource() * pt.getNode(listOfVertices.get(i+1)).getComputeResource();
+						int index = listOfVertices.get(i);
+						double c = pt.getNode(index).getComputeResource() * pt.getNode(listOfVertices.get(i+1)).getComputeResource();
 						double distance = pt.getLink(listOfVertices.get(i), listOfVertices.get(i+1)).getDistance();
 						rcd[listOfVertices.get(i)] += (getMinimumBandwdith() * (c / Math.pow(distance, 2)));
 					}
@@ -117,22 +148,29 @@ public class KeyLinkMapper extends Mapper {
 	}
 
 	private double getMinimumBandwdith() {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return 12.5;
 	}
 
 	public void nodeMapping(ArrayList<Integer> physicalNodes, VirtualTopology von) {
 		
-		ArrayList<Integer> temp = new ArrayList<Integer>(physicalNodes);
+		ArrayList<Integer> temp = new ArrayList<Integer>();
 		
 		for(VirtualNode node: von.nodes) {
+			int selectedNode;
+			ArrayList<Integer> available = new ArrayList<>(physicalNodes);
+			available.removeAll(temp);
 			
-			int selectedNode = getSelectedNode(temp, node.getCandidatePhysicalNodes());
+			do {
+				selectedNode = getSelectedNode(available, node.getCandidatePhysicalNodes());
+			} while (temp.contains(selectedNode));
+			
 			if(selectedNode >= 0) 
 			{
 				node.setPhysicalNode(selectedNode);
-				temp.remove(selectedNode);
+				temp.add(selectedNode);
 			}
+			
 		}
 	}
 
@@ -188,7 +226,7 @@ public class KeyLinkMapper extends Mapper {
 	}
 		
 
-	public Map<Integer, Double> getLinkWeight(Map<Integer[], List<Integer>> shortestPaths) {
+	public Map<Integer, Double> getLinkWeight(Map<List<Integer>, List<Integer>> shortestPaths) {
 	
 		double lMax = getLongestLinkLength();
 		
@@ -216,11 +254,11 @@ public class KeyLinkMapper extends Mapper {
 		return weights;
 	}
 	
-	private double getNumberOfAppearances(Map<Integer[], List<Integer>> shortestPaths, int id) {
+	private double getNumberOfAppearances(Map<List<Integer>, List<Integer>> shortestPaths, int id) {
 		
 		int count = 0;
 		
-		for(Integer []key : shortestPaths.keySet()) {
+		for(List<Integer> key : shortestPaths.keySet()) {
 			
 			if(shortestPaths.get(key).contains(id)) {
 				count++;
@@ -250,7 +288,7 @@ public class KeyLinkMapper extends Mapper {
 		
 	}
 
-	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane vonControlPlane, TrafficGenerator traffic) {
-			super.simulationInterface(xml, pt, vonControlPlane, traffic);
+	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane cp, TrafficGenerator traffic, RSA rsa) {
+			super.simulationInterface(xml, pt, cp, traffic, rsa);
 	}
 }

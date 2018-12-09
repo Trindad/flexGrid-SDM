@@ -43,23 +43,31 @@ public class VirtualTopologyGenerator {
 			
 			int maxBandwidth = 0;
 			ArrayList<Integer> setBandwidth = new ArrayList<Integer>();
-			for(int v = u+1; v < topology.nodes.size(); v++) {
+			boolean connected = false;
+		
+			do {
+				for(int v = u+1; v < topology.nodes.size(); v++) {
 					
-				boolean connect = new Random().nextInt(101) < connectivityProbability;
-				
-				if(connect == true) {
-					
-					VirtualLink link = new VirtualLink(topology.nodes.get(u), topology.nodes.get(v));
-					int bandwidth = getRandomValue(minCapacity, maxCapacity);
-					link.setBandwidth(bandwidth);
-					
-					if(bandwidth > maxBandwidth) {
-						maxBandwidth = bandwidth;
+					int var = new Random().nextInt(100);
+					boolean connect = var >= connectivityProbability;
+
+					if(connect == true) {
+						
+						VirtualLink link = new VirtualLink(topology.nodes.get(u), topology.nodes.get(v));
+						int bandwidth = getRandomValue(minCapacity, maxCapacity);
+						link.setBandwidth(bandwidth);
+						connected = connect;
+						if(bandwidth > maxBandwidth) {
+							maxBandwidth = bandwidth;
+						}
+						
+						setBandwidth.add(bandwidth);
+						topology.links.add(link);
 					}
-					setBandwidth.add(bandwidth);
-					topology.links.add(link);
 				}
 			}
+			while(!connected || !topology.isNodeConnected(topology.nodes.get(u)));
+			
 			
 			double sumRequiredBandwidth = 0;
 			for(int bandwidth: setBandwidth) {
@@ -71,7 +79,7 @@ public class VirtualTopologyGenerator {
 		}
 		
 		topology.calculateTotalRequestResources();
-	
+
 		return topology;
 	}
 	

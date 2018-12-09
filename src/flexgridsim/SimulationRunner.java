@@ -4,6 +4,8 @@
  */
 package flexgridsim;
 
+import java.util.Iterator;
+
 /**
  * Simply runs the simulation, as long as there are events
  * scheduled to happen.
@@ -30,12 +32,34 @@ public class SimulationRunner {
         }
     }
 	
-	public SimulationRunner(VonControlPlane cp, EventScheduler events) {
+	public SimulationRunner(VonControlPlane cp, EventScheduler events, boolean dynamic) {
         Event event;
         Tracer tr = Tracer.getTracerObject();
-        MyStatistics st = MyStatistics.getMyStatisticsObject();
+        VonStatistics st = VonStatistics.getVonStatisticsObject();
+        
+        if(!dynamic)
+        {
+        	Iterator<Event> es = events.getEvents();
+        	
+        	while (es.hasNext()) {
+        		Event e = es.next();
+        		
+        		if(e instanceof VonArrivalEvent) {
+     	            tr.add(e);
+        		}
+        		
+ 	        }
+        	
+        	cp.newEvents(events);
+        	st.addEvents(events);     	
+        }
         
         while ((event = events.popEvent()) != null) {
+        	
+        	if(event instanceof VonArrivalEvent) {
+        	
+        		continue;
+        	}
             tr.add(event);
             st.addEvent(event);
             cp.newEvent(event);

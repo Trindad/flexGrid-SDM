@@ -59,6 +59,7 @@ public class VirtualizationSimulator extends Simulator {
 	        
 	        String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
 	        String mapperModule = "flexgridsim.von.mappers." + ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
+	        boolean dynamic = ((Element) doc.getElementsByTagName("vontraffic").item(0)).getAttribute("dynamic").contains("true") ? true : false;
 	        
 	        if (Simulator.verbose) 
 	        {
@@ -68,6 +69,11 @@ public class VirtualizationSimulator extends Simulator {
 	        
 	        OutputManager gp = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
             PhysicalTopology pt = new PhysicalTopology((Element) doc.getElementsByTagName("physical-topology").item(0));
+            
+            if (Simulator.verbose) {
+                System.out.println(pt);
+            }
+
 	        
 	        for (int i = 1; i <= numberOfSimulations; i++) {
 	        	
@@ -81,7 +87,8 @@ public class VirtualizationSimulator extends Simulator {
 
 	        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
 	 	        
-	 	        new SimulationRunner(cp, events);
+	        	new SimulationRunner(cp, events, dynamic);
+	        	
 	 	        
 	 	        if(Simulator.verbose) 
 	 	        {
