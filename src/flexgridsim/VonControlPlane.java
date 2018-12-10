@@ -79,9 +79,12 @@ public class VonControlPlane implements ControlPlaneForVon {
 
 				 mapper.vonDeparture(((VonDepartureEvent) event).getVon());
 				 
-				 if(deallocateVon(((VonDepartureEvent) event).getVon().getID())) {
-					 throw (new IllegalArgumentException());
-				 }
+				try{
+					 deallocateVon(((VonDepartureEvent) event).getVon().getID());
+				}
+					 catch (Exception e) {
+					 e.printStackTrace();
+				}
 			 }
 			 else
 			 {
@@ -140,18 +143,34 @@ public class VonControlPlane implements ControlPlaneForVon {
 	
 	public boolean deallocateVon(int id) {
 		
+		
 		if(activeVons.containsKey(id)) {
 			
 			for(Flow flow : mappedFlows.get(activeVons.get(id)) ) {
 				
 				RemoveFlowFromPhysicalTopology(flow, flow.getLinks());
+				
+				rsa.flowDeparture(flow);
+				
+				System.out.println("Flow departure: "+flow);
 			}
 			
-			mappedFlows.remove(activeVons.get(id));
+			if(mappedFlows.containsKey(activeVons.get(id))) {
+				
+				mappedFlows.remove(activeVons.get(id));
+				System.out.println("VON departure complete... ");
+			}
+			else {
+				System.out.println("Error in VON departure... ");
+			}
+			
 			activeVons.remove(id);
+			
+			System.out.println("Departure ID: "+id);
 			
 			return true;
 		}
+		
 		
 		return false;
 	}

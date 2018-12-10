@@ -32,7 +32,7 @@ public class Mapper {
 	}
 
 	public void vonDeparture(VirtualTopology von) {
-		
+//		TODO
 	}
 
 	public void simulationInterface(Element xml, PhysicalTopology pt, VonControlPlane cp, TrafficGenerator traffic, RSA rsa) {
