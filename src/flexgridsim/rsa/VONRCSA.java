@@ -39,9 +39,12 @@ public class VONRCSA extends SCVCRCSA {
 
 		setkShortestPaths(flow);
 
-		if(selectPath( getBlockOfSlots(flow) ) ) {
-			
-		}
+		int []modulationFormats = new int[paths.size()];
+		ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
+		int index = selectPath(blockOfSLots, flow);
+		
+		establishConnection(paths.get(index), blockOfSLots.get(index), modulationFormats[index], flow);
+		
 	}
 
 	protected int preProcessSpectrumResources(boolean [][]spectrum) {
@@ -110,7 +113,7 @@ public class VONRCSA extends SCVCRCSA {
 	}
 	
 	
-	private boolean selectPath(ArrayList<ArrayList<Slot>> blockOfSlots) {
+	private int selectPath(ArrayList<ArrayList<Slot>> blockOfSlots, Flow flow) {
 		
 		int selectedPath = 0;
 		Slot last = null;
@@ -130,15 +133,13 @@ public class VONRCSA extends SCVCRCSA {
 			}
 		}
 		
-		System.out.println("NEEDs to be implemented");
-		
-		return false;
+		return selectedPath;
 	}
 
-	private ArrayList<ArrayList<Slot>> getBlockOfSlots(Flow flow) {
+	private ArrayList<ArrayList<Slot>> getBlockOfSlots(Flow flow, int []modulationFormats) {
 		
 		ArrayList<ArrayList<Slot>> blockOfSlots = new ArrayList<ArrayList<Slot>>();
-		int []modulationFormats = getModulationFormat(flow);
+		modulationFormats = getModulationFormat(flow);
 		
 		for(int p = 0; p < paths.size(); p++) {
 			
@@ -184,10 +185,35 @@ public class VONRCSA extends SCVCRCSA {
 		return modulationFormats;
 	}
 
-	@Override
-	public void flowDeparture(Flow flow) {
-		// TODO Auto-generated method stub
+public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
 		
+		if(links == null || flow == null || slotList.isEmpty()) 
+		{
+			System.out.println("Invalid variables");
+			return false;
+		}
+		
+		for (int i = 0; i < links.length; i++) {
+            if (!pt.getLink(links[i]).areSlotsAvailable(slotList, modulation)) {
+                return false;
+            }
+        }
+		
+		flow.setLinks(links);
+		flow.setSlotList(slotList);
+		flow.setCore(slotList.get(0).c);
+		flow.setModulationLevel(modulation);
+		flow.setAccepeted(true);
+
+		flow.setPathLength(getPathLength(links));
+		flow.setCore(slotList.get(0).c);
+		
+		return true;
+		
+	}
+
+	public void flowDeparture(Flow flow) {
+		super.flowDeparture(flow);
 	}
 	
 	public void setkShortestPaths(Flow flow) {

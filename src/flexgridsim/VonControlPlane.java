@@ -222,7 +222,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		return new ArrayList<Slot>();
 	}
 	
-	private ArrayList<Integer>getMatchingLinks(int []l1, int []l2) {
+	private ArrayList<Integer> getMatchingLinks(int []l1, int []l2) {
 		
 		ArrayList<Integer> links = new ArrayList<Integer>();
 		for(int i: l1) {
@@ -240,91 +240,53 @@ public class VonControlPlane implements ControlPlaneForVon {
 	}
 	
 	public boolean CrosstalkIsAcceptable(Flow flow, int[] links, ArrayList<Slot> slotList, double db) {
-			return true;
-//			double xt = 0;
-//			xt = xt + pt.canAcceptCrosstalk(links, slotList, db);
-//			
-//			double xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//			
-//			if(xti < 0 && xti >= db) {
-//				return false;
-//			}
-//			
-//			for(Long key: this.activeFlows.keySet()) {
-//				
-//				if(key == flow.getID()) {
-//					continue;
-//				}
-//				else if(this.activeFlows.get(key).isMultipath()) 
-//				{
-//					int i = 0;
-//					for(ArrayList<Slot> s: this.activeFlows.get(key).getMultiSlotList()) {
-//						
-//						ArrayList<Integer> matching = getMatchingLinks(links, this.activeFlows.get(key).getLinks(i));
-//						
-//						if(!matching.isEmpty()) {
-//							ArrayList<Slot> t = getMatchingSlots(slotList, s, pt.getLink(0).getAdjacentCores(slotList.get(0).c));
-//							
-//							if(!t.isEmpty()) 
-//							{
-//								xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s, t);
-//								
-//								xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//								
-//								if(xti < 0 && xti >= db) {
-//									return false;
-//								}
-//							}
-//							else
-//							{
-//								xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key),  matching, this.activeFlows.get(key).getLinks(i), s);
-//								
-//								xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//								
-//								if(xti < 0 && xti >= db) {
-//									return false;
-//								}
-//							}
-//						}
-//						
-//						i++;
-//					}
-//				}
-//				else 
-//				{
-//					ArrayList<Integer> matching =  getMatchingLinks(links, this.activeFlows.get(key).getLinks());
-//					
-//					if(!matching.isEmpty()) {
-//						int c = slotList.get(0).c;
-//						LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
-//						ArrayList<Slot> t = getMatchingSlots(slotList, this.activeFlows.get(key).getSlotList(), adj);
-//						
-//						if(!t.isEmpty()) 
-//						{
-//							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList(), t);
-//							
-//							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//							
-//							if(xti < 0 && xti >= db) {
-//								return false;
-//							}
-//						}
-//						else
-//						{
-//							xt = xt + pt.canAcceptInterCrosstalk(this.activeFlows.get(key), matching, this.activeFlows.get(key).getSlotList());
-//							
-//							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//							
-//							if(xti < 0 && xti >= db) {
-//								return false;
-//							}
-//						}
-//					}
-//					
-//				}
-//			}
-//			
-//			xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
-//			return (xt == 0 || xt < db);
+			
+			double xt = 0;
+			xt = xt + pt.canAcceptCrosstalk(links, slotList, db);
+			
+			double xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+			
+			if(xti < 0 && xti >= db) {
+				return false;
+			}
+			
+			for(VirtualTopology von : mappedFlows.keySet()) {
+				
+				for(Flow f : mappedFlows.get(von)) {
+					
+				ArrayList<Integer> matching =  getMatchingLinks(links, f.getLinks());
+				
+				if(!matching.isEmpty()) {
+					int c = slotList.get(0).c;
+					LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
+					ArrayList<Slot> t = getMatchingSlots(slotList, f.getSlotList(), adj);
+					
+					if(!t.isEmpty()) 
+					{
+						xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList(), t);
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+							return false;
+						}
+					}
+					else
+					{
+						xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList());
+						
+						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+						
+						if(xti < 0 && xti >= db) {
+							return false;
+						}
+					}
+				}
+				
+			}
 		}
+	
+		xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
+		return (xt == 0 || xt < db);
+	}
 }

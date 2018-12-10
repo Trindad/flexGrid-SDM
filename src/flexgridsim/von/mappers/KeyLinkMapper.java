@@ -60,6 +60,7 @@ public class KeyLinkMapper extends Mapper {
 			
 			boolean blocked = false;
 			PhysicalTopology ptCopy = new PhysicalTopology(pt);
+			ArrayList<Flow> flows = new ArrayList<Flow>();
 			for(VirtualLink link : von.links) {
 				
 				System.out.println(link.getSource().getPhysicalNode()+" "+link.getDestination().getPhysicalNode());
@@ -68,16 +69,23 @@ public class KeyLinkMapper extends Mapper {
 					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
 				}
 				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
+				flow.setVonID(von.getID());
+				flow.setLightpathID(link.getID());
 				rsa.flowArrival(flow);
 			
 				if(!flow.isAccepeted()) {
+					System.out.println("Blocked VON");
 					blocked = true;
 					break;
 				}
+				
+				flows.add(flow);
 			}
 			
 			if(!blocked) {
+				System.out.println("Accepted VON");
 				pt.updateEverything(ptCopy);
+				cp.acceptVon(von.getID(), flows);
 			}
 		}
 		
