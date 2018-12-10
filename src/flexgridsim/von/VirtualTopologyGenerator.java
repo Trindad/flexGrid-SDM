@@ -21,14 +21,19 @@ public class VirtualTopologyGenerator {
 		
 		int n = getRandomValue(minNodes, maxNodes);
 		System.out.println(n);
+		int []nodes = new int[physicalTopology.getNumNodes()];
+		int physicalNodes = physicalTopology.getNumNodes();
+		
 		for(int i = 0; i < n; i++) {
 			VirtualNode node = new VirtualNode();
 			
 			//adding candidate physical nodes
-			int physicalNodes = physicalTopology.getNumNodes();
-			ArrayList<Integer> candidateNodes = getNRandomNodes(minAlternativeNodes, maxAlternativeNodes, physicalNodes);
-			node.setCandidatePhysicalNodes(candidateNodes);
-			
+			ArrayList<Integer> candidateNodes = new ArrayList<Integer>();
+			do {
+				candidateNodes = getNRandomNodes(minAlternativeNodes, maxAlternativeNodes, physicalNodes);
+				node.setCandidatePhysicalNodes(candidateNodes);
+			}
+			while(isValid(candidateNodes, nodes));
 			
 			//adding computing resource
 			int computingResource = getRandomValue(minComputingResources, maxComputingResources);
@@ -83,6 +88,23 @@ public class VirtualTopologyGenerator {
 		return topology;
 	}
 	
+	private static boolean isValid(ArrayList<Integer> candidateNodes, int[] nodes) {
+		
+		for(int node : candidateNodes)  {
+			
+			if(nodes[node] >= 2) {
+				return false;
+			}
+		}
+
+		for(int node : candidateNodes)  {
+			
+			nodes[node] += 1;
+		}
+		
+		return true;
+	}
+
 	private static ArrayList<Integer> getNRandomNodes(int minAlternativeNodes, int maxAlternativeNodes,
 			int nNodes) {
 		

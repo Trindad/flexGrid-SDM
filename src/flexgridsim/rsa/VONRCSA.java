@@ -220,7 +220,9 @@ public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int mo
 		
 		this.paths  = new ArrayList<int []>();
 		
-		if(pt == null) System.out.println("Physical topology is NULL");
+		if(pt == null) {
+			System.out.println("Physical topology is NULL");
+		}
 		System.out.println(flow.getSource() +" "+flow.getDestination());
 		
 		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getVONGraph(), kPaths);

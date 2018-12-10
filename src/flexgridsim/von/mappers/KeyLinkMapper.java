@@ -58,16 +58,17 @@ public class KeyLinkMapper extends Mapper {
 			
 			von.links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
 			
-			boolean blocked = false;
+			boolean accepted = false;
 			PhysicalTopology ptCopy = new PhysicalTopology(pt);
 			ArrayList<Flow> flows = new ArrayList<Flow>();
 			for(VirtualLink link : von.links) {
 				
-				System.out.println(link.getSource().getPhysicalNode()+" "+link.getDestination().getPhysicalNode());
+//				System.out.println(link.getSource().getPhysicalNode()+" "+link.getDestination().getPhysicalNode());
 				if (rsa instanceof VONRCSA) {
 					
 					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
 				}
+				System.out.println(link.getSource().getPhysicalNode()+ " ** "+ link.getDestination().getPhysicalNode());
 				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
 				flow.setVonID(von.getID());
 				flow.setLightpathID(link.getID());
@@ -75,14 +76,14 @@ public class KeyLinkMapper extends Mapper {
 			
 				if(!flow.isAccepeted()) {
 					System.out.println("Blocked VON");
-					blocked = true;
+					accepted = false;
 					break;
 				}
-				
+				accepted = true;
 				flows.add(flow);
 			}
 			
-			if(!blocked) {
+			if(accepted == true) {
 				System.out.println("Accepted VON");
 				pt.updateEverything(ptCopy);
 				cp.acceptVon(von.getID(), flows);
@@ -163,13 +164,17 @@ public class KeyLinkMapper extends Mapper {
 	public void nodeMapping(ArrayList<Integer> physicalNodes, VirtualTopology von) {
 		
 		ArrayList<Integer> temp = new ArrayList<Integer>();
-		
+		System.out.println("-----------------");
+		System.out.println(physicalNodes);
+		ArrayList<VirtualNode> nodes = new ArrayList<VirtualNode>();
 		for(VirtualNode node: von.nodes) {
 			int selectedNode;
 			ArrayList<Integer> available = new ArrayList<>(physicalNodes);
+			
 			available.removeAll(temp);
 			
 			do {
+				System.out.println(node.getCandidatePhysicalNodes());
 				selectedNode = getSelectedNode(available, node.getCandidatePhysicalNodes());
 			} while (temp.contains(selectedNode));
 			
@@ -178,7 +183,30 @@ public class KeyLinkMapper extends Mapper {
 				node.setPhysicalNode(selectedNode);
 				temp.add(selectedNode);
 			}
+			else {
+				nodes.add(node);
+			}
+		}
+		
+		for(VirtualNode node: nodes) {
+			int selectedNode;
+			ArrayList<Integer> available = new ArrayList<>(physicalNodes);
 			
+			available.removeAll(temp);
+			
+			do {
+				System.out.println(node.getCandidatePhysicalNodes());
+				selectedNode = getSelectedNode(available, available);
+			} while (temp.contains(selectedNode));
+			
+			if(selectedNode >= 0) 
+			{
+				node.setPhysicalNode(selectedNode);
+				temp.add(selectedNode);
+			}
+			else {
+				System.out.println("Node doesn't exist");
+			}
 		}
 	}
 
