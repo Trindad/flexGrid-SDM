@@ -66,6 +66,7 @@ public class KeyLinkMapper extends Mapper {
 				if (rsa instanceof VONRCSA) {
 					
 					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
+					((VONRCSA) rsa).setVonControlPlane(cp);
 				}
 				
 				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
@@ -76,8 +77,10 @@ public class KeyLinkMapper extends Mapper {
 				if(!flow.isAccepeted()) {
 					System.out.println("VON Blocked: "+von.getID());
 					accepted = false;
+					cp.blockVon(von.getID());
 					break;
 				}
+				
 				accepted = true;
 				flows.add(flow);
 			}
@@ -85,6 +88,7 @@ public class KeyLinkMapper extends Mapper {
 			if(accepted == true) {
 				System.out.println("VON Accepted: "+von.getID());
 				pt.updateEverything(ptCopy);
+				cp.updateControlPlane(ptCopy);
 				cp.acceptVon(von.getID(), flows);
 			}
 		}

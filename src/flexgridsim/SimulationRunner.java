@@ -36,6 +36,7 @@ public class SimulationRunner {
         Event event;
         Tracer tr = Tracer.getTracerObject();
         VonStatistics st = VonStatistics.getVonStatisticsObject();
+        EventScheduler arrivalEvents = new EventScheduler();;
         
         if(!dynamic)
         {
@@ -46,12 +47,13 @@ public class SimulationRunner {
         		
         		if(e instanceof VonArrivalEvent) {
      	            tr.add(e);
+     	            arrivalEvents.addEvent(e);
         		}
         		
  	        }
         	
-        	cp.newEvents(events);
-        	st.addEvents(events);     	
+        	cp.newEvents(arrivalEvents);
+        	st.addEvents(arrivalEvents);     	
         }
         
         while ((event = events.popEvent()) != null) {

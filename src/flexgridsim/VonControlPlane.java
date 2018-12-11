@@ -66,7 +66,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 
 	 public void newEvent(Event event) {
 		 
-		 System.out.println("New event "+event.getTime());
+//		 System.out.println("New event "+event.getTime());
 		 if(event instanceof VonArrivalEvent) {
 			 
 			 newVon(((VonArrivalEvent) event).getVon());
@@ -103,43 +103,47 @@ public class VonControlPlane implements ControlPlaneForVon {
 
 	public boolean acceptVon(int id, ArrayList<Flow> flows) {
 		
-		if(id < 0) 
-		{
-			throw (new IllegalArgumentException());
-		}
-		else if(!activeVons.containsKey(id)) 
+		if(id < 0 || !activeVons.containsKey(id)) 
 		{
 			throw (new IllegalArgumentException());
 		}
 		else 
 		{
 			this.mappedFlows.put(activeVons.get(id), flows);
-			this.statistics.acceptVon(activeVons.get(id), flows);
+			this.statistics.acceptVon(activeVons.get(id));
 		}
 		
 		return true;
 	}
+	
+    public void addFlowToPT(Flow flow) {
+        int[] links = flow.getLinks();
+        // Implements it
+        for (int j = 0; j < links.length; j++) {
+            pt.getLink(links[j]).reserveSlots(flow.getSlotList());
+            pt.getLink(links[j]).updateNoise(flow.getSlotList(), flow.getModulationLevel());
+        }
+        
+    }
 
 	
 	public boolean blockVon(int id) {
-		
-		if (id < 0) 
+	
+		if(id < 0 || !this.activeVons.containsKey(id)) 
 		{
 			throw (new IllegalArgumentException());
-	    } 
-		else 
-		{
-			if(!this.activeVons.containsKey(id)) 
-			{
-				return true;
-			}
-			
-			activeVons.remove(id);
-			
 		}
-		return false;
+		
+		this.statistics.blockVon(activeVons.get(id));
+		activeVons.remove(id);
+	
+		return true;
 	}
 
+	public void updateControlPlane(PhysicalTopology newPT) {
+		
+		pt.updateEverything(newPT);
+	}
 	
 	public boolean deallocateVon(int id) {
 		
@@ -152,21 +156,22 @@ public class VonControlPlane implements ControlPlaneForVon {
 				
 				rsa.flowDeparture(flow);
 				
-				System.out.println("Flow departure: "+flow);
+//				System.out.println("Flow departure: "+flow);
 			}
 			
 			if(mappedFlows.containsKey(activeVons.get(id))) {
 				
 				mappedFlows.remove(activeVons.get(id));
-				System.out.println("VON departure complete... ");
+//				System.out.println("VON departure complete... ");
 			}
 			else {
-				System.out.println("Error in VON departure... ");
+				System.out.println("Something wrong occur in VON departure process... ");
+				throw (new IllegalArgumentException());
 			}
 			
 			activeVons.remove(id);
 			
-			System.out.println("Departure ID: "+id);
+			System.out.println("VON Departure ID: "+id);
 			
 			return true;
 		}

@@ -35,15 +35,16 @@ public class VONRCSA extends SCVCRCSA {
 	
 	public void flowArrival(Flow flow) {
 		kPaths = 3;
-
+		System.out.println(flow);
 		setkShortestPaths(flow);
 
 		int []modulationFormats = new int[paths.size()];
 		ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
+		System.out.println(blockOfSLots.size());
 		int index = selectPath(blockOfSLots, flow);
 		
 		establishConnection(paths.get(index), blockOfSLots.get(index), modulationFormats[index], flow);
-		
+
 	}
 
 	protected int preProcessSpectrumResources(boolean [][]spectrum) {
@@ -104,6 +105,7 @@ public class VONRCSA extends SCVCRCSA {
 			}
 			
 			if(slots.size() == demandInSlots) {
+//				System.out.println(slots.size());
 				return slots;
 			}	
 		}
@@ -153,6 +155,7 @@ public class VONRCSA extends SCVCRCSA {
 			blockOfSlots.add(FirstFitPolicy(flow, paths.get(p), demandInSlots, modulationFormats[p]));
 		}
 		
+//		System.out.println(blockOfSlots.size());
 		return blockOfSlots;
 	}
 
@@ -186,9 +189,13 @@ public class VONRCSA extends SCVCRCSA {
 
 	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
 		
-		if(links == null || flow == null || slotList.isEmpty()) 
+		if(links == null || flow == null) 
 		{
 			System.out.println("Invalid variables");
+			return false;
+		}
+		
+		if (slotList.isEmpty()) {
 			return false;
 		}
 		
@@ -206,6 +213,8 @@ public class VONRCSA extends SCVCRCSA {
 
 		flow.setPathLength(getPathLength(links));
 		flow.setCore(slotList.get(0).c);
+		
+		cp.addFlowToPT(flow);
 		
 		return true;
 		

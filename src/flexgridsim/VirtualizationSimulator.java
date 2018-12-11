@@ -67,7 +67,7 @@ public class VirtualizationSimulator extends Simulator {
                 System.out.println("VON module: " + mapperModule);
             }
 	        
-	        OutputManager gp = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
+	        OutputManager plotter = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
             PhysicalTopology pt = new PhysicalTopology((Element) doc.getElementsByTagName("physical-topology").item(0));
             
             if (Simulator.verbose) {
@@ -82,8 +82,8 @@ public class VirtualizationSimulator extends Simulator {
 	        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), -1);
 	            ((VonTrafficGenerator)traffic).generateTraffic(pt, events, i);
 	            
-	            MyStatistics st = MyStatistics.getMyStatisticsObject();
-	            st.statisticsSetup(gp, pt, traffic, pt.getNumNodes(), 3, 0, 0);
+	            VonStatistics st = VonStatistics.getVonStatisticsObject();
+	            st.configuration(plotter, pt, traffic);
 
 	        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
 	 	        
@@ -96,7 +96,7 @@ public class VirtualizationSimulator extends Simulator {
 	 	        }
 	 	        else {
 	 	        	
-	 	        	st.calculateLastStatistics();
+	 	        	st.calculatingStatistics();
 	 	        }
 	 	        
 	 	       st.finish();
