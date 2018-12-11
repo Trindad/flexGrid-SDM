@@ -24,7 +24,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 
 	 Element xml;
 	 EventScheduler eventScheduler;
-	 private MyStatistics statistics = MyStatistics.getMyStatisticsObject();
+	 private VonStatistics statistics = VonStatistics.getVonStatisticsObject();
 	 
 	 public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic) {
 		 @SuppressWarnings("rawtypes")

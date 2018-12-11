@@ -63,19 +63,18 @@ public class KeyLinkMapper extends Mapper {
 			ArrayList<Flow> flows = new ArrayList<Flow>();
 			for(VirtualLink link : von.links) {
 				
-//				System.out.println(link.getSource().getPhysicalNode()+" "+link.getDestination().getPhysicalNode());
 				if (rsa instanceof VONRCSA) {
 					
 					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
 				}
-				System.out.println(link.getSource().getPhysicalNode()+ " ** "+ link.getDestination().getPhysicalNode());
+				
 				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
 				flow.setVonID(von.getID());
 				flow.setLightpathID(link.getID());
 				rsa.flowArrival(flow);
 			
 				if(!flow.isAccepeted()) {
-					System.out.println("Blocked VON");
+					System.out.println("VON Blocked: "+von.getID());
 					accepted = false;
 					break;
 				}
@@ -84,7 +83,7 @@ public class KeyLinkMapper extends Mapper {
 			}
 			
 			if(accepted == true) {
-				System.out.println("Accepted VON");
+				System.out.println("VON Accepted: "+von.getID());
 				pt.updateEverything(ptCopy);
 				cp.acceptVon(von.getID(), flows);
 			}
@@ -164,8 +163,7 @@ public class KeyLinkMapper extends Mapper {
 	public void nodeMapping(ArrayList<Integer> physicalNodes, VirtualTopology von) {
 		
 		ArrayList<Integer> temp = new ArrayList<Integer>();
-		System.out.println("-----------------");
-		System.out.println(physicalNodes);
+		
 		ArrayList<VirtualNode> nodes = new ArrayList<VirtualNode>();
 		for(VirtualNode node: von.nodes) {
 			int selectedNode;
@@ -174,7 +172,6 @@ public class KeyLinkMapper extends Mapper {
 			available.removeAll(temp);
 			
 			do {
-				System.out.println(node.getCandidatePhysicalNodes());
 				selectedNode = getSelectedNode(available, node.getCandidatePhysicalNodes());
 			} while (temp.contains(selectedNode));
 			
@@ -195,7 +192,6 @@ public class KeyLinkMapper extends Mapper {
 			available.removeAll(temp);
 			
 			do {
-				System.out.println(node.getCandidatePhysicalNodes());
 				selectedNode = getSelectedNode(available, available);
 			} while (temp.contains(selectedNode));
 			

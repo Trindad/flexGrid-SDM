@@ -653,9 +653,4 @@ public class MyStatistics {
 		pathLength +=  (double)flow.getPathLength();
 		sumXT += flow.getSumOfXT();
 	}
-
-	public void acceptVon(VirtualTopology virtualTopology, ArrayList<Flow> flows) {
-		// TODO Auto-generated method stub
-		
-	}
 }

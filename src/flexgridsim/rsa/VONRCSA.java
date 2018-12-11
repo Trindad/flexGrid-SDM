@@ -35,7 +35,6 @@ public class VONRCSA extends SCVCRCSA {
 	
 	public void flowArrival(Flow flow) {
 		kPaths = 3;
-		System.out.println("RCSA for VON");
 
 		setkShortestPaths(flow);
 
@@ -185,7 +184,7 @@ public class VONRCSA extends SCVCRCSA {
 		return modulationFormats;
 	}
 
-public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
+	public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int modulation, Flow flow) {
 		
 		if(links == null || flow == null || slotList.isEmpty()) 
 		{
@@ -223,7 +222,6 @@ public boolean establishConnection(int[] links, ArrayList<Slot> slotList, int mo
 		if(pt == null) {
 			System.out.println("Physical topology is NULL");
 		}
-		System.out.println(flow.getSource() +" "+flow.getDestination());
 		
 		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getVONGraph(), kPaths);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kSP.getPaths( flow.getSource(), flow.getDestination() );

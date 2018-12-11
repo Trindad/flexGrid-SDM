@@ -20,7 +20,7 @@ public class VirtualTopologyGenerator {
 		VirtualTopology topology = new VirtualTopology();
 		
 		int n = getRandomValue(minNodes, maxNodes);
-		System.out.println(n);
+		
 		int []nodes = new int[physicalTopology.getNumNodes()];
 		int physicalNodes = physicalTopology.getNumNodes();
 		
