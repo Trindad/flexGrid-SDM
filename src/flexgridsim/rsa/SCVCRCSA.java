@@ -418,7 +418,9 @@ public class SCVCRCSA implements RSA{
 	
 	public void flowDeparture(Flow flow) {
 		
-		if(!flow.isAccepeted()) return;
+		if(!flow.isAccepeted()) {
+			return;
+		}
 	
 		removeCrosstalk(flow.getLinks(), flow);
 	}

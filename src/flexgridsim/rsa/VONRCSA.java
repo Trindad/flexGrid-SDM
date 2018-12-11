@@ -35,12 +35,11 @@ public class VONRCSA extends SCVCRCSA {
 	
 	public void flowArrival(Flow flow) {
 		kPaths = 3;
-		System.out.println(flow);
 		setkShortestPaths(flow);
 
 		int []modulationFormats = new int[paths.size()];
 		ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
-		System.out.println(blockOfSLots.size());
+		
 		int index = selectPath(blockOfSLots, flow);
 		
 		establishConnection(paths.get(index), blockOfSLots.get(index), modulationFormats[index], flow);

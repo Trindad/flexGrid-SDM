@@ -15,6 +15,7 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import org.w3c.dom.*;
 
 import flexgridsim.util.WeightedGraph;
+import flexgridsim.von.VirtualNode;
 
 /**
  * The physical topology of a network refers to he physical layout of devices
@@ -525,10 +526,17 @@ public class PhysicalTopology {
                     g.addEdge(i, j, getLink(i, j).getWeight());
                 }
             }
-        }
-        
+        }     
 		
 		return vonGraph;
+	}
+
+	public void setComputeResourceUsed(ArrayList<VirtualNode> virtualNodes, double factor) {
+	
+		for(VirtualNode node : virtualNodes) {
+			
+			nodeVector[node.getPhysicalNode()].setComputeResources(factor * node.getComputeResource());
+		}
 	}
 
 }

@@ -61,7 +61,7 @@ public class VonStatistics {
 			
 		}
 		else {
-			
+			System.out.println("Something wrong occured...");
 		}
 	}
 	
@@ -70,12 +70,11 @@ public class VonStatistics {
 	 private double getLinkLoad() {
 		
 		double a = 0;
-		
 		for(int i = 0; i < pt.getNumLinks(); i++) {
 			
 			a += ( (pt.getNumSlots() * pt.getCores()) - pt.getLink(i).getNumFreeSlots());
 		}
-	
+
 		a = (double)a / (double)pt.getNumLinks();
 		
 		double b = 0;
@@ -83,12 +82,12 @@ public class VonStatistics {
 		for(int i = 0; i < pt.getNumLinks(); i++) {
 			
 			double temp = (double)( (pt.getNumSlots() * pt.getCores()) - pt.getLink(i).getNumFreeSlots());
-			a += Math.pow(temp - a, 2);
+			b += Math.pow(temp - a, 2);
 		}
 		
-		double linkLoad = Math.sqrt( ( 1.0/((double)pt.getNumLinks() - 1.0) ) * b);
+		double linkLoad = Math.sqrt( ( 1.0 / ( (double)pt.getNumLinks() - 1.0 ) ) * b);
 				
-		System.out.println(linkLoad);
+		System.out.println("Link load: "+linkLoad);
 		
 		return linkLoad;
 	}

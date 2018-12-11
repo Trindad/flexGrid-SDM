@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 
 import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
+import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
 //import flexgridsim.von.mappers.KeyLinkMapper;
@@ -110,6 +111,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 		else 
 		{
 			this.mappedFlows.put(activeVons.get(id), flows);
+			
+			this.pt.setComputeResourceUsed(activeVons.get(id).nodes, -1.0);
 			this.statistics.acceptVon(activeVons.get(id));
 		}
 		
@@ -122,8 +125,7 @@ public class VonControlPlane implements ControlPlaneForVon {
         for (int j = 0; j < links.length; j++) {
             pt.getLink(links[j]).reserveSlots(flow.getSlotList());
             pt.getLink(links[j]).updateNoise(flow.getSlotList(), flow.getModulationLevel());
-        }
-        
+        }  
     }
 
 	
@@ -151,6 +153,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 		if(activeVons.containsKey(id)) {
 			
 			for(Flow flow : mappedFlows.get(activeVons.get(id)) ) {
+				
+				this.pt.setComputeResourceUsed(activeVons.get(id).nodes, 1.0);
 				
 				RemoveFlowFromPhysicalTopology(flow, flow.getLinks());
 				

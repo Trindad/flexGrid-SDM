@@ -63,16 +63,25 @@ public class KeyLinkMapper extends Mapper {
 			ArrayList<Flow> flows = new ArrayList<Flow>();
 			for(VirtualLink link : von.links) {
 				
-				if (rsa instanceof VONRCSA) {
-					
-					((VONRCSA) rsa).setPhysicalTopology(ptCopy);
-					((VONRCSA) rsa).setVonControlPlane(cp);
-				}
+				int source = link.getSource().getPhysicalNode();
+				int destination = link.getDestination().getPhysicalNode();
+				Flow flow = new Flow(link.getID(), source, destination, von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
 				
-				Flow flow = new Flow(link.getID(), link.getSource().getPhysicalNode(), link.getDestination().getPhysicalNode(), von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
-				flow.setVonID(von.getID());
-				flow.setLightpathID(link.getID());
-				rsa.flowArrival(flow);
+				if(pt.getNode(source).getComputeResource() >= link.getSource().getComputeResource() || 
+						pt.getNode(destination).getComputeResource() >= link.getDestination().getComputeResource()) {
+				
+					if (rsa instanceof VONRCSA) {
+						
+						((VONRCSA) rsa).setPhysicalTopology(ptCopy);
+						((VONRCSA) rsa).setVonControlPlane(cp);
+					}
+					
+					
+					flow.setVonID(von.getID());
+					flow.setLightpathID(link.getID());
+					rsa.flowArrival(flow);
+					
+				}
 			
 				if(!flow.isAccepeted()) {
 					System.out.println("VON Blocked: "+von.getID());

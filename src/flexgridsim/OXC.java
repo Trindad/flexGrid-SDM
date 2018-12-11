@@ -46,5 +46,9 @@ public class OXC {
 	public double getComputeResource() {
 		return this.computeResource;
 	}
+
+	public void setComputeResources(double d) {
+		computeResource += d;
+	}
     
 }

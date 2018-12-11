@@ -488,8 +488,6 @@ public class FlexGridLink {
 			System.out.println("Illegal argument for reserveSlots");
 			return false;
 		}
-		
-		
 	}
 
 	/**
