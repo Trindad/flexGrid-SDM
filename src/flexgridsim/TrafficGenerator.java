@@ -14,6 +14,8 @@ import org.w3c.dom.*;
  */
 public class TrafficGenerator {
 	
+	public boolean dynamic = false;
+	
 	public TrafficGenerator() {
 		
 	}

@@ -27,6 +27,11 @@ public class VonStatistics {
 	private int requiredBandwidth;
 	private double linkLoad;
 	
+	private ArrayList<Integer> bandwidths;
+	private ArrayList<Integer> computeResource;
+	private ArrayList<Integer> hops;
+	private int nVons;
+	
 	private OutputManager plotter;
 	
 	public static synchronized VonStatistics getVonStatisticsObject() {
@@ -47,6 +52,11 @@ public class VonStatistics {
 		this.vonAcceptedRate = 0;
 		this.vonBlockedRate = 0;
 		pairOfNodesBlocked = new int[pt.getNumNodes()][pt.getNumNodes()];
+		this.linkLoad = 0;
+		
+		bandwidths = new ArrayList<Integer> ();
+		computeResource = new ArrayList<Integer> ();
+		hops = new ArrayList<Integer> ();
 	}
 	
 	public void calculatingStatistics() {
@@ -57,8 +67,8 @@ public class VonStatistics {
 			plotter.addDotToGraph("acceptance", arrivals, ((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
 			System.out.println("Acceptance rate: "+((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
 			plotter.addDotToGraph("block", arrivals, ((float) this.vonBlockedRate) / ((float) requiredBandwidth));
-			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 			
+			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 		}
 		else {
 			System.out.println("Something wrong occured...");
@@ -85,15 +95,49 @@ public class VonStatistics {
 			b += Math.pow(temp - a, 2);
 		}
 		
-		double linkLoad = Math.sqrt( ( 1.0 / ( (double)pt.getNumLinks() - 1.0 ) ) * b);
+		linkLoad = Math.sqrt( ( 1.0 / ( (double)pt.getNumLinks() - 1.0 ) ) * b);
 				
 		System.out.println("Link load: "+linkLoad);
 		
 		return linkLoad;
 	}
+	 
+	/**
+	 * Long-term revenue to cost ratio
+	 * @return
+	 */
+	private double getRevenueToCostRatio() {
+		
+		if(bandwidths.size() <= 0) {
+			
+			return 0;
+		}
+		
+		double revenue = 0;
+		
+		for(int i = 0; i < bandwidths.size(); i++) {
+			
+			revenue += ( bandwidths.get(i) + computeResource.get(i) );
+		}
+		
+		double cost = 0;
+		
+		for(int i = 0; i < bandwidths.size(); i++) {
+			
+			cost += ( bandwidths.get(i) * hops.get(i) ) + computeResource.get(i);
+		}
+
+		
+		hops.clear();
+		bandwidths.clear();
+		computeResource.clear();
+		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
+		
+		return revenue/cost;
+	}
 
 	public void addEvent(Event event) {
-		 
+		
 		try {
 			if(event instanceof VonArrivalEvent) {
 				
@@ -108,8 +152,9 @@ public class VonStatistics {
 				this.departures++;
 			}
 			
-			if (this.arrivals % 1000 == 0){
-			 	//TODO
+			if (this.arrivals % 10 == 0 && traffic.dynamic == true) {
+				
+				plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
 			}
 		}
 		catch (Exception e)
@@ -125,6 +170,12 @@ public class VonStatistics {
 			 vonBlockedRate += link.getBandwidth();
 		 }
 		 
+		 nVons++;
+
+		if (this.nVons % 10 == 0 && traffic.dynamic == false) {
+			
+			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
+		}
 	 }
 	 
 	public void finish()
@@ -145,12 +196,23 @@ public class VonStatistics {
 			addEvent(event);
 			
 		}
+		
 	}
 
 	public void acceptVon(VirtualTopology von) {
 		
 		 for(VirtualLink link : von.links) {
+			 
 			 vonAcceptedRate += link.getBandwidth();
+			 bandwidths.add(link.getBandwidth());
+			 hops.add(link.getPhysicalLinks().length);
+			 computeResource.add( link.getSource().getComputeResource() );
 		 }
+		 
+
+		if (this.nVons % 100 == 0 && traffic.dynamic == false) {
+			
+			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
+		}
 	}
 }

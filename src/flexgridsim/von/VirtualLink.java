@@ -9,6 +9,8 @@ public class VirtualLink {
 	private int bandwidth;
 	private int id;
 	
+	private int[] links;//physical links
+	
 	public VirtualLink(VirtualNode source, VirtualNode destination) {
 		id = VirtualLink.ID++;
 		
@@ -47,6 +49,12 @@ public class VirtualLink {
 	public void setSource(VirtualNode source) {
 		this.source = source;
 	}
+
+	public void setPhysicalPath(int[] links) {
+		this.links = links;
+	}
 	
-	
+	public int[] getPhysicalLinks() {
+		return this.links;
+	}
 }

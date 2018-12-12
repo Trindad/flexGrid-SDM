@@ -92,6 +92,7 @@ public class KeyLinkMapper extends Mapper {
 				
 				accepted = true;
 				flows.add(flow);
+				link.setPhysicalPath(flow.getLinks());
 			}
 			
 			if(accepted == true) {
