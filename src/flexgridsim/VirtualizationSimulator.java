@@ -74,11 +74,14 @@ public class VirtualizationSimulator extends Simulator {
                 System.out.println(pt);
             }
 
-            
-            for (double load = minload; load <= maxload; load += step) {
+            if(maxload== minload && minload == step && step == 0) {
+            	step++;
+            }
+           
             	
-		        for (int i = 1; i <= numberOfSimulations; i++) {
-		        	
+           System.out.println("Number of simulations: "+numberOfSimulations);
+		   for (int i = 1; i <= numberOfSimulations; i++) { 
+		      for (double load = minload; load <= maxload; load += step) {	
 		        	EventScheduler events = new EventScheduler();
 		        	
 		        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), load);
@@ -107,6 +110,9 @@ public class VirtualizationSimulator extends Simulator {
 		        
 		    	
 			}
+		   
+		   plotter.writeAllToFiles();
+		   System.out.println("Simulations are done...");
 		}
 		catch (Exception e) {
 			e.printStackTrace();
