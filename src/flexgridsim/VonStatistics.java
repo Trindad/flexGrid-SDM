@@ -26,6 +26,7 @@ public class VonStatistics {
 	private int [][]pairOfNodesBlocked;
 	private int requiredBandwidth;
 	private double linkLoad;
+	private double bandwidthBlocked;
 	
 	private ArrayList<Integer> bandwidths;
 	private ArrayList<Integer> computeResource;
@@ -60,14 +61,12 @@ public class VonStatistics {
 	}
 	
 	public void calculatingStatistics() {
-//		System.out.println("Calculating a set of metrics...");
-//		System.out.println("arrivals: "+arrivals+" departures: "+departures);
+		System.out.println("Calculating a set of metrics...");
 		if(arrivals == departures) {
 			
-			plotter.addDotToGraph("acceptance", arrivals, ((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
-//			System.out.println("Acceptance rate: "+((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
-			plotter.addDotToGraph("block", arrivals, ((float) this.vonBlockedRate) / ((float) requiredBandwidth));
-			
+			plotter.addDotToGraph("acceptance", arrivals, ((float) this.vonAcceptedRate) / ((float) arrivals));
+			plotter.addDotToGraph("block", arrivals, ((float) this.vonBlockedRate) / ((float) arrivals));
+			plotter.addDotToGraph("mbbr", arrivals, ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
 			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 		}
 		else {
@@ -168,9 +167,10 @@ public class VonStatistics {
 	 public void blockVon(VirtualTopology von) {
 		 
 		 for(VirtualLink link : von.links) {
-			 vonBlockedRate += link.getBandwidth();
+			 bandwidthBlocked += link.getBandwidth();
 		 }
 		 
+		 vonBlockedRate++;
 		 nVons++;
 
 		if (this.nVons % 10 == 0 && traffic.dynamic == false) {
@@ -203,14 +203,15 @@ public class VonStatistics {
 	public void acceptVon(VirtualTopology von) {
 		
 		 for(VirtualLink link : von.links) {
+
 			 
-			 vonAcceptedRate += link.getBandwidth();
 			 bandwidths.add(link.getBandwidth());
 			 hops.add(link.getPhysicalLinks().length);
 			 computeResource.add( link.getSource().getComputeResource() );
 		 }
 		 
-
+		 vonAcceptedRate ++;
+		 
 		if (this.nVons % 100 == 0 && traffic.dynamic == false) {
 			
 			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
