@@ -27,7 +27,7 @@ public class VirtualizationSimulator extends Simulator {
     /** Trace flag. */
     public static boolean trace = false;
 	
-	public void Execute(String simConfigFile, boolean verbose, int numberOfSimulations) {
+	public void Execute(String simConfigFile, boolean verbose, int numberOfSimulations, double minload, double maxload, double step) {
 		
 		Simulator.verbose = verbose;
 		
@@ -74,35 +74,39 @@ public class VirtualizationSimulator extends Simulator {
                 System.out.println(pt);
             }
 
-	        
-	        for (int i = 1; i <= numberOfSimulations; i++) {
-	        	
-	        	EventScheduler events = new EventScheduler();
-	        	
-	        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), -1);
-	            ((VonTrafficGenerator)traffic).generateTraffic(pt, events, i);
-	            
-	            VonStatistics st = VonStatistics.getVonStatisticsObject();
-	            st.configuration(plotter, pt, traffic);
-
-	        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
-	 	        
-	        	new SimulationRunner(cp, events, dynamic);
-	        	
-	 	        
-	 	        if(Simulator.verbose) 
-	 	        {
-	 	        	//TODO
-	 	        }
-	 	        else {
-	 	        	
-	 	        	st.calculatingStatistics();
-	 	        }
-	 	        
-	 	       st.finish();
-	        }
-	        
-	    	
+            
+            for (double load = minload; load <= maxload; load += step) {
+            	
+		        for (int i = 1; i <= numberOfSimulations; i++) {
+		        	
+		        	EventScheduler events = new EventScheduler();
+		        	
+		        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), load);
+		            ((VonTrafficGenerator)traffic).generateTraffic(pt, events, i);
+		            
+		            VonStatistics st = VonStatistics.getVonStatisticsObject();
+		            st.configuration(plotter, pt, traffic);
+	
+		        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
+		 	        
+		        	new SimulationRunner(cp, events, dynamic);
+		        	
+		 	        
+		 	        if(Simulator.verbose) 
+		 	        {
+		 	        	//TODO
+		 	        }
+		 	        else 
+		 	        {
+		 	        	
+		 	        	st.calculatingStatistics();
+		 	        }
+		 	        
+		 	       st.finish();
+		        }
+		        
+		    	
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

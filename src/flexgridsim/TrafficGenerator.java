@@ -36,7 +36,7 @@ public class TrafficGenerator {
     		
     	}
     	else if(xml.getAttribute("type").equals("poisson")) {
-    		return new VonTrafficGenerator(xml);
+    		return new VonTrafficGenerator(xml, forcedLoad);
     	}
     	else
     	{

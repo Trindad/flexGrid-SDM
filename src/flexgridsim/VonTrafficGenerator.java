@@ -29,10 +29,19 @@ public class VonTrafficGenerator extends TrafficGenerator {
 	private double averageRate = 5;//average rate of 5 requests per 100 time units
 	private double timeUnits = 100;
 	
-	public VonTrafficGenerator(Element xml) {
+	public VonTrafficGenerator(Element xml, double calls) {
 	
 		this.xml = xml;
-        this.calls = Integer.parseInt(xml.getAttribute("calls"));
+		
+		if(calls >= 1) 
+		{
+			this.calls = (int) calls;
+		}
+		else 
+		{
+			this.calls = Integer.parseInt(xml.getAttribute("calls"));
+		}
+		System.out.println("Number of Vons: "+this.calls);
         NodeList settings = xml.getElementsByTagName("setting");
         
         for (int i = 0; i < settings.getLength(); i++) {

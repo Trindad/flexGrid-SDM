@@ -84,7 +84,7 @@ public class KeyLinkMapper extends Mapper {
 				}
 			
 				if(!flow.isAccepeted()) {
-					System.out.println("VON Blocked: "+von.getID());
+//					System.out.println("VON Blocked: "+von.getID());
 					accepted = false;
 					cp.blockVon(von.getID());
 					break;
@@ -96,7 +96,7 @@ public class KeyLinkMapper extends Mapper {
 			}
 			
 			if(accepted == true) {
-				System.out.println("VON Accepted: "+von.getID());
+//				System.out.println("VON Accepted: "+von.getID());
 				pt.updateEverything(ptCopy);
 				cp.updateControlPlane(ptCopy);
 				cp.acceptVon(von.getID(), flows);

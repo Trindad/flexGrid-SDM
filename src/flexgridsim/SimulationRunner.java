@@ -36,7 +36,7 @@ public class SimulationRunner {
         Event event;
         Tracer tr = Tracer.getTracerObject();
         VonStatistics st = VonStatistics.getVonStatisticsObject();
-        EventScheduler arrivalEvents = new EventScheduler();;
+        EventScheduler arrivalEvents = new EventScheduler();
         
         if(!dynamic)
         {

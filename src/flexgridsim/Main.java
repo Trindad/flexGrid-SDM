@@ -34,14 +34,27 @@ public class Main {
 		int seed = 1;
 		double minload = 0, maxload = 0, step = 1;
 
-		if(args.length <= 4 && args.length >= 2 && args[1].equals("virtualization") == true) {
+		if(args.length <= 6 && args.length >= 2 && args[1].equals("virtualization") == true) {
 			
-			System.out.println("Network virtualization");
+			System.out.println("Virtual Optical Network Simulator starting...");
 			simConfigFile = args[0];
 			int nSimulations = Integer.parseInt(args[2]);
 			
+			if(args.length >= 4) {
+				 
+				minload = Double.parseDouble(args[args.length - 3]);
+				maxload = Double.parseDouble(args[args.length - 2]);
+				step = Double.parseDouble(args[args.length - 1]);
+				
+				System.out.println(minload +" "+maxload+" "+step);
+			}
+			else
+			{
+				minload = maxload = step = 0;
+			}
+			
 			flexgridsim = new VirtualizationSimulator();
-			((VirtualizationSimulator)flexgridsim).Execute(simConfigFile, verbose, nSimulations);
+			((VirtualizationSimulator)flexgridsim).Execute(simConfigFile, verbose, nSimulations, minload, maxload, step);
 			
 			return;
 		}

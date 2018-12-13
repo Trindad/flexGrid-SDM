@@ -175,7 +175,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			activeVons.remove(id);
 			
-			System.out.println("VON Departure ID: "+id);
+//			System.out.println("VON Departure ID: "+id);
 			
 			return true;
 		}

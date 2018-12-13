@@ -60,18 +60,19 @@ public class VonStatistics {
 	}
 	
 	public void calculatingStatistics() {
-		System.out.println("Calculating a set of metrics...");
-		System.out.println("arrivals: "+arrivals+" departures: "+departures);
+//		System.out.println("Calculating a set of metrics...");
+//		System.out.println("arrivals: "+arrivals+" departures: "+departures);
 		if(arrivals == departures) {
 			
 			plotter.addDotToGraph("acceptance", arrivals, ((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
-			System.out.println("Acceptance rate: "+((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
+//			System.out.println("Acceptance rate: "+((float) this.vonAcceptedRate) / ((float) requiredBandwidth));
 			plotter.addDotToGraph("block", arrivals, ((float) this.vonBlockedRate) / ((float) requiredBandwidth));
 			
 			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 		}
 		else {
 			System.out.println("Something wrong occured...");
+			throw (new IllegalArgumentException());
 		}
 	}
 	
@@ -97,7 +98,7 @@ public class VonStatistics {
 		
 		linkLoad = Math.sqrt( ( 1.0 / ( (double)pt.getNumLinks() - 1.0 ) ) * b);
 				
-		System.out.println("Link load: "+linkLoad);
+//		System.out.println("Link load: "+linkLoad);
 		
 		return linkLoad;
 	}
@@ -131,7 +132,7 @@ public class VonStatistics {
 		hops.clear();
 		bandwidths.clear();
 		computeResource.clear();
-		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
+//		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
 		
 		return revenue/cost;
 	}
