@@ -106,6 +106,7 @@ public class VirtualizationSimulator extends Simulator {
 		 	        }
 		 	        
 		 	       st.finish();
+		 	       Database.reset();
 		        }
 		        
 		    	

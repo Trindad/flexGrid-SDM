@@ -539,4 +539,9 @@ public class PhysicalTopology {
 		}
 	}
 
+	public int[] getNumberOfAvailableTransponders() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

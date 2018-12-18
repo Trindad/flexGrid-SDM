@@ -11,4 +11,6 @@ public class MAPEConfiguring {
 	private Analyze analyzer;
 	private Plane plane;
 	private Execute execute;
+	
+	
 }

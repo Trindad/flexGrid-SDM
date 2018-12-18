@@ -1,5 +1,15 @@
 package flexgridsim.voncontroller;
 
-public class Monitor {
+import flexgridsim.Database;
 
+public class Monitor implements DatabaseObserver {
+	public Monitor() {
+		Database.attach(this);
+	}
+	
+	public void dataUpdated() {
+		Database db = Database.getInstance();
+		
+		//TODO: do STUFF!
+	}
 }

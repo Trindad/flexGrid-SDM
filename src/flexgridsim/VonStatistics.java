@@ -168,6 +168,8 @@ public class VonStatistics {
 		 
 		 for(VirtualLink link : von.links) {
 			 bandwidthBlocked += link.getBandwidth();
+			 int []nodes = link.getPhysicalLinks();
+			 pairOfNodesBlocked[nodes[0]][nodes[1]] += 1;
 		 }
 		 
 		 vonBlockedRate++;

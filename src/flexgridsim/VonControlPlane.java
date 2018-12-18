@@ -27,11 +27,13 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 EventScheduler eventScheduler;
 	 private VonStatistics statistics = VonStatistics.getVonStatisticsObject();
 	 
-	 public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic) {
+	public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic) {
 		 @SuppressWarnings("rawtypes")
 		 Class RSAClass;
 		 @SuppressWarnings("rawtypes")
 		 Class VonClass;
+		 
+		 Database.setup(pt);
 		 
 		 this.pt = pt;
 		 this.activeVons = new HashMap<Integer, VirtualTopology>();
@@ -116,6 +118,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 			this.statistics.acceptVon(activeVons.get(id));
 		}
 		
+		updateDatabase();
+		
 		return true;
 	}
 	
@@ -140,6 +144,44 @@ public class VonControlPlane implements ControlPlaneForVon {
 		activeVons.remove(id);
 	
 		return true;
+	}
+
+	/**
+	 * Update the database status
+	 */
+	private void updateDatabase() {
+		
+		ArrayList< ArrayList<Flow> > it = (ArrayList<ArrayList<Flow>>) mappedFlows.values();
+		
+		
+		for(ArrayList<Flow> flows : it) {
+			
+			for(Flow flow : flows) {
+				
+				Database.getInstance().totalTransponders += 2;
+				Database.getInstance().usedTranspoders[flow.getSource()] += 1;
+				Database.getInstance().usedTranspoders[flow.getDestination()] += 1;
+				Database.getInstance().flowCount += 1;
+			}
+		}
+		
+		
+		Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
+		
+		for (int i = 0; i < pt.getNumLinks(); i++) {
+			int available = pt.getLink(i).getSlotsAvailable();
+			
+			Database.getInstance().slotsAvailable.replace((long) i, available);
+			Database.getInstance().slotsOccupied.replace((long) i, pt.getNumSlots() * pt.getCores() - available);
+		}
+		
+		//TODO: do NOT forget
+		Database.getInstance().meanCrosstalk = null;
+		
+		Database.getInstance().nVons = this.activeVons.size();//number of active vons
+		
+		
+		Database.dataWasUpdated();
 	}
 
 	public void updateControlPlane(PhysicalTopology newPT) {
@@ -176,7 +218,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			activeVons.remove(id);
 			
 //			System.out.println("VON Departure ID: "+id);
-			
+			updateDatabase();
 			return true;
 		}
 		
