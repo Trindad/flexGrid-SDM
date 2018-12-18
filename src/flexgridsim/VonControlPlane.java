@@ -14,6 +14,7 @@ import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
 //import flexgridsim.von.mappers.KeyLinkMapper;
+import vne.VirtualNetworkEmbedding;
 
 public class VonControlPlane implements ControlPlaneForVon {
 	
@@ -22,6 +23,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 private RSA rsa;
 	 private Mapper mapper;
 	 private PhysicalTopology pt;
+	 private VirtualNetworkEmbedding vne;
 	 
 	 Element xml;
 	 EventScheduler eventScheduler;
@@ -34,6 +36,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 Class VonClass;
 		 
 		 Database.setup(pt);
+		 vne = new VirtualNetworkEmbedding();
 		 
 		 this.pt = pt;
 		 this.activeVons = new HashMap<Integer, VirtualTopology>();
@@ -118,6 +121,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			this.statistics.acceptVon(activeVons.get(id));
 		}
 		
+		vne.setLightpath(activeVons.get(id));
 		updateDatabase();
 		
 		return true;
@@ -215,6 +219,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 				throw (new IllegalArgumentException());
 			}
 			
+			vne.removeLightpaths(activeVons.get(id));
 			activeVons.remove(id);
 			
 //			System.out.println("VON Departure ID: "+id);
