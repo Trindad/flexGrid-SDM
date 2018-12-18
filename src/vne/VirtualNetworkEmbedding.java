@@ -87,6 +87,7 @@ public class VirtualNetworkEmbedding {
 		public Lightpath() {
 			
 			ID = VirtualNetworkEmbedding.LightpathCounter++;
+			VonIDs = new ArrayList<>();
 		}
 		
 	}

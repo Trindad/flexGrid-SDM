@@ -1,6 +1,8 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -155,7 +157,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 */
 	private void updateDatabase() {
 		
-		ArrayList< ArrayList<Flow> > it = (ArrayList<ArrayList<Flow>>) mappedFlows.values();
+		Collection<ArrayList<Flow>> it = mappedFlows.values();
 		
 		
 		for(ArrayList<Flow> flows : it) {
@@ -181,6 +183,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		//TODO: do NOT forget
 		Database.getInstance().meanCrosstalk = null;
+		Database.getInstance().vne = vne;
 		
 		Database.getInstance().nVons = this.activeVons.size();//number of active vons
 		

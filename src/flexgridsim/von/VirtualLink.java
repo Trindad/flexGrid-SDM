@@ -2,7 +2,7 @@ package flexgridsim.von;
 
 public class VirtualLink {
 
-	public static int ID = 1;
+	public static int ID = 0;
 	
 	private VirtualNode source;
 	private VirtualNode destination;

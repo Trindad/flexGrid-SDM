@@ -1,10 +1,12 @@
 package flexgridsim;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import flexgridsim.voncontroller.DatabaseObserver;
+import vne.VirtualNetworkEmbedding;
 
 /**
  * Dataset 
@@ -24,7 +26,7 @@ public class Database {
 	public int []distances;
 	
 	public PhysicalTopology pt;
-	public PhysicalTopology vne;
+	public VirtualNetworkEmbedding vne;
 	int nVons;//number of active vons
 	int flowCount;
 	
@@ -67,6 +69,7 @@ public class Database {
 	}
 	
 	public static void setup(PhysicalTopology pt) {
+		Database instance = Database.getInstance();
 		
 		instance.pt = pt;
 		

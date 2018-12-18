@@ -3,7 +3,7 @@ package flexgridsim.von;
 import java.util.ArrayList;
 
 public class VirtualNode {
-	public static int ID = 1;
+	public static int ID = 0;
 	
 	private ArrayList<Integer> candidatePhysicalNodes;
 	private int computeResource;
