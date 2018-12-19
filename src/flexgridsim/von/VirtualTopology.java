@@ -9,7 +9,7 @@ import java.util.ArrayList;import java.util.Comparator;
  */
 public class VirtualTopology {
 	
-	public static int ID = 1;
+	public static int ID = 0;
 
 	public ArrayList<VirtualLink> links;
 	public ArrayList<VirtualNode> nodes;

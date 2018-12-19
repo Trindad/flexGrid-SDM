@@ -14,4 +14,8 @@ public class Monitor implements DatabaseObserver {
 		
 		//TODO: do STUFF!
 	}
+	
+	/**
+	 * verifica se há sobrecarga, e se sim diminuir a captura de dados
+	 */
 }

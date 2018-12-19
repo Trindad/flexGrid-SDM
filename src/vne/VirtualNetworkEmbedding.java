@@ -7,7 +7,7 @@ import flexgridsim.von.VirtualTopology;
 
 public class VirtualNetworkEmbedding {
 	
-	public static int LightpathCounter = 1;
+	public static int LightpathCounter = 0;
 	
 	private ArrayList<Integer> nodes;
 	private ArrayList<Lightpath> links;
@@ -51,7 +51,8 @@ public class VirtualNetworkEmbedding {
 			
 			if(index >= 0) 
 			{
-				links.get(index).VonIDs.remove(von.getID());
+				int i = links.get(index).VonIDs.indexOf(von.getID());
+				links.get(index).VonIDs.remove(i);
 				links.get(index).bandwidth -= link.getBandwidth();
 				
 				if(links.get(index).bandwidth <= 0) {
