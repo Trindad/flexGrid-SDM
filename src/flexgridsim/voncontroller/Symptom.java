@@ -1,12 +1,17 @@
 package flexgridsim.voncontroller;
 
-import flexgridsim.PhysicalTopology;
-import vne.VirtualNetworkEmbedding;
-
+/**
+ * 
+ * @author trindade
+ *
+ */
 public class Symptom {
 	
-	private PhysicalTopology pt;
-	private VirtualNetworkEmbedding vne;
+	public enum SYMPTOM {
+		LOAD_BALANCE,
+		RESOURCE_OPTIMIZATION
+	}
+	
 	private double linkLoad;
 	private double bbr;
 	private double acceptance;
@@ -14,18 +19,17 @@ public class Symptom {
 	private int availableTransponders;
 	private double cost;
 	
-	public Symptom() {
+	public SYMPTOM type;
+	
+	public Symptom( double linkLoad, double bbr, double acceptance, 
+			int transponders, int availableTransponders, double cost) {
 		
-	}
-	
-	
-	public PhysicalTopology getPhysicalTopology() {
-		return pt;
-	}
-
-
-	public VirtualNetworkEmbedding getVne() {
-		return vne;
+		this.linkLoad = linkLoad;
+		this.bbr = bbr;
+		this.acceptance = acceptance;
+		this.transponders = transponders;
+		this.cost = cost;
+		this.availableTransponders = availableTransponders;
 	}
 
 

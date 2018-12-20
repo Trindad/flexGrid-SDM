@@ -2,6 +2,11 @@ package flexgridsim.voncontroller;
 
 import flexgridsim.Database;
 
+/**
+ * 
+ * @author trindade
+ *
+ */
 public class Monitor implements DatabaseObserver {
 	
 	public Monitor() {
@@ -13,6 +18,8 @@ public class Monitor implements DatabaseObserver {
 		Database db = Database.getInstance();
 		
 		//TODO: do STUFF!
+		
+		//árvore de decisão
 	}
 	
 	/**

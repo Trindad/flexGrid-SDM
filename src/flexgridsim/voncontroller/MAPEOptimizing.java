@@ -11,6 +11,6 @@ public class MAPEOptimizing {
 
 		private Monitor monitor;
 		private Analyze analyzer;
-		private Plane plane;
+		private Plan plane;
 		private Execute execute;
 }

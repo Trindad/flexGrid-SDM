@@ -25,7 +25,6 @@ public class Main {
 	public static void main(String[] args) {
 		
 		
-		
 		Simulator flexgridsim;
 		String usage = "Usage: flexgridsim simulation_file seed [-trace] [-verbose] [minload maxload step]";
 		String simConfigFile;

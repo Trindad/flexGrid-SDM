@@ -2,6 +2,11 @@ package flexgridsim.von;
 
 import java.util.ArrayList;
 
+/**
+ * 
+ * @author trindade
+ *
+ */
 public class VirtualNode {
 	public static int ID = 0;
 	

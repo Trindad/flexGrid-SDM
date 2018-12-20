@@ -1,7 +1,6 @@
 package flexgridsim;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,12 +11,16 @@ import org.w3c.dom.Element;
 
 import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
-import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
 //import flexgridsim.von.mappers.KeyLinkMapper;
 import vne.VirtualNetworkEmbedding;
 
+/**
+ * 
+ * @author trindade
+ *
+ */
 public class VonControlPlane implements ControlPlaneForVon {
 	
 	 private Map<Integer, VirtualTopology> activeVons;//vons that are accepted

@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import flexgridsim.von.VirtualLink;
 import flexgridsim.von.VirtualTopology;
 
+/**
+ * 
+ * @author trindade
+ *
+ */
+
 public class VirtualNetworkEmbedding {
 	
 	public static int LightpathCounter = 0;
