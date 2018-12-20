@@ -29,6 +29,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 private Mapper mapper;
 	 private PhysicalTopology pt;
 	 private VirtualNetworkEmbedding vne;
+	 public boolean mape;
 	 
 	 Element xml;
 	 EventScheduler eventScheduler;
@@ -40,8 +41,11 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 @SuppressWarnings("rawtypes")
 		 Class VonClass;
 		 
-		 Database.setup(pt);
-		 vne = new VirtualNetworkEmbedding();
+		 if(mapper.equals("MAPEMapper")) {
+			 Database.setup(pt);
+			 vne = new VirtualNetworkEmbedding();
+			 mape = true;
+		 }
 		 
 		 this.pt = pt;
 		 this.activeVons = new HashMap<Integer, VirtualTopology>();
@@ -77,15 +81,14 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 
 	 public void newEvent(Event event) {
 		 
-//		 System.out.println("New event "+event.getTime());
 		 if(event instanceof VonArrivalEvent) {
-			 
+//			 System.out.println("arrival");
 			 newVon(((VonArrivalEvent) event).getVon());
 	         mapper.vonArrival(((VonArrivalEvent) event).getVon());
 			 
 		 }
 		 else if(event instanceof VonDepartureEvent) {
-
+//			 System.out.println("departure");
 			 if(mappedFlows.containsKey(((VonDepartureEvent) event).getVon())) {
 
 				 mapper.vonDeparture(((VonDepartureEvent) event).getVon());
@@ -104,7 +107,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 }
 		 else {
 			 System.out.println("This type of event doen't exist!");
-			 return;
+			 throw (new IllegalArgumentException());
 		 }
 	 }
 	
@@ -126,8 +129,10 @@ public class VonControlPlane implements ControlPlaneForVon {
 			this.statistics.acceptVon(activeVons.get(id));
 		}
 		
-		vne.setLightpath(activeVons.get(id));
-		updateDatabase();
+		if(this.mape == true) {
+			vne.setLightpath(activeVons.get(id));
+			updateDatabase();
+		}
 		
 		return true;
 	}
@@ -225,11 +230,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 				throw (new IllegalArgumentException());
 			}
 			
-			vne.removeLightpaths(activeVons.get(id));
+			
 			activeVons.remove(id);
 			
 //			System.out.println("VON Departure ID: "+id);
-			updateDatabase();
+			if(this.mape == true) {
+				vne.removeLightpaths(activeVons.get(id));
+				updateDatabase();
+			}
+			
 			return true;
 		}
 		

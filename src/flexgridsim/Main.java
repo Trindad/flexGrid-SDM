@@ -4,6 +4,11 @@
  */
 package flexgridsim;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
+
 /**
  * The Main class takes care of the execution of the simulator, which includes
  * dealing with the arguments called (or not) on the command line.
@@ -22,7 +27,9 @@ public class Main {
 	 * @param args
 	 *            the command line arguments
 	 */
+ 
 	public static void main(String[] args) {
+		
 		
 		
 		Simulator flexgridsim;

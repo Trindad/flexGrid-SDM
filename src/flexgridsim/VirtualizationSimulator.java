@@ -106,7 +106,7 @@ public class VirtualizationSimulator extends Simulator {
 		 	        }
 		 	        
 		 	       st.finish();
-		 	       Database.reset();
+		 	       if(cp.mape == true) Database.reset();
 		        }
 		        
 		    	

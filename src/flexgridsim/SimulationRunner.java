@@ -40,6 +40,7 @@ public class SimulationRunner {
         
         if(!dynamic)
         {
+        	System.out.println("Static events");
         	Iterator<Event> es = events.getEvents();
         	
         	while (es.hasNext()) {
@@ -58,7 +59,7 @@ public class SimulationRunner {
         
         while ((event = events.popEvent()) != null) {
         	
-        	if(event instanceof VonArrivalEvent) {
+        	if(event instanceof VonArrivalEvent && !dynamic) {
         	
         		continue;
         	}
