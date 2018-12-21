@@ -30,6 +30,7 @@ public class DecisionTree {
 		Evaluation eval = new Evaluation(trainingDataset);
 		eval.evaluateModel(classifier, test);
 		
+		
 		System.out.println("** Decision Tress Evaluation with Datasets **");
 		System.out.println(eval.toSummaryString());
 		System.out.print(" the expression for the input data as per alogorithm is ");
@@ -41,11 +42,11 @@ public class DecisionTree {
 	public Instances getDataset(String filename) throws IOException {
 		
 		ArffLoader loader = new ArffLoader();
-		
+		System.out.println(filename);
 		loader.setSource(DecisionTree.class.getResourceAsStream("/" + filename));
 		
 		Instances dataset = loader.getDataSet();
-		dataset.setClassIndex(1);
+		dataset.setClassIndex(dataset.numAttributes() - 1);
 		
 		return dataset;
 	}

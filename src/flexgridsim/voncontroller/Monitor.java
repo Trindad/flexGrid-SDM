@@ -12,7 +12,7 @@ import flexgridsim.util.DecisionTree;
  */
 public class Monitor {
 	
-	private String filename;
+	private String filename = "dt_configuring_monitor.arff";
 	
 	public Monitor() {
 		System.out.println("Initializing Monitor function");
@@ -34,7 +34,7 @@ public class Monitor {
 
 	public boolean checkOverload() throws Exception {
 		System.out.println("Monitor");
-		String[] test = null;
+		String[] test = {"0.1", "0.1", "0.1", "0.1", "0.2", "0.5"};
 		
 		DecisionTree dt = new DecisionTree(filename);
 		dt.run(test);
