@@ -8,6 +8,11 @@ package flexgridsim.voncontroller;
 
 public class Plan {
 
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	
 	//árvore de decisão
 	//TD algoritmo

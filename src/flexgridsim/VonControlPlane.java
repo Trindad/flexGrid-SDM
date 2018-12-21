@@ -41,7 +41,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 @SuppressWarnings("rawtypes")
 		 Class VonClass;
 		 
-		 if(mapper.equals("MAPEMapper")) {
+		 if(mapper.equals("flexgridsim.von.mappers.MAPEMapper")) {
 			 Database.setup(pt);
 			 vne = new VirtualNetworkEmbedding();
 			 mape = true;
@@ -130,8 +130,10 @@ public class VonControlPlane implements ControlPlaneForVon {
 		}
 		
 		if(this.mape == true) {
+			
 			vne.setLightpath(activeVons.get(id));
 			updateDatabase();
+			Orchestrator.getInstance().run();
 		}
 		
 		return true;
@@ -156,6 +158,11 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		this.statistics.blockVon(activeVons.get(id));
 		activeVons.remove(id);
+		
+		if(this.mape == true) {
+			Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
+			Orchestrator.getInstance().run();
+		}
 	
 		return true;
 	}
@@ -192,6 +199,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 		//TODO: do NOT forget
 		Database.getInstance().meanCrosstalk = null;
 		Database.getInstance().vne = vne;
+		Database.getInstance().linkLoad = statistics.getLinkLoad();
+		Database.getInstance().cost = statistics.getRevenueToCostRatio();
+		Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
 		
 		Database.getInstance().nVons = this.activeVons.size();//number of active vons
 		
@@ -237,6 +247,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			if(this.mape == true) {
 				vne.removeLightpaths(activeVons.get(id));
 				updateDatabase();
+				Orchestrator.getInstance().run();
 			}
 			
 			return true;

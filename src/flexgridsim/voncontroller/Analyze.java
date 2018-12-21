@@ -6,6 +6,13 @@ package flexgridsim.voncontroller;
  *
  */
 public class Analyze {
+	
+	
+
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	/**
 	 * Analizar o balanceamento de carga da rede

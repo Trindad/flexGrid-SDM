@@ -17,20 +17,29 @@ import vne.VirtualNetworkEmbedding;
 public class Database {
 	
 	public int totalTransponders;
-
 	public int []usedTranspoders;
 	public int []availableTransponders;
+	public int totalNumberOfTranspondersAvailable;
+	
 	public Map<Long, Integer> slotsAvailable; 
 	public Map<Long, Integer> slotsOccupied; 
+	
 	public double []meanCrosstalk;
+	public int []modulationFormats;
 	public int []distances;
 	
 	public PhysicalTopology pt;
 	public VirtualNetworkEmbedding vne;
-	int nVons;//number of active vons
-	int flowCount;
 	
-	public int []modulationFormats;
+	/**
+	 * metrics
+	 */
+	int nVons;//number of active vons
+	public int flowCount;//number of flows active
+	public double acceptance;
+	public double bbr;
+	public double cost;
+	
 	public double linkLoad;
 	
 	private static Database instance;
@@ -66,6 +75,10 @@ public class Database {
 		instance.vne = null;
 		instance.nVons = 0;//number of active vons
 		instance.flowCount = 0;
+		instance.acceptance = 0;
+		instance.bbr = 0;
+		instance.cost = 0;
+		instance.totalNumberOfTranspondersAvailable = 0;
 	}
 	
 	public static void setup(PhysicalTopology pt) {

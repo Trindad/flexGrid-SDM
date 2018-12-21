@@ -1,28 +1,44 @@
 package flexgridsim.voncontroller;
 
+import java.util.ArrayList;
+
 import flexgridsim.Database;
+import flexgridsim.util.DecisionTree;
 
 /**
  * 
  * @author trindade
  *
  */
-public class Monitor implements DatabaseObserver {
+public class Monitor {
+	
+	private String filename;
 	
 	public Monitor() {
-		Database.attach(this);
+		System.out.println("Initializing Monitor function");
 	}
 	
-	public void dataUpdated() {
+	public ArrayList<Symptom> run() throws Exception {
 		
 		Database db = Database.getInstance();
+		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
-		//TODO: do STUFF!
+		if(checkOverload()) {
+			
+			Symptom symptom = new Symptom(db.linkLoad, db.bbr, db.acceptance, db.totalTransponders, db.totalNumberOfTranspondersAvailable, db.cost);		
+			symptoms.add(symptom);
+		}	
 		
-		//árvore de decisão
+		return symptoms;
 	}
-	
-	/**
-	 * verifica se há sobrecarga, e se sim diminuir a captura de dados
-	 */
+
+	public boolean checkOverload() throws Exception {
+		System.out.println("Monitor");
+		String[] test = null;
+		
+		DecisionTree dt = new DecisionTree(filename);
+		dt.run(test);
+		
+		return false;
+	}
 }

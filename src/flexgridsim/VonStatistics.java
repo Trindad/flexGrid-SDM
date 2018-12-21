@@ -77,7 +77,7 @@ public class VonStatistics {
 	
 	
 	
-	 private double getLinkLoad() {
+	 protected double getLinkLoad() {
 		
 		double a = 0;
 		for(int i = 0; i < pt.getNumLinks(); i++) {
@@ -106,7 +106,7 @@ public class VonStatistics {
 	 * Long-term revenue to cost ratio
 	 * @return
 	 */
-	private double getRevenueToCostRatio() {
+	protected double getRevenueToCostRatio() {
 		
 		if(bandwidths.size() <= 0) {
 			
@@ -133,7 +133,7 @@ public class VonStatistics {
 		computeResource.clear();
 //		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
 		
-		return revenue/cost;
+		return (revenue/cost);
 	}
 
 	public void addEvent(Event event) {
@@ -217,5 +217,10 @@ public class VonStatistics {
 			
 			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
 		}
+	}
+
+	public double getBandwidthBlockingRatio() {
+		
+		return ((double) this.bandwidthBlocked) / ((double) requiredBandwidth);
 	}
 }

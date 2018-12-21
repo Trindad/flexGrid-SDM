@@ -11,9 +11,17 @@ import flexgridsim.LightPath;
  * @author trindade
  *
  */
-
 public class Knowledge {
 	
-	private Map<Flow, ArrayList<LightPath> > activeFlows; 
+	public ArrayList<Symptom> symptoms;
+	
+	public Knowledge() {
+		
+		this.symptoms = new ArrayList<Symptom>();
+	}
+	
+	public void addNewSymptom(Symptom symptom) {
+		this.symptoms.add(symptom);
+	}
 
 }

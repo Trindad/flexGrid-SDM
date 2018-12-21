@@ -15,7 +15,6 @@ import org.w3c.dom.Element;
  * @author trindade
  *
  */
-
 public class VirtualizationSimulator extends Simulator {
 
 	private static final String simName = new String("flexgridsim");
@@ -106,7 +105,10 @@ public class VirtualizationSimulator extends Simulator {
 		 	        }
 		 	        
 		 	       st.finish();
-		 	       if(cp.mape == true) Database.reset();
+		 	       if(cp.mape == true) {
+		 	    	   Database.reset();
+		 	    	   Orchestrator.reset();
+		 	       }
 		        }
 		        
 		    	

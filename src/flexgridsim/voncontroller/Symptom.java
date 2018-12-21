@@ -15,7 +15,7 @@ public class Symptom {
 	private double linkLoad;
 	private double bbr;
 	private double acceptance;
-	private int transponders;
+	private int transponders;//total number of transponders
 	private int availableTransponders;
 	private double cost;
 	
