@@ -5,31 +5,43 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import javax.activation.DataSource;
+
 import weka.classifiers.Classifier;
 import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.trees.J48;
+import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader;
+import weka.core.pmml.jaxbbindings.InstanceField;
 
 public class DecisionTree {
-	String trainingFilename;
+	private String trainingFilename;
+	private String testFilename;
 	
-	public DecisionTree(String filename) {
+	public DecisionTree(String filename, String filenameTest) {
 		System.out.println("Decision tree running...");
 		
 		this.trainingFilename = filename;
+		this.testFilename = filenameTest;
 	}
 	
-	public void run(String[] test) throws Exception {
-		Instances trainingDataset = getDataset(this.trainingFilename);
+	
+	public void run() throws Exception {
 		
+		Instances trainingDataset = getDataset(this.trainingFilename);
+
 		Classifier classifier = new J48();
 		classifier.buildClassifier(trainingDataset);
-		Evaluation eval = new Evaluation(trainingDataset);
-		eval.evaluateModel(classifier, test);
 		
+		Instances testingDataset = getDataset(this.testFilename);
+		
+		System.out.println(testingDataset);
+		
+		Evaluation eval = new Evaluation(trainingDataset);
+		eval.evaluateModel(classifier, testingDataset);
 		
 		System.out.println("** Decision Tress Evaluation with Datasets **");
 		System.out.println(eval.toSummaryString());

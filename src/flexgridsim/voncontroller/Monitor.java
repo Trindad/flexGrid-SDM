@@ -13,6 +13,7 @@ import flexgridsim.util.DecisionTree;
 public class Monitor {
 	
 	private String filename = "dt_configuring_monitor.arff";
+	private String filenameTest = "dt_configuring_monitor_test.arff";
 	
 	public Monitor() {
 		System.out.println("Initializing Monitor function");
@@ -23,7 +24,7 @@ public class Monitor {
 		Database db = Database.getInstance();
 		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
-		if(checkOverload()) {
+		if(checkOverload(db)) {
 			
 			Symptom symptom = new Symptom(db.linkLoad, db.bbr, db.acceptance, db.totalTransponders, db.totalNumberOfTranspondersAvailable, db.cost);		
 			symptoms.add(symptom);
@@ -32,12 +33,18 @@ public class Monitor {
 		return symptoms;
 	}
 
-	public boolean checkOverload() throws Exception {
+	public boolean checkOverload(Database db) throws Exception {
 		System.out.println("Monitor");
-		String[] test = {"0.1", "0.1", "0.1", "0.1", "0.2", "0.5"};
 		
-		DecisionTree dt = new DecisionTree(filename);
-		dt.run(test);
+//		double t =  ((double)db.totalNumberOfTranspondersAvailable)/(double)db.totalTransponders;
+//		
+//		
+//		String[] test = {Double.toString(db.bbr),Double.toString(db.linkLoad), Double.toString(db.acceptance), Double.toString(0.0),
+//				Double.toString(t), Double.toString(db.cost), "?"};
+		
+		
+		DecisionTree dt = new DecisionTree(filename, filenameTest);
+		dt.run();
 		
 		return false;
 	}

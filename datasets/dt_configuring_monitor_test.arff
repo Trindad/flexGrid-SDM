@@ -1,0 +1,23 @@
+@RELATION configuring-monitor
+
+@ATTRIBUTE bbr REAL
+@ATTRIBUTE linkload REAL
+@ATTRIBUTE acceptance REAL
+@ATTRIBUTE crosstalk REAL
+@ATTRIBUTE transponders REAL
+@ATTRIBUTE cost REAL
+@ATTRIBUTE class {'non-balanced','overloaded','perfect','high-xt','performance','costly'}
+
+@DATA
+0.5,0.3,0.4,0,0.3,0.1,'non-balanced'
+0.5,0.3,0.4,0,0.3,0.1,'non-balanced'
+0.5,0.3,0.4,0,0.3,0.1,'overloaded'
+0.5,0.3,0.4,0,0.3,0.1,'overloaded'
+0.5,0.3,0.4,0,0.3,0.1,'perfect'
+0.5,0.3,0.4,0,0.3,0.1,'perfect'
+0.5,0.3,0.4,0.7,0.3,0.1,'high-xt'
+0.5,0.3,0.4,0.8,0.3,0.1,'high-xt'
+0.5,0.3,0.4,0,0.3,0.1,'performance'
+0.5,0.3,0.4,0,0.3,0.1,'performance'
+0.5,0.3,0.4,0,0.3,0.1,'costly'
+0.5,0.3,0.4,0,0.3,0.1,'costly'
