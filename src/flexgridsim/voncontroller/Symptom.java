@@ -8,8 +8,9 @@ package flexgridsim.voncontroller;
 public class Symptom {
 	
 	public enum SYMPTOM {
-		LOAD_BALANCE,
-		RESOURCE_OPTIMIZATION
+		COSTLY,
+		NONBALANCED,
+		PERFORMANCE
 	}
 	
 	private double linkLoad;

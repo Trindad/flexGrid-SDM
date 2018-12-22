@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import flexgridsim.Database;
 import flexgridsim.util.DecisionTree;
+import flexgridsim.voncontroller.Symptom.SYMPTOM;
 
 /**
  * 
@@ -28,26 +29,28 @@ public class Monitor {
 		Database db = Database.getInstance();
 		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
-		if(checkOverload(db)) {
-			
+		String problem = checkOverload(db);
+		if(!problem.equals("perfect")) 
+		{
+			System.out.println("SYMPTOM TYPE: "+problem);
 			Symptom symptom = new Symptom(db.linkLoad, db.bbr, db.acceptance, db.totalTransponders, db.totalNumberOfTranspondersAvailable, db.cost);		
+			symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", ""));
 			symptoms.add(symptom);
-		}	
+		}
+		else {
+			System.out.println("No problems "+problem);
+		}
 		
 		return symptoms;
 	}
 
-	public boolean checkOverload(Database db) {
-		System.out.println("Monitor");
+	public String checkOverload(Database db) {
 		
-		double t =  ((double)db.totalNumberOfTranspondersAvailable)/(double)db.totalTransponders;
-//		
-//		
+		double t =  db.totalNumberOfTranspondersAvailable >= 1 ? 1.0 - ((double)db.totalNumberOfTranspondersAvailable/(double)db.totalTransponders) : 0;
+		
 		double[] data = {db.bbr, db.linkLoad, db.acceptance, 0.0, t, db.cost};
 		
 		
-		System.out.println(dt.run(data));
-		
-		return false;
+		return dt.run(data);
 	}
 }

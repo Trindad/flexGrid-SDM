@@ -1,5 +1,7 @@
 package flexgridsim.voncontroller;
 
+import flexgridsim.util.KNearestNeighbors;
+
 /**
  * 
  * @author trindade
@@ -7,11 +9,20 @@ package flexgridsim.voncontroller;
  */
 public class Analyze {
 	
+	private String filenameBalanced = "knn_configuring_monitor.arff";
+	private KNearestNeighbors knn;
 	
-
-	public void run() {
-		// TODO Auto-generated method stub
+	public Analyze() {
+		this.knn = new KNearestNeighbors(filenameBalanced);
 		
+	}
+	
+	public void run(Symptom symptom) throws Exception {
+		
+//		if(symptom.type == SYMPTOM.PERFORMANCE) 
+//		{
+			this.knn.train();
+//		}
 	}
 
 	/**

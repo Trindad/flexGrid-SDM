@@ -1,19 +1,11 @@
 package flexgridsim.util;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.activation.DataSource;
-
-import com.mxgraph.model.mxGraphModel.Filter;
-
-import weka.classifiers.Classifier;
 import weka.classifiers.evaluation.Evaluation;
-import weka.classifiers.trees.J48;
+import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
@@ -23,7 +15,7 @@ public class DecisionTree {
 	private String trainingFilename;
 	private String testFilename;
 	
-	private Classifier classifier;
+	private HoeffdingTree classifier;
 
 	
 	public DecisionTree(String filename, String filenameTest) {
@@ -38,28 +30,29 @@ public class DecisionTree {
 		
 		Instances trainingDataset = getDataset(this.trainingFilename);
 
-		classifier = new J48();
+//		classifier = new J48();
+		classifier = new HoeffdingTree();
 		classifier.buildClassifier(trainingDataset);
 		
 		Instances testingDataset = getDataset(this.testFilename);
 		
-		System.out.println(testingDataset);
+//		System.out.println(testingDataset);
 		
 		Evaluation eval = new Evaluation(trainingDataset);
 		eval.evaluateModel(classifier, testingDataset);
 		
-		System.out.println("** Decision Tress Evaluation with Datasets **");
-		System.out.println(eval.toSummaryString());
-		System.out.print(" the expression for the input data as per alogorithm is ");
-		System.out.println(classifier);
-		System.out.println(eval.toMatrixString());
-		System.out.println(eval.toClassDetailsString());
+//		System.out.println("** Decision Tress Evaluation with Datasets **");
+//		System.out.println(eval.toSummaryString());
+//		System.out.print(" the expression for the input data as per alogorithm is ");
+//		System.out.println(classifier);
+//		System.out.println(eval.toMatrixString());
+//		System.out.println(eval.toClassDetailsString());
 	}
 
 	public Instances getDataset(String filename) throws IOException {
 		
 		ArffLoader loader = new ArffLoader();
-		System.out.println(filename);
+//		System.out.println(filename);
 		loader.setSource(DecisionTree.class.getResourceAsStream("/" + filename));
 		
 		Instances dataset = loader.getDataSet();
@@ -126,6 +119,8 @@ public class DecisionTree {
 		try {
 			double result = classifier.classifyInstance(newInstance);
 			String className = classes.get(new Double(result).intValue());
+			
+			classifier.updateClassifier(newInstance);
 			
 			return className;
 	

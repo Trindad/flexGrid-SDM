@@ -37,13 +37,13 @@ public class MAPEConfiguring {
 		try {
 			ArrayList<Symptom> symptoms = monitor.run();
 			
-			if(symptoms.size() <= 0) return;
+//			if(symptoms.size() <= 0) return;
 			
 			for(Symptom symptom : symptoms) {
 				knowledge.symptoms.add(symptom);
 			}
 			
-			analyzer.run();
+			analyzer.run(symptoms.get(0));
 			plan.run();
 			execute.run();
 		} catch (Exception e) {

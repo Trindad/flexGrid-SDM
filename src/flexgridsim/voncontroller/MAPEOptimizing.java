@@ -42,7 +42,7 @@ public class MAPEOptimizing {
 				knowledge.symptoms.add(symptom);
 			}
 			
-			analyzer.run();
+			analyzer.run(symptoms.get(0));
 			plan.run();
 			execute.run();
 		} catch (Exception e) {
