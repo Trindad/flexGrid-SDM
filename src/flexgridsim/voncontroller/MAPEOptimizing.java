@@ -19,11 +19,16 @@ public class MAPEOptimizing {
 	
 	public MAPEOptimizing() {
 		
-		monitor = new Monitor();
-		analyzer = new Analyze();
-		plan = new Plan();
-		execute = new Execute();
-		knowledge = new Knowledge();
+		try {
+			monitor = new Monitor();
+			analyzer = new Analyze();
+			plan = new Plan();
+			execute = new Execute();
+			knowledge = new Knowledge();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	public void run() {

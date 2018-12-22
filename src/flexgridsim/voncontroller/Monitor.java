@@ -14,12 +14,16 @@ public class Monitor {
 	
 	private String filename = "dt_configuring_monitor.arff";
 	private String filenameTest = "dt_configuring_monitor_test.arff";
+	private DecisionTree dt;
 	
-	public Monitor() {
+	public Monitor() throws Exception {
 		System.out.println("Initializing Monitor function");
+		
+		this.dt = new DecisionTree(filename, filenameTest);
+		this.dt.train();
 	}
 	
-	public ArrayList<Symptom> run() throws Exception {
+	public ArrayList<Symptom> run() {
 		
 		Database db = Database.getInstance();
 		ArrayList<Symptom> symptoms = new ArrayList<>();
@@ -33,18 +37,16 @@ public class Monitor {
 		return symptoms;
 	}
 
-	public boolean checkOverload(Database db) throws Exception {
+	public boolean checkOverload(Database db) {
 		System.out.println("Monitor");
 		
-//		double t =  ((double)db.totalNumberOfTranspondersAvailable)/(double)db.totalTransponders;
+		double t =  ((double)db.totalNumberOfTranspondersAvailable)/(double)db.totalTransponders;
 //		
 //		
-//		String[] test = {Double.toString(db.bbr),Double.toString(db.linkLoad), Double.toString(db.acceptance), Double.toString(0.0),
-//				Double.toString(t), Double.toString(db.cost), "?"};
+		double[] data = {db.bbr, db.linkLoad, db.acceptance, 0.0, t, db.cost};
 		
 		
-		DecisionTree dt = new DecisionTree(filename, filenameTest);
-		dt.run();
+		System.out.println(dt.run(data));
 		
 		return false;
 	}
