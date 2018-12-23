@@ -33,8 +33,11 @@ public class Monitor {
 		if(!problem.equals("perfect")) 
 		{
 			System.out.println("SYMPTOM TYPE: "+problem);
-			Symptom symptom = new Symptom(db.linkLoad, db.bbr, db.acceptance, db.totalTransponders, db.totalNumberOfTranspondersAvailable, db.cost);		
+			Symptom symptom = new Symptom(db.pt);
+			
 			symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", ""));
+			
+			symptom.setDataset(db);
 			symptoms.add(symptom);
 		}
 		else {

@@ -37,7 +37,7 @@ public class MAPEConfiguring {
 		try {
 			ArrayList<Symptom> symptoms = monitor.run();
 			
-//			if(symptoms.size() <= 0) return;
+			if(symptoms.size() <= 0) return;
 			
 			for(Symptom symptom : symptoms) {
 				knowledge.symptoms.add(symptom);

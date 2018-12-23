@@ -54,35 +54,27 @@ public class KNearestNeighbors {
 	
 	
 
-	public String run(double[] data) {
+	public ArrayList<String> run(ArrayList< ArrayList<Double> > data) {
+		ArrayList<String> results = new ArrayList<>();
 		
-		final Attribute bbr = new Attribute("bbr"); 
-		final Attribute linkload = new Attribute("linkload"); 
-		final Attribute acceptance = new Attribute("acceptance"); 
-		final Attribute crosstalk = new Attribute("crosstalk"); 
-		final Attribute transponders = new Attribute("transponders");
-		final Attribute cost = new Attribute("cost"); 
-		@SuppressWarnings("serial")
+		final Attribute attrA = new Attribute("a"); 
+		final Attribute attrB = new Attribute("b"); 
+		final Attribute attrC = new Attribute("c"); 
+		
 		final List<String> classes = new ArrayList<String>() {
 			{
-				add("non-balanced");
-				add("overloaded");
-				add("perfect");
-				add("high-xt");
-				add("performance");
-				add("costly");
+				add("RESA");
+				add("RESB");
+				add("RESC");
 			}
 		};
 		
 		@SuppressWarnings("serial")
 		ArrayList<Attribute> attributeSet = new ArrayList<Attribute>(2) {
 			{
-				add(bbr);
-				add(linkload);
-				add(acceptance);
-				add(crosstalk);
-				add(transponders);
-				add(cost);
+				add(attrA);
+				add(attrB);
+				add(attrC);
 				Attribute attributeClass = new Attribute("@@class@@", classes);
 				add(attributeClass);
 				
@@ -93,33 +85,28 @@ public class KNearestNeighbors {
 		
 		dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
 		
-		@SuppressWarnings("serial")
-		DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
-			{
-				setValue(bbr, data[0]);
-				setValue(linkload, data[1]);
-				setValue(acceptance, data[2]);
-				setValue(crosstalk, data[3]);
-				setValue(transponders, data[4]);
-				setValue(cost, data[5]);
+		for (ArrayList<Double> row : data) {
+			DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
+				{
+					setValue(attrA, row.get(0));
+					setValue(attrB, row.get(1));
+					setValue(attrC, row.get(2));
+				}
+			};
+			
+			newInstance.setDataset(dataUnpredicted);
+			
+			try {
+				double result = classifier.classifyInstance(newInstance);
+				results.add(classes.get(new Double(result).intValue()));
+		
 			}
-		};
-		
-		newInstance.setDataset(dataUnpredicted);
-		
-		try {
-			double result = classifier.classifyInstance(newInstance);
-			String className = classes.get(new Double(result).intValue());
-			
-			classifier.updateClassifier(newInstance);
-			
-			return className;
-	
-		}
-		catch (Exception e) {
-			e.printStackTrace();
+			catch (Exception e) {
+				results.add(null);
+				e.printStackTrace();
+			}
 		}
 		
-		return null;
+		return results;
 	}
 }

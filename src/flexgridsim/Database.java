@@ -17,10 +17,11 @@ import vne.VirtualNetworkEmbedding;
 public class Database {
 	
 	public int totalTransponders;
-	public int []usedTranspoders;
+	public int []usedTransponders;
 	public int []availableTransponders;
 	public int totalNumberOfTranspondersAvailable;
 	
+	public int []slotsAvailablePerLink;
 	public Map<Long, Integer> slotsAvailable; 
 	public Map<Long, Integer> slotsOccupied; 
 	
@@ -38,9 +39,15 @@ public class Database {
 	public int flowCount;//number of flows active
 	public double acceptance;
 	public double bbr;
+	public double []bbrPerPair;
+	public double []computing;
 	public double cost;
 	
 	public double linkLoad;
+	public double []closenessCentrality;
+	public double []xtAdjacentNodes;
+	public int[] numberOfLightpaths;
+	public double[] usedBanwidth;
 	
 	private static Database instance;
 	private static List<DatabaseObserver> listeners = new ArrayList<DatabaseObserver>();
@@ -64,12 +71,18 @@ public class Database {
 		
 		instance.totalTransponders = 0;
 
-		instance.usedTranspoders = null;
+		instance.usedTransponders = null;
 		instance.availableTransponders = null;
 		instance.slotsAvailable.clear(); 
 		instance.slotsOccupied.clear(); 
 		instance.meanCrosstalk = null;
 		instance.distances = null;
+		
+		instance.slotsAvailablePerLink = null;
+		instance.closenessCentrality = null;
+		instance.xtAdjacentNodes = null;
+		instance.numberOfLightpaths = null;
+		instance.usedBanwidth = null;
 		
 		instance.pt = null;
 		instance.vne = null;
@@ -86,8 +99,15 @@ public class Database {
 		
 		instance.pt = pt;
 		
+		instance.closenessCentrality = new double[pt.getNumLinks()];
+		instance.slotsAvailablePerLink = new int[pt.getNumLinks()];
+		instance.closenessCentrality = new double[pt.getNumLinks()];
+		instance.xtAdjacentNodes = new double[pt.getNumLinks()];
+		instance.numberOfLightpaths = new int[pt.getNumLinks()];
+		instance.usedBanwidth = new double[pt.getNumLinks()];
+		
 		instance.availableTransponders = new int[pt.getNumNodes()];
-		instance.usedTranspoders = new int[pt.getNumNodes()];
+		instance.usedTransponders = new int[pt.getNumNodes()];
 		instance.distances = new int[pt.getNumLinks()];
 		instance.meanCrosstalk = new double[pt.getNumLinks()];
 		
