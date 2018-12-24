@@ -47,7 +47,7 @@ public class Database {
 	public double []closenessCentrality;
 	public double []xtAdjacentNodes;
 	public int[] numberOfLightpaths;
-	public double[] usedBanwidth;
+	public double[] usedBandwidth;
 	
 	private static Database instance;
 	private static List<DatabaseObserver> listeners = new ArrayList<DatabaseObserver>();
@@ -82,7 +82,7 @@ public class Database {
 		instance.closenessCentrality = null;
 		instance.xtAdjacentNodes = null;
 		instance.numberOfLightpaths = null;
-		instance.usedBanwidth = null;
+		instance.usedBandwidth = null;
 		
 		instance.pt = null;
 		instance.vne = null;
@@ -104,7 +104,7 @@ public class Database {
 		instance.closenessCentrality = new double[pt.getNumLinks()];
 		instance.xtAdjacentNodes = new double[pt.getNumLinks()];
 		instance.numberOfLightpaths = new int[pt.getNumLinks()];
-		instance.usedBanwidth = new double[pt.getNumLinks()];
+		instance.usedBandwidth = new double[pt.getNumLinks()];
 		
 		instance.availableTransponders = new int[pt.getNumNodes()];
 		instance.usedTransponders = new int[pt.getNumNodes()];

@@ -13,6 +13,7 @@ import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
+import javafx.scene.chart.PieChart.Data;
 //import flexgridsim.von.mappers.KeyLinkMapper;
 import vne.VirtualNetworkEmbedding;
 
@@ -179,13 +180,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(Flow flow : flows) {
 				
-				Database.getInstance().totalTransponders += 2;
-				Database.getInstance().usedTranspoders[flow.getSource()] += 1;
-				Database.getInstance().usedTranspoders[flow.getDestination()] += 1;
+				Database.getInstance().totalTransponders += 1;
+				Database.getInstance().usedTransponders[flow.getSource()] += 1;
 				Database.getInstance().flowCount += 1;
+				
+				Database.getInstance().usedBandwidth[flow.getSource()] += flow.getRate();
+				Database.getInstance().usedTransponders[flow.getSource()] += 1;
+				Database.getInstance().computing[flow.getSource()] += flow.getComputingResource();
 			}
 		}
-		
 		
 		Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
 		
@@ -193,11 +196,17 @@ public class VonControlPlane implements ControlPlaneForVon {
 			int available = pt.getLink(i).getSlotsAvailable();
 			
 			Database.getInstance().slotsAvailable.replace((long) i, available);
-			Database.getInstance().slotsOccupied.replace((long) i, pt.getNumSlots() * pt.getCores() - available);
+			Database.getInstance().slotsOccupied.replace((long) i, (pt.getNumSlots() * pt.getCores() - available) );
+			Database.getInstance().closenessCentrality[i] = pt.getLink(i).closenessCentrality();
+			Database.getInstance().slotsAvailablePerLink[i] = available;
+			Database.getInstance().bbrPerPair[i] = statistics.getBandwidthBlockingRatioPerLink(i);
+			Database.getInstance().xtAdjacentNodes[i] = pt.getLink(i).getXT();
+			Database.getInstance().numberOfLightpaths[i] = statistics.getNumberOfLightpaths(i);
 		}
 		
 		//TODO: do NOT forget
 		Database.getInstance().meanCrosstalk = null;
+		
 		Database.getInstance().vne = vne;
 		Database.getInstance().linkLoad = statistics.getLinkLoad();
 		Database.getInstance().cost = statistics.getRevenueToCostRatio();

@@ -223,4 +223,24 @@ public class VonStatistics {
 		
 		return ((double) this.bandwidthBlocked) / ((double) requiredBandwidth);
 	}
+
+	public double getBandwidthBlockingRatioPerLink(int i) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public int getNumberOfLightpaths(int i) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public double[] getAllocatedBandwidth() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public double[] getComputing() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -38,7 +38,7 @@ public class Analyze {
 	
 	public void run(Symptom symptom) throws Exception {
 		
-		ArrayList< ArrayList<Double> > data = symptom.getDataset();
+		ArrayList< ArrayList<Double> > data = symptom.dataset;
 		
 		if(symptom.type == SYMPTOM.PERFORMANCE) 
 		{

@@ -745,4 +745,14 @@ public class FlexGridLink {
 		this.numberOfReceivers = numberOfReceivers;
 	}
 
+	public double closenessCentrality() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public double getXT() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

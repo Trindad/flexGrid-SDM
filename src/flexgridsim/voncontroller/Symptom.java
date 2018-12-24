@@ -1,8 +1,6 @@
 package flexgridsim.voncontroller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
@@ -24,7 +22,6 @@ public class Symptom {
 	private int []availableSlots;//available slots between a pair of adjacent nodes
 	private double []closenessCentrality;//pair of nodes
 	private int []usedTransponders;//total number of transponders
-	private int []availableTransponders;//node
 	private double []computing;//node
 	private double []xt;//crosstalk between a pair of adjacent nodes 
 	private int []numberOfLightpaths; //number of lightpaths mapped
@@ -40,7 +37,6 @@ public class Symptom {
 		availableSlots = new int[pt.getNumLinks()];
 		closenessCentrality = new double[pt.getNumLinks()];
 		usedTransponders = new int[pt.getNumLinks()];
-		availableTransponders = new int[pt.getNumLinks()]; 
 		computing = new double[pt.getNumLinks()]; ;
 		xt = new double[pt.getNumLinks()];
 		numberOfLightpaths = new int[pt.getNumLinks()]; 		
@@ -84,7 +80,7 @@ public class Symptom {
 		{
 			usedTransponders = db.usedTransponders;
 			computing = db.computing;
-			usedBandwidth = db.usedBanwidth;
+			usedBandwidth = db.usedBandwidth;
 			
 			for (int i = 0; i < usedTransponders.length; i++) {
 				ArrayList<Double> row = new ArrayList<>();

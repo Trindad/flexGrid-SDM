@@ -62,6 +62,9 @@ public class KNearestNeighbors {
 		final Attribute attrC = new Attribute("c"); 
 		
 		final List<String> classes = new ArrayList<String>() {
+			
+			private static final long serialVersionUID = 1L;
+
 			{
 				add("RESA");
 				add("RESB");
@@ -87,6 +90,9 @@ public class KNearestNeighbors {
 		
 		for (ArrayList<Double> row : data) {
 			DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
+				
+				private static final long serialVersionUID = 1L;
+
 				{
 					setValue(attrA, row.get(0));
 					setValue(attrB, row.get(1));

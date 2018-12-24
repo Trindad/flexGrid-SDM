@@ -30,6 +30,8 @@ public class Flow {
     private double time;
     private int modulationLevel;
     
+    private double computingResource;
+    
     //Batch requests
     boolean isBatchRequest;
     boolean isPostponeRequest;
@@ -504,5 +506,10 @@ public class Flow {
 
 	public void setvLinkID(int vLinkID) {
 		this.vLinkID = vLinkID;
+	}
+
+	public double getComputingResource() {
+		
+		return this.computingResource;
 	}
 }
