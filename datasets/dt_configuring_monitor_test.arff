@@ -9,15 +9,15 @@
 @ATTRIBUTE class {'non-balanced', 'perfect', 'performance','costly'}
 
 @DATA
-0.5,0.3,0.4,0,0.3,0.1,'non-balanced'
+0.4,0.5,0.4,0,0.3,0.1,'non-balanced'
 0.4,0.5,0.4,0,0.3,0.1,'non-balanced'
 0.7,0.3,0.4,0,0.3,0.1,'non-balanced'
-0,0,0,1,0,0.8,'perfect'
-0,0,0.9,1,0,6,'perfect'
+0,0.2,1,0,0,0.1,'perfect'
+0.1,0.3,1,0,0,0.1,'perfect'
 0.1,0.1,0.7,0,0.1,0.7,'perfect'
-0.5,0.3,0.4,0,0.3,0.1,'performance'
+0.9,0.3,0.4,0,0.3,0.1,'performance'
 0.5,0.3,0.4,0,0.3,0.1,'performance'
 0.6,0.3,0.4,0,0.3,0.1,'performance'
-0.3,0.3,0.4,0,0.3,0.5,'costly'
-0.4,0.5,0.4,0,0.3,0.7,'costly'
+0.4,0.3,0.4,0,0.3,0.8,'costly'
+0.5,0.3,0.4,0,0.3,0.6,'costly'
 0.2,0.4,0.4,0,0.3,0.7,'costly'

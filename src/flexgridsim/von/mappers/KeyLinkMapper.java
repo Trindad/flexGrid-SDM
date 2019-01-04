@@ -105,7 +105,7 @@ public class KeyLinkMapper extends Mapper {
 		
 	}
 	
-	private Map<List<Integer>, List<Integer>> shortestPaths() {
+	protected Map<List<Integer>, List<Integer>> shortestPaths() {
 		
 		Map<List<Integer>, List<Integer>> shortestPaths = new HashMap<List<Integer>, List<Integer>>();
 		
@@ -116,17 +116,20 @@ public class KeyLinkMapper extends Mapper {
 					org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge> shortestPath = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<Integer, DefaultWeightedEdge>(pt.getGraph());
 					GraphPath<Integer, DefaultWeightedEdge> path = shortestPath.getPath( source, destination );
 					
-					try {
+					if(path != null) {
 						
-						List<Integer> listOfVertices = path.getVertexList();
-						List<Integer> nodes = new ArrayList<Integer>();
-						nodes.add(source);
-						nodes.add(destination);
-						
-						shortestPaths.put(nodes, listOfVertices);
-					}
-					catch (Exception e) {
-						e.printStackTrace();
+						try {
+							
+							List<Integer> listOfVertices = path.getVertexList();
+							List<Integer> nodes = new ArrayList<Integer>();
+							nodes.add(source);
+							nodes.add(destination);
+							
+							shortestPaths.put(nodes, listOfVertices);
+						}
+						catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -135,7 +138,7 @@ public class KeyLinkMapper extends Mapper {
 		return shortestPaths;
 	}
 
-	private ArrayList<Integer> sortResourceContributionDegree(VirtualTopology von, Map<List<Integer>, List<Integer>> shortestPaths) {
+	protected ArrayList<Integer> sortResourceContributionDegree(VirtualTopology von, Map<List<Integer>, List<Integer>> shortestPaths) {
 		
 		ArrayList<Integer> nodeIndices = new ArrayList<Integer>();
 		double []rcd = new double[pt.getNumNodes()];
@@ -169,7 +172,7 @@ public class KeyLinkMapper extends Mapper {
 		return nodeIndices;
 	}
 
-	private double getMinimumBandwdith() {
+	protected double getMinimumBandwdith() {
 		
 		return 12.5;
 	}

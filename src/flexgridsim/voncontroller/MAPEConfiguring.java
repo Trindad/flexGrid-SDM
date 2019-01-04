@@ -47,8 +47,8 @@ public class MAPEConfiguring {
 			if(!classification.isEmpty()) {
 				knowledge.classifications.add(classification);
 				
-				plan.run(classification, symptoms.get(0) );
-				execute.run();
+				Plan executionPlan = plan.run(classification, symptoms.get(0) );
+				execute.run(executionPlan);
 			}
 		} catch (Exception e) {
 			

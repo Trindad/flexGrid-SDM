@@ -30,6 +30,8 @@ public class Monitor {
 		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
 		String problem = checkOverload(db);
+		System.out.println(db.bbr);
+	
 		if(!problem.equals("perfect")) 
 		{
 			System.out.println("SYMPTOM TYPE: "+problem);
@@ -52,8 +54,7 @@ public class Monitor {
 		double t =  db.totalNumberOfTranspondersAvailable >= 1 ? 1.0 - ((double)db.totalNumberOfTranspondersAvailable/(double)db.totalTransponders) : 0;
 		
 		double[] data = {db.bbr, db.linkLoad, db.acceptance, 0.0, t, db.cost};
-		
-		
+		System.out.println(db.bbr+" "+ db.linkLoad+" "+ db.acceptance+" "+ 0.0+" "+ t+" "+ db.cost);
 		return dt.run(data);
 	}
 }

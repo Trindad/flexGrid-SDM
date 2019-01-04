@@ -7,6 +7,19 @@ public class Step {
 	public ACTIONS action;
 	public String target;
 	public int target_id;
+	
+	public Step(ACTIONS action, String target, int target_id) {
+		super();
+		this.action = action;
+		this.target = target;
+		this.target_id = target_id;
+	}
+	
+	public Step(ACTIONS action, String target) {
+		super();
+		this.action = action;
+		this.target = target;
+	}
 }
 
 /**

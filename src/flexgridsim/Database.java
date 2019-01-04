@@ -92,6 +92,8 @@ public class Database {
 		instance.bbr = 0;
 		instance.cost = 0;
 		instance.totalNumberOfTranspondersAvailable = 0;
+		instance.computing = null;
+		instance.bbrPerPair = null;
 	}
 	
 	public static void setup(PhysicalTopology pt) {
@@ -105,11 +107,13 @@ public class Database {
 		instance.xtAdjacentNodes = new double[pt.getNumLinks()];
 		instance.numberOfLightpaths = new int[pt.getNumLinks()];
 		instance.usedBandwidth = new double[pt.getNumLinks()];
+		instance.computing = new double[pt.getNumNodes()];
 		
 		instance.availableTransponders = new int[pt.getNumNodes()];
 		instance.usedTransponders = new int[pt.getNumNodes()];
 		instance.distances = new int[pt.getNumLinks()];
 		instance.meanCrosstalk = new double[pt.getNumLinks()];
+		instance.bbrPerPair = new double[pt.getNumLinks()];
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			instance.slotsAvailable.put((long) i, pt.getNumSlots() * pt.getCores());

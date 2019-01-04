@@ -18,6 +18,7 @@ public class Orchestrator {
 	private Orchestrator() {
 		configure = new MAPEConfiguring();
 		optimize = new MAPEOptimizing();
+		Hooks.init();
 	}
 	
 	public static Orchestrator getInstance() {
@@ -33,6 +34,8 @@ public class Orchestrator {
 		
 		instance.configure = null;
 		instance.optimize = null;
+		
+		Hooks.reset();
 	}
 	
 	public void run() {

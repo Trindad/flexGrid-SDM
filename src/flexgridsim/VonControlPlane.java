@@ -43,10 +43,11 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 Class VonClass;
 		 
 		 if(mapper.equals("flexgridsim.von.mappers.MAPEMapper")) {
-			 Database.setup(pt);
-			 vne = new VirtualNetworkEmbedding();
+			
 			 mape = true;
 		 }
+		Database.setup(pt);
+		vne = new VirtualNetworkEmbedding();
 		 
 		 this.pt = pt;
 		 this.activeVons = new HashMap<Integer, VirtualTopology>();
@@ -82,6 +83,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 
 	 public void newEvent(Event event) {
 		 
+		 
 		 if(event instanceof VonArrivalEvent) {
 //			 System.out.println("arrival");
 			 newVon(((VonArrivalEvent) event).getVon());
@@ -94,12 +96,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 
 				 mapper.vonDeparture(((VonDepartureEvent) event).getVon());
 				 
-				try{
+				if(activeVons.containsKey(((VonDepartureEvent) event).getVon().getID())) {
 					 deallocateVon(((VonDepartureEvent) event).getVon().getID());
-				}
-					 catch (Exception e) {
-					 e.printStackTrace();
-				}
+			 	}
 			 }
 			 else
 			 {
@@ -132,6 +131,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		if(this.mape == true) {
 			
+			System.out.println("ACCEPTED: "+activeVons.get(id).getID());
 			vne.setLightpath(activeVons.get(id));
 			updateDatabase();
 			Orchestrator.getInstance().run();
@@ -156,11 +156,12 @@ public class VonControlPlane implements ControlPlaneForVon {
 		{
 			throw (new IllegalArgumentException());
 		}
-		
+		System.out.println("BLOCKED: "+activeVons.get(id).getID());
 		this.statistics.blockVon(activeVons.get(id));
 		activeVons.remove(id);
 		
 		if(this.mape == true) {
+			
 			Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
 			Orchestrator.getInstance().run();
 		}
@@ -250,7 +251,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			}
 			
 			
-			activeVons.remove(id);
+			
 			
 //			System.out.println("VON Departure ID: "+id);
 			if(this.mape == true) {
@@ -258,6 +259,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 				updateDatabase();
 				Orchestrator.getInstance().run();
 			}
+			
+			activeVons.remove(id);
 			
 			return true;
 		}

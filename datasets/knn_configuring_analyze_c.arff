@@ -1,0 +1,17 @@
+@RELATION configuring-analyzer-costly
+
+@ATTRIBUTE a REAL
+@ATTRIBUTE b REAL
+@ATTRIBUTE c REAL
+@ATTRIBUTE class {'high', 'medium', 'low'}
+
+@DATA
+0.5,0.6,20,high
+0.5,0.6,20,high
+0.5,0.6,20,high
+0.5,0.6,20,medium
+0.5,0.6,20,medium
+0.5,0.6,20,medium
+0.5,0.6,20,low
+0.5,0.6,20,low
+0.5,0.6,20,low

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import flexgridsim.von.VirtualLink;
 import flexgridsim.von.VirtualTopology;
+import weka.gui.SysErrLog;
 
 /**
  * 
@@ -25,12 +26,14 @@ public class VirtualNetworkEmbedding {
 	}
 	
 	public void setLightpath(VirtualTopology von) {
-
+		
+		System.out.println("add VON");
 		for(VirtualLink link : von.links) {
 			
 			int index = match( link.getPhysicalLinks() );
 			
-			if(index >= 0) {
+			if(index >= 0) 
+			{
 				links.get(index).VonIDs.add(von.getID());
 				links.get(index).bandwidth += link.getBandwidth();
 			}
@@ -51,21 +54,27 @@ public class VirtualNetworkEmbedding {
 	public void removeLightpaths(VirtualTopology von) {
 		
 		int index = -1;
-		for(VirtualLink link : von.links) {
-			
-			index = match( link.getPhysicalLinks() );
-			
-			if(index >= 0) 
-			{
-				int i = links.get(index).VonIDs.indexOf(von.getID());
-				links.get(index).VonIDs.remove(i);
-				links.get(index).bandwidth -= link.getBandwidth();
+		
+//		try {
+			for(VirtualLink link : von.links) {
 				
-				if(links.get(index).bandwidth <= 0) {
-					links.remove(index);
-				}	
+				index = match( link.getPhysicalLinks() );
+				
+				if(index >= 0) 
+				{
+					int i = links.get(index).VonIDs.indexOf(von.getID());
+					links.get(index).VonIDs.remove(i);
+					links.get(index).bandwidth -= link.getBandwidth();
+					
+					if(links.get(index).bandwidth <= 0) {
+						links.remove(index);
+					}	
+				}
 			}
-		}
+//		}
+//		catch (Exception e) {
+//			System.out.println(e);
+//		}
 	}
 	
 	private int match(int []path) {

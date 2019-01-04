@@ -76,6 +76,8 @@ public class VirtualizationSimulator extends Simulator {
             if(maxload== minload && minload == step && step == 0) {
             	step++;
             }
+            
+            Orchestrator.getInstance();
            
             	
            System.out.println("Number of simulations: "+numberOfSimulations);

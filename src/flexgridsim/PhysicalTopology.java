@@ -235,6 +235,10 @@ public class PhysicalTopology {
     	WeightedGraph g = new WeightedGraph(nodes);
         for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
+            	if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+            		continue;
+            	}
+            	
                 if (hasLink(i, j)) {
                     g.addEdge(i, j, getLink(i, j).getWeight());
                 }
@@ -271,7 +275,32 @@ public class PhysicalTopology {
     
     
     public Graph<Integer, DefaultWeightedEdge> getGraph() {
-    	return graph;
+    	SimpleWeightedGraph<Integer, DefaultWeightedEdge> copy = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+		
+		for(int i = 0; i < nodes; i++) {
+			copy.addVertex(i);
+		}
+		
+		for (int i = 0; i < nodes-1; i++) {
+		    
+			for (int j = i+1; j < nodes; j++) {
+				
+				if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+					
+            		continue;
+            	}
+		       
+		    	if (hasLink(i, j)) 
+		    	{
+		        	DefaultWeightedEdge edge = copy.addEdge(i, j);
+		        	
+//		        	if(getLink(i, j) != null) System.out.println("w: "+getLink(i, j).getWeight());
+		        	copy.setEdgeWeight(edge, getLink(i, j).getWeight());
+		        }
+		    }
+		}
+		    	
+    	return copy;
     }
     
 
@@ -519,14 +548,18 @@ public class PhysicalTopology {
 	public Graph<Integer, DefaultWeightedEdge> getVONGraph() {
 		
 		WeightedGraph g = new WeightedGraph(nodes);
-        
+		
 		for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
+            	if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+            		continue;
+            	}
+            	
                 if (hasLink(i, j)) {
                     g.addEdge(i, j, getLink(i, j).getWeight());
                 }
             }
-        }     
+        }
 		
 		return vonGraph;
 	}

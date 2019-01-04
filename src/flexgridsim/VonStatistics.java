@@ -24,7 +24,7 @@ public class VonStatistics {
 	private int vonAcceptedRate;
 	private int vonBlockedRate;
 	private int [][]pairOfNodesBlocked;
-	private int requiredBandwidth;
+	private double requiredBandwidth;
 	private double linkLoad;
 	private double bandwidthBlocked;
 	
@@ -48,7 +48,6 @@ public class VonStatistics {
 		this.traffic = traffic;
 		this.arrivals = 0;
 		this.plotter = plotter;
-		this.arrivals = 0;
 		this.departures = 0;
 		this.vonAcceptedRate = 0;
 		this.vonBlockedRate = 0;
@@ -68,6 +67,9 @@ public class VonStatistics {
 			plotter.addDotToGraph("block", arrivals, ((float) this.vonBlockedRate) / ((float) arrivals));
 			plotter.addDotToGraph("mbbr", arrivals, ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
 			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
+			
+			System.out.println("Arrivals: " + arrivals+" Departures: "+departures);
+			System.out.println(((float) this.vonAcceptedRate) / ((float) arrivals)+" "+((float) this.vonBlockedRate) / ((float) arrivals)+" "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
 		}
 		else {
 			System.out.println("Something wrong occured...");
@@ -140,12 +142,11 @@ public class VonStatistics {
 		
 		try {
 			if(event instanceof VonArrivalEvent) {
-				
 				VirtualTopology von = ((VonArrivalEvent) event).getVon();
 				for(VirtualLink link : von.links) {
 					this.requiredBandwidth += link.getBandwidth();
 				}
-				
+
 				this.arrivals++;
 			}
 			else if(event instanceof VonDepartureEvent) {
@@ -155,6 +156,20 @@ public class VonStatistics {
 			if (this.arrivals % 10 == 0 && traffic.dynamic == true) {
 				
 				plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
+			}
+		}
+		catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+	 }
+	
+	public void addEvent(VirtualTopology von) {
+		
+		try {
+			for(VirtualLink link : von.links) {
+				this.requiredBandwidth += link.getBandwidth();
 			}
 		}
 		catch (Exception e)
@@ -221,7 +236,8 @@ public class VonStatistics {
 
 	public double getBandwidthBlockingRatio() {
 		
-		return ((double) this.bandwidthBlocked) / ((double) requiredBandwidth);
+		System.out.println(this.bandwidthBlocked+" "+this.requiredBandwidth);
+		return ((double) this.bandwidthBlocked) / ((double) this.requiredBandwidth);
 	}
 
 	public double getBandwidthBlockingRatioPerLink(int i) {
