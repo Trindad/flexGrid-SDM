@@ -1,10 +1,6 @@
 package flexgridsim.voncontroller;
 
 import java.util.ArrayList;
-import java.util.Map;
-
-import flexgridsim.Flow;
-import flexgridsim.LightPath;
 
 /**
  * 

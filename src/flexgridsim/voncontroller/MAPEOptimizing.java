@@ -13,7 +13,7 @@ public class MAPEOptimizing {
 
 	private Monitor monitor;
 	private Analyze analyzer;
-	private Plan plan;
+	private Planner plan;
 	private Execute execute;
 	private Knowledge knowledge;
 	
@@ -22,7 +22,7 @@ public class MAPEOptimizing {
 		try {
 			monitor = new Monitor();
 			analyzer = new Analyze();
-			plan = new Plan();
+			plan = new Planner();
 			execute = new Execute();
 			knowledge = new Knowledge();
 		} catch (Exception e) {
@@ -42,8 +42,8 @@ public class MAPEOptimizing {
 				knowledge.symptoms.add(symptom);
 			}
 			
-			analyzer.run(symptoms.get(0));
-			plan.run();
+			ArrayList<String> classification = analyzer.run(symptoms.get(0));
+			plan.run(classification, symptoms.get(0));
 			execute.run();
 		} catch (Exception e) {
 			e.printStackTrace();

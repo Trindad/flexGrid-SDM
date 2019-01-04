@@ -2,7 +2,6 @@ package flexgridsim.voncontroller;
 
 import java.util.ArrayList;
 
-import weka.gui.SysErrLog;
 
 /**
  * 
@@ -13,7 +12,7 @@ public class MAPEConfiguring {
 
 	private Monitor monitor;
 	private Analyze analyzer;
-	private Plan plan;
+	private Planner plan;
 	private Execute execute;
 	private Knowledge knowledge;
 	
@@ -22,7 +21,7 @@ public class MAPEConfiguring {
 		try {
 			monitor = new Monitor();
 			analyzer = new Analyze();
-			plan = new Plan();
+			plan = new Planner();
 			execute = new Execute();
 			knowledge = new Knowledge();
 		}
@@ -43,9 +42,14 @@ public class MAPEConfiguring {
 				knowledge.symptoms.add(symptom);
 			}
 			
-			analyzer.run(symptoms.get(0));
-			plan.run();
-			execute.run();
+			ArrayList<String> classification = analyzer.run(symptoms.get(0));
+			
+			if(!classification.isEmpty()) {
+				knowledge.classifications.add(classification);
+				
+				plan.run(classification, symptoms.get(0) );
+				execute.run();
+			}
 		} catch (Exception e) {
 			
 			e.printStackTrace();

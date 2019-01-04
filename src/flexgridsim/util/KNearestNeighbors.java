@@ -1,19 +1,12 @@
 package flexgridsim.util;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import weka.classifiers.Classifier;
-import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.lazy.IBk;
-import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader;
 
@@ -66,9 +59,9 @@ public class KNearestNeighbors {
 			private static final long serialVersionUID = 1L;
 
 			{
-				add("RESA");
-				add("RESB");
-				add("RESC");
+				add("high");
+				add("medium");
+				add("low");
 			}
 		};
 		

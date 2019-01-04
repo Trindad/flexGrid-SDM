@@ -36,26 +36,29 @@ public class Analyze {
 		}
 	}
 	
-	public void run(Symptom symptom) throws Exception {
+	public ArrayList<String> run(Symptom symptom) throws Exception {
 		
 		ArrayList< ArrayList<Double> > data = symptom.dataset;
+		ArrayList<String> classification = null;
 		
 		if(symptom.type == SYMPTOM.PERFORMANCE) 
 		{
-			knnPerformance.run(data);
+			classification = knnPerformance.run(data);
 		}
 		else if(symptom.type == SYMPTOM.NONBALANCED)
 		{
-			knnNonBalanced.run(data);
+			classification = knnNonBalanced.run(data);
 		}
 		else if(symptom.type == SYMPTOM.COSTLY) 
 		{
-			knnCostly.run(data);
+			classification = knnCostly.run(data);
 		}
 		else 
 		{
 			System.err.println("This problem doesn't exist...");
 		}
+		
+		return classification;
 		
 	}
 }

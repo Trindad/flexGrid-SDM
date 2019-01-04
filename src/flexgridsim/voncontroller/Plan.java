@@ -1,19 +1,14 @@
 package flexgridsim.voncontroller;
 
-/**
- * 
- * @author trindade
- *
- */
+import java.util.ArrayList;
 
 public class Plan {
-
-	public void run() {
-		// TODO Auto-generated method stub
+	
+	public ArrayList<Step> steps;
+	
+	public Plan() {
 		
+		steps = new ArrayList<>();
 	}
 
-	
-	//árvore de decisão
-	//TD algoritmo
 }
