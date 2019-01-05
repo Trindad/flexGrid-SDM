@@ -28,4 +28,16 @@ public class Hooks {
 		
 		return b;
 	}
+	
+	public static void checkBlockCostlyNodeFiltersDone(PhysicalTopology pt) {
+		ArrayList<BlockCostlyNodeFilter> done = new ArrayList<>();
+		
+		for (BlockCostlyNodeFilter f : blockCostlyNodeFilters) {
+			if (f.isDone(pt)) {
+				done.add(f);
+			}
+		}
+		
+		blockCostlyNodeFilters.removeAll(done);
+	}
 }

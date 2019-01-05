@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import flexgridsim.Flow;
+import flexgridsim.Hooks;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.rsa.VONRCSA;
 import flexgridsim.von.VirtualLink;
@@ -17,6 +18,21 @@ public class MAPEMapper extends KeyLinkMapper {
 	public void vonArrival(VirtualTopology von) {
 		
 		System.out.println("MAPE Mapper");
+		
+		int count = 0;
+		for(int i = 0; i < pt.getNumNodes(); i++) {
+			if (!Hooks.runBlockCostlyNodeFilter(i)) {
+				
+				count++;
+        	}
+		}
+		if(count >= pt.getNumNodes()) 
+		{
+			System.out.println("VON Blocked: "+von.getID());
+			cp.blockVon(von.getID());
+			return;
+		}
+		
 		vons.sort(Comparator.comparing(VirtualTopology::getTotalResources).reversed());
 		
 		if (rsa instanceof VONRCSA) {

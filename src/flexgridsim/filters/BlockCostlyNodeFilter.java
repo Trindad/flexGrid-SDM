@@ -1,6 +1,9 @@
 package flexgridsim.filters;
 
-public class BlockCostlyNodeFilter extends BaseFilter {
+import flexgridsim.Database;
+import flexgridsim.PhysicalTopology;
+
+public class BlockCostlyNodeFilter {
 	private int targetNode;
 	
 	public BlockCostlyNodeFilter(int target_id) {
@@ -11,8 +14,21 @@ public class BlockCostlyNodeFilter extends BaseFilter {
 		return node != targetNode;
 	}
 
-	public boolean isDone()
+	public boolean isDone(PhysicalTopology pt)
 	{
-		return false;
+		double meanTransponders = Database.getInstance().totalTransponders / (pt.getNumNodes() * 5);
+		
+		if(pt.getNode(targetNode).getTransponders() > meanTransponders) 
+		{	
+			return false;
+		}
+		
+		double meanComputeResource = Database.getInstance().totalComputeResource/ pt.getNumNodes();
+		
+		if(pt.getNode(targetNode).getComputeResource() > meanComputeResource) {
+			return false;
+		}
+		
+		return true;
 	}
 }

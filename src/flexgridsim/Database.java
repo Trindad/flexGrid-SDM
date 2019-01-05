@@ -16,10 +16,13 @@ import vne.VirtualNetworkEmbedding;
  */
 public class Database {
 	
-	public int totalTransponders;
+	
 	public int []usedTransponders;
 	public int []availableTransponders;
+	
+	public int totalTransponders;
 	public int totalNumberOfTranspondersAvailable;
+	public int totalComputeResource;
 	
 	public int []slotsAvailablePerLink;
 	public Map<Long, Integer> slotsAvailable; 
@@ -94,6 +97,7 @@ public class Database {
 		instance.totalNumberOfTranspondersAvailable = 0;
 		instance.computing = null;
 		instance.bbrPerPair = null;
+		instance.totalComputeResource = 0;
 	}
 	
 	public static void setup(PhysicalTopology pt) {

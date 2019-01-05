@@ -37,7 +37,8 @@ public class Monitor {
 			System.out.println("SYMPTOM TYPE: "+problem);
 			Symptom symptom = new Symptom(db.pt);
 			
-			symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", ""));
+//			symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", ""));
+			symptom.type = SYMPTOM.COSTLY;
 			
 			symptom.setDataset(db);
 			symptoms.add(symptom);

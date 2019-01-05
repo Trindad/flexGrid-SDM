@@ -38,6 +38,7 @@ public class PhysicalTopology {
     private SimpleWeightedGraph<Integer, DefaultWeightedEdge> graph;
     private SimpleWeightedGraph<Integer, DefaultWeightedEdge> vonGraph;
     
+    
     /**
      * Creates a new PhysicalTopology object.
      * Takes the XML file containing all the information about the simulation
@@ -573,8 +574,14 @@ public class PhysicalTopology {
 	}
 
 	public int[] getNumberOfAvailableTransponders() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		int []t = new int[nodes];
+		
+		for(int i = 0; i < nodeVector.length; i++) {
+			t[i] =  nodeVector[i].getTransponders();
+		}
+		
+		return t;
 	}
 
 }

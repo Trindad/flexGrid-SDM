@@ -125,6 +125,12 @@ public class VonControlPlane implements ControlPlaneForVon {
 		{
 			this.mappedFlows.put(activeVons.get(id), flows);
 			
+			for(Flow flow : flows) {
+				pt.getNode(flow.getSource()).updateTransponders(-1);
+				pt.getNode(flow.getDestination()).updateTransponders(-1);
+			}
+			
+			
 			this.pt.setComputeResourceUsed(activeVons.get(id).nodes, -1.0);
 			this.statistics.acceptVon(activeVons.get(id));
 		}
@@ -156,6 +162,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		{
 			throw (new IllegalArgumentException());
 		}
+		
 		System.out.println("BLOCKED: "+activeVons.get(id).getID());
 		this.statistics.blockVon(activeVons.get(id));
 		activeVons.remove(id);
@@ -181,13 +188,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(Flow flow : flows) {
 				
-				Database.getInstance().totalTransponders += 1;
+				Database.getInstance().totalTransponders += 2;
 				Database.getInstance().usedTransponders[flow.getSource()] += 1;
 				Database.getInstance().flowCount += 1;
 				
 				Database.getInstance().usedBandwidth[flow.getSource()] += flow.getRate();
 				Database.getInstance().usedTransponders[flow.getSource()] += 1;
+				Database.getInstance().usedTransponders[flow.getDestination()] += 1;
 				Database.getInstance().computing[flow.getSource()] += flow.getComputingResource();
+				Database.getInstance().totalComputeResource += flow.getComputingResource();
 			}
 		}
 		
@@ -231,6 +240,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(Flow flow : mappedFlows.get(activeVons.get(id)) ) {
 				
+				pt.getNode(flow.getSource()).updateTransponders(1);
+				pt.getNode(flow.getDestination()).updateTransponders(1);
+				
 				this.pt.setComputeResourceUsed(activeVons.get(id).nodes, 1.0);
 				
 				RemoveFlowFromPhysicalTopology(flow, flow.getLinks());
@@ -245,7 +257,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 				mappedFlows.remove(activeVons.get(id));
 //				System.out.println("VON departure complete... ");
 			}
-			else {
+			else 
+			{
 				System.out.println("Something wrong occur in VON departure process... ");
 				throw (new IllegalArgumentException());
 			}
@@ -258,6 +271,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 				vne.removeLightpaths(activeVons.get(id));
 				updateDatabase();
 				Orchestrator.getInstance().run();
+				Hooks.checkBlockCostlyNodeFiltersDone(pt);
 			}
 			
 			activeVons.remove(id);

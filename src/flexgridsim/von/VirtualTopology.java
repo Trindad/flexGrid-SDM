@@ -25,7 +25,7 @@ public class VirtualTopology {
 	public double sigma = 0.5;
 	
 	public VirtualTopology() {
-		setID(VirtualLink.ID++);
+		setID(VirtualTopology.ID++);
 		
 		this.links = new ArrayList<VirtualLink>();
 		this.nodes = new ArrayList<VirtualNode>();

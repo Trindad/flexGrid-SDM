@@ -26,7 +26,7 @@ public class Symptom {
 	private double []xt;//crosstalk between a pair of adjacent nodes 
 	private int []numberOfLightpaths; //number of lightpaths mapped
 	private double []usedBandwidth;//percentage of bandwidth used in each nodes related to the transponders
-	
+	private PhysicalTopology pt;
 	public SYMPTOM type;
 	
 	public ArrayList< ArrayList<Double> > dataset;
@@ -39,7 +39,9 @@ public class Symptom {
 		usedTransponders = new int[pt.getNumLinks()];
 		computing = new double[pt.getNumLinks()]; ;
 		xt = new double[pt.getNumLinks()];
-		numberOfLightpaths = new int[pt.getNumLinks()]; 		
+		numberOfLightpaths = new int[pt.getNumLinks()]; 	
+		
+		this.pt = pt;
 	}
 
 	public void setDataset(Database db) {
@@ -52,7 +54,7 @@ public class Symptom {
 			bbr = db.bbrPerPair;
 			xt = db.xtAdjacentNodes;	
 			
-			for (int i = 0; i < availableSlots.length; i++) {
+			for (int i = 0; i < pt.getNumLinks(); i++) {
 				ArrayList<Double> row = new ArrayList<>();
 				row.add(bbr[i]);
 				row.add(xt[i]);
@@ -67,7 +69,7 @@ public class Symptom {
 			closenessCentrality = db.closenessCentrality;
 			numberOfLightpaths = db.numberOfLightpaths;	
 			
-			for (int i = 0; i < availableSlots.length; i++) {
+			for (int i = 0; i < pt.getNumLinks(); i++) {
 				ArrayList<Double> row = new ArrayList<>();
 				row.add(bbr[i]);
 				row.add(closenessCentrality[i]);
@@ -82,7 +84,7 @@ public class Symptom {
 			computing = db.computing;
 			usedBandwidth = db.usedBandwidth;
 			
-			for (int i = 0; i < usedTransponders.length; i++) {
+			for (int i = 0; i < pt.getNumNodes(); i++) {
 				ArrayList<Double> row = new ArrayList<>();
 				row.add(computing[i]);
 				row.add((double) usedTransponders[i]);
@@ -90,6 +92,7 @@ public class Symptom {
 				
 				matrix.add(row);
 			}
+			
 		}
 		else 
 		{

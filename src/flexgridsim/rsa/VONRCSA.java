@@ -36,6 +36,10 @@ public class VONRCSA extends SCVCRCSA {
 	public void flowArrival(Flow flow) {
 		kPaths = 3;
 		setkShortestPaths(flow);
+		
+		if(paths.isEmpty()) {
+			return;
+		}
 
 		int []modulationFormats = new int[paths.size()];
 		ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
@@ -117,6 +121,7 @@ public class VONRCSA extends SCVCRCSA {
 		
 		int selectedPath = 0;
 		Slot last = null;
+		
 		
 		for(int i = 0; i < blockOfSlots.size(); i++) {
 		
@@ -226,6 +231,10 @@ public class VONRCSA extends SCVCRCSA {
 	public void setkShortestPaths(Flow flow) {
 		
 		this.paths  = new ArrayList<int []>();
+		if(pt.getNode(flow.getSource()).getTransponders() <= 0) {
+			
+			return;
+		}
 		
 		if(pt == null) {
 			System.out.println("Physical topology is NULL");
@@ -240,6 +249,10 @@ public class VONRCSA extends SCVCRCSA {
 				
 				List<Integer> listOfVertices = KPaths.get(k).getVertexList();
 				int[] links = new int[listOfVertices.size()-1];
+				
+				if(pt.getNode(flow.getDestination()).getTransponders() <= 0) {
+					continue;
+				}
 				
 				for (int j = 0; j < listOfVertices.size()-1; j++) {
 					

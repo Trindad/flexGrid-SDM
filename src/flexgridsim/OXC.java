@@ -19,8 +19,10 @@ package flexgridsim;
  * @author andred, trindade
  */
 public class OXC {
+	
 	private static int idCount;
 	private double computeResource;
+	private int transponders;
     private int id;
     
     /**
@@ -30,7 +32,7 @@ public class OXC {
     public OXC() {
         this.id = idCount;
         idCount++;
-        
+        setTransponders(5);
         computeResource = 500;
     }
     
@@ -49,6 +51,18 @@ public class OXC {
 
 	public void setComputeResources(double d) {
 		computeResource += d;
+	}
+
+	public int getTransponders() {
+		return transponders;
+	}
+
+	public void setTransponders(int transponders) {
+		this.transponders = transponders;
+	}
+
+	public void updateTransponders(int i) {
+		transponders += i;
 	}
     
 }
