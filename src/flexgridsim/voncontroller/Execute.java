@@ -1,9 +1,9 @@
 package flexgridsim.voncontroller;
-
 import flexgridsim.Hooks;
 import flexgridsim.filters.BlockCostlyNodeFilter;
 import flexgridsim.voncontroller.Step.ACTIONS;
 
+import flexgridsim.util.ReinforcementLearning;
 /**
  * 
  * @author trindade
@@ -19,6 +19,4 @@ public class Execute {
 			}
 		}
 	}
-
-	//RL
 }
