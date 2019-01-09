@@ -13,7 +13,6 @@ import weka.core.converters.ArffLoader;
 public class KNearestNeighbors {
 	
 	private String trainingFilename;
-	
 	private IBk classifier;
 
 	
@@ -36,7 +35,7 @@ public class KNearestNeighbors {
 	public Instances getDataset(String filename) throws IOException {
 		
 		ArffLoader loader = new ArffLoader();
-		System.out.println(filename);
+//		System.out.println(filename);
 		loader.setSource(DecisionTree.class.getResourceAsStream("/" + filename));
 		
 		Instances dataset = loader.getDataSet();

@@ -1,7 +1,14 @@
 package flexgridsim.voncontroller;
 
 public class Step {
-	public enum ACTIONS { BLOCK_COSTLY_NODE };
+	public enum ACTIONS { 
+			BLOCK_COSTLY_NODE,
+			BLOCK_BALANCED_LINK,
+			BLOCK_BALANCED_NODE,
+			RECONFIGURATION_PERFORMANCE_LINK, 
+			LIMIT_COSTLY_NODE, 
+			LIMIT_BALANCED_LINK,
+		};
 	
 	
 	public ACTIONS action;

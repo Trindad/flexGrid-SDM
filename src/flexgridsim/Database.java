@@ -20,7 +20,7 @@ public class Database {
 	public int []usedTransponders;
 	public int []availableTransponders;
 	
-	public int totalTransponders;
+	public double totalTransponders;//mean transponders used
 	public int totalNumberOfTranspondersAvailable;
 	public int totalComputeResource;
 	
@@ -28,7 +28,7 @@ public class Database {
 	public Map<Long, Integer> slotsAvailable; 
 	public Map<Long, Integer> slotsOccupied; 
 	
-	public double []meanCrosstalk;
+	public double meanCrosstalk;
 	public int []modulationFormats;
 	public int []distances;
 	
@@ -78,7 +78,7 @@ public class Database {
 		instance.availableTransponders = null;
 		instance.slotsAvailable.clear(); 
 		instance.slotsOccupied.clear(); 
-		instance.meanCrosstalk = null;
+		instance.meanCrosstalk = -90;
 		instance.distances = null;
 		
 		instance.slotsAvailablePerLink = null;
@@ -116,7 +116,7 @@ public class Database {
 		instance.availableTransponders = new int[pt.getNumNodes()];
 		instance.usedTransponders = new int[pt.getNumNodes()];
 		instance.distances = new int[pt.getNumLinks()];
-		instance.meanCrosstalk = new double[pt.getNumLinks()];
+		instance.meanCrosstalk = -90;
 		instance.bbrPerPair = new double[pt.getNumLinks()];
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {

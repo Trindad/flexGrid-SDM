@@ -380,7 +380,7 @@ public class PhysicalTopology {
 			}
 		}
 		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : 0.0f;//db
+		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : -80.0f;//db
 		
 		return xt;
     }
@@ -582,6 +582,24 @@ public class PhysicalTopology {
 		}
 		
 		return t;
+	}
+
+	public double getMeanCrosstalk() {
+		
+		double xt = 0;
+		
+		for(FlexGridLink link : linkVector) {
+			for(int c = 0; c < cores; c++) {
+				for(int s = 0; s < slots; s++) {
+					Slot slot = new Slot(c, s);
+					int controller = link.getInterCoreCrosstalkInAdjacent(slot);
+					xt += link.getNewXT(slot, controller);
+				}
+			}
+			xt += xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : -80.0f;//db
+		}
+		
+		return (xt/(double)linkVector.length);
 	}
 
 }

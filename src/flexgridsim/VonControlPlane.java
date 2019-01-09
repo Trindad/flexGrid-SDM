@@ -170,6 +170,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		if(this.mape == true) {
 			
 			Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
+			Database.getInstance().acceptance = statistics.getAcceptance();
 			Orchestrator.getInstance().run();
 		}
 	
@@ -188,6 +189,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(Flow flow : flows) {
 				
+				if(!flow.isAccepeted()) continue;
+				
 				Database.getInstance().totalTransponders += 2;
 				Database.getInstance().usedTransponders[flow.getSource()] += 1;
 				Database.getInstance().flowCount += 1;
@@ -200,7 +203,14 @@ public class VonControlPlane implements ControlPlaneForVon {
 			}
 		}
 		
+		Database.getInstance().totalTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
 		Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
+		
+		for(int i : Database.getInstance().availableTransponders) {
+			Database.getInstance().totalNumberOfTranspondersAvailable += i;
+		}
+		
+		
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			int available = pt.getLink(i).getSlotsAvailable();
@@ -214,12 +224,12 @@ public class VonControlPlane implements ControlPlaneForVon {
 			Database.getInstance().numberOfLightpaths[i] = statistics.getNumberOfLightpaths(i);
 		}
 		
-		//TODO: do NOT forget
-		Database.getInstance().meanCrosstalk = null;
+		Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
 		
 		Database.getInstance().vne = vne;
 		Database.getInstance().linkLoad = statistics.getLinkLoad();
 		Database.getInstance().cost = statistics.getRevenueToCostRatio();
+		
 		Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
 		
 		Database.getInstance().nVons = this.activeVons.size();//number of active vons
@@ -263,10 +273,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 				throw (new IllegalArgumentException());
 			}
 			
-			
-			
-			
-//			System.out.println("VON Departure ID: "+id);
+			statistics.updateStatisticsDeparture(activeVons.get(id));
 			if(this.mape == true) {
 				vne.removeLightpaths(activeVons.get(id));
 				updateDatabase();

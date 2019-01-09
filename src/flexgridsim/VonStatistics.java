@@ -1,7 +1,9 @@
 package flexgridsim;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import flexgridsim.von.VirtualLink;
 import flexgridsim.von.VirtualTopology;
@@ -28,10 +30,11 @@ public class VonStatistics {
 	private double linkLoad;
 	private double bandwidthBlocked;
 	
-	private ArrayList<Integer> bandwidths;
-	private ArrayList<Integer> computeResource;
-	private ArrayList<Integer> hops;
 	private int nVons;
+	
+	private Map<VirtualTopology, Integer> bandwidths;
+	private Map<VirtualTopology, Integer> computeResource;
+	private Map<VirtualTopology, Integer> hops;
 	
 	private OutputManager plotter;
 	
@@ -54,9 +57,9 @@ public class VonStatistics {
 		pairOfNodesBlocked = new int[pt.getNumNodes()][pt.getNumNodes()];
 		this.linkLoad = 0;
 		
-		bandwidths = new ArrayList<Integer> ();
-		computeResource = new ArrayList<Integer> ();
-		hops = new ArrayList<Integer> ();
+		bandwidths = new HashMap<VirtualTopology, Integer> ();
+		computeResource = new HashMap<VirtualTopology, Integer> ();
+		hops = new HashMap<VirtualTopology, Integer> ();
 	}
 	
 	public void calculatingStatistics() {
@@ -69,7 +72,7 @@ public class VonStatistics {
 			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 			
 			System.out.println("Arrivals: " + arrivals+" Departures: "+departures);
-			System.out.println(((float) this.vonAcceptedRate) / ((float) arrivals)+" "+((float) this.vonBlockedRate) / ((float) arrivals)+" "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
+			System.out.println("acceptance: "+((float) this.vonAcceptedRate) / ((float) arrivals)+" blocked: "+((float) this.vonBlockedRate) / ((float) arrivals)+" bbr: "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
 		}
 		else {
 			System.out.println("Something wrong occured...");
@@ -77,9 +80,7 @@ public class VonStatistics {
 		}
 	}
 	
-	
-	
-	 protected double getLinkLoad() {
+	protected double getLinkLoad() {
 		
 		double a = 0;
 		for(int i = 0; i < pt.getNumLinks(); i++) {
@@ -110,30 +111,20 @@ public class VonStatistics {
 	 */
 	protected double getRevenueToCostRatio() {
 		
-		if(bandwidths.size() <= 0) {
-			
+		if(bandwidths.isEmpty()) {
 			return 0;
 		}
 		
 		double revenue = 0;
-		
-		for(int i = 0; i < bandwidths.size(); i++) {
-			
-			revenue += ( bandwidths.get(i) + computeResource.get(i) );
-		}
-		
 		double cost = 0;
 		
-		for(int i = 0; i < bandwidths.size(); i++) {
+		for(VirtualTopology von : bandwidths.keySet()) {
 			
-			cost += ( bandwidths.get(i) * hops.get(i) ) + computeResource.get(i);
+			revenue += ( bandwidths.get(von) + computeResource.get(von) );
+			cost += ( bandwidths.get(von) * hops.get(von) ) + computeResource.get(von);
 		}
 
-		
-		hops.clear();
-		bandwidths.clear();
-		computeResource.clear();
-//		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
+		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
 		
 		return (revenue/cost);
 	}
@@ -218,13 +209,18 @@ public class VonStatistics {
 
 	public void acceptVon(VirtualTopology von) {
 		
+		
+		 int a = 0, b = 0, c = 0;
 		 for(VirtualLink link : von.links) {
 
-			 
-			 bandwidths.add(link.getBandwidth());
-			 hops.add(link.getPhysicalLinks().length);
-			 computeResource.add( link.getSource().getComputeResource() );
+			 a += link.getBandwidth();
+			 b += link.getPhysicalLinks().length;
+			 c += link.getSource().getComputeResource();
 		 }
+		 
+		 bandwidths.put(von, a);
+		 hops.put(von, b);
+		 computeResource.put(von, c);
 		 
 		 vonAcceptedRate ++;
 		 
@@ -236,7 +232,6 @@ public class VonStatistics {
 
 	public double getBandwidthBlockingRatio() {
 		
-		System.out.println(this.bandwidthBlocked+" "+this.requiredBandwidth);
 		return ((double) this.bandwidthBlocked) / ((double) this.requiredBandwidth);
 	}
 
@@ -258,5 +253,21 @@ public class VonStatistics {
 	public double[] getComputing() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public double getAcceptance() {
+		
+		return ((double) this.vonAcceptedRate) / ((double) arrivals);
+	}
+
+	public void updateStatisticsDeparture(VirtualTopology von) {
+		
+		try {
+			bandwidths.remove(von);
+			hops.remove(von);
+			computeResource.remove(von);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 }

@@ -25,7 +25,9 @@ public class MAPEOptimizing {
 			planner = new Planner();
 			execute = new Execute();
 			knowledge = new Knowledge();
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 			e.printStackTrace();
 		}
 		
@@ -45,7 +47,9 @@ public class MAPEOptimizing {
 			ArrayList<String> classification = analyzer.run(symptoms.get(0));
 			Plan plan = planner.run(classification, symptoms.get(0));
 			execute.run(plan);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 			e.printStackTrace();
 		}
 		
