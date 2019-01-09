@@ -26,6 +26,7 @@ public class VonStatistics {
 	private int vonAcceptedRate;
 	private int vonBlockedRate;
 	private int [][]pairOfNodesBlocked;
+	private int [][]pairOfNodesBandwidthRequiered;
 	private double requiredBandwidth;
 	private double linkLoad;
 	private double bandwidthBlocked;
@@ -55,6 +56,7 @@ public class VonStatistics {
 		this.vonAcceptedRate = 0;
 		this.vonBlockedRate = 0;
 		pairOfNodesBlocked = new int[pt.getNumNodes()][pt.getNumNodes()];
+		pairOfNodesBandwidthRequiered = new int[pt.getNumNodes()][pt.getNumNodes()];
 		this.linkLoad = 0;
 		
 		bandwidths = new HashMap<VirtualTopology, Integer> ();
@@ -174,7 +176,8 @@ public class VonStatistics {
 		 
 		 for(VirtualLink link : von.links) {
 			 bandwidthBlocked += link.getBandwidth();
-			 pairOfNodesBlocked[link.getSource().getPhysicalNode()][link.getDestination().getPhysicalNode()] += 1;
+			 pairOfNodesBlocked[link.getSource().getPhysicalNode()][link.getDestination().getPhysicalNode()] += link.getBandwidth();
+			 pairOfNodesBandwidthRequiered[link.getSource().getPhysicalNode()][link.getDestination().getPhysicalNode()] += link.getBandwidth();
 		 }
 		 
 		 vonBlockedRate++;
@@ -216,6 +219,8 @@ public class VonStatistics {
 			 a += link.getBandwidth();
 			 b += link.getPhysicalLinks().length;
 			 c += link.getSource().getComputeResource();
+			 
+			 pairOfNodesBandwidthRequiered[link.getSource().getPhysicalNode()][link.getDestination().getPhysicalNode()] += link.getBandwidth();
 		 }
 		 
 		 bandwidths.put(von, a);
@@ -236,8 +241,12 @@ public class VonStatistics {
 	}
 
 	public double getBandwidthBlockingRatioPerLink(int i) {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		int source = pt.getLink(i).getSource(), destination = pt.getLink(i).getDestination();
+		
+		if(pairOfNodesBlocked[source][destination] == 0 && pairOfNodesBandwidthRequiered[source][destination] == 0) return 0;
+		
+		return ((double)pairOfNodesBlocked[source][destination] / (double)pairOfNodesBandwidthRequiered[source][destination]);
 	}
 
 	public int getNumberOfLightpaths(int i) {

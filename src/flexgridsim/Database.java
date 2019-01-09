@@ -48,7 +48,7 @@ public class Database {
 	
 	public double linkLoad;
 	public double []closenessCentrality;
-	public double []xtAdjacentNodes;
+	public double []xtLinks;
 	public int[] numberOfLightpaths;
 	public double[] usedBandwidth;
 	
@@ -83,7 +83,7 @@ public class Database {
 		
 		instance.slotsAvailablePerLink = null;
 		instance.closenessCentrality = null;
-		instance.xtAdjacentNodes = null;
+		instance.xtLinks = null;
 		instance.numberOfLightpaths = null;
 		instance.usedBandwidth = null;
 		
@@ -105,10 +105,10 @@ public class Database {
 		
 		instance.pt = pt;
 		
-		instance.closenessCentrality = new double[pt.getNumLinks()];
+		instance.closenessCentrality = new double[pt.getNumNodes()];
 		instance.slotsAvailablePerLink = new int[pt.getNumLinks()];
 		instance.closenessCentrality = new double[pt.getNumLinks()];
-		instance.xtAdjacentNodes = new double[pt.getNumLinks()];
+		instance.xtLinks = new double[pt.getNumLinks()];
 		instance.numberOfLightpaths = new int[pt.getNumLinks()];
 		instance.usedBandwidth = new double[pt.getNumLinks()];
 		instance.computing = new double[pt.getNumNodes()];

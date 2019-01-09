@@ -751,8 +751,19 @@ public class FlexGridLink {
 	}
 
 	public double getXT() {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		double meanXT = 0;
+		
+		for(int c = 0; c < cores; c++) {
+			for(int s = 0; s < slots; s++) {
+				Slot slot = new Slot(c, s);
+				int controller = getInterCoreCrosstalkInAdjacent(slot);
+				double x = getNewXT(slot, controller);
+				meanXT += x > 0 ? ( 10.0f * Math.log10(x)/Math.log10(10) ) : -80.0f;//db
+			}
+		}
+
+		return (meanXT/(double)(cores * slots));
 	}
 
 }

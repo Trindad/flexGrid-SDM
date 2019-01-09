@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.jgrapht.Graph;
+import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
 import org.w3c.dom.*;
@@ -254,6 +255,7 @@ public class PhysicalTopology {
      */
     public void setGraph() {
     	
+    	
     	graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
     			
     	for(int i = 0; i < nodes; i++) {
@@ -272,6 +274,8 @@ public class PhysicalTopology {
                 }
             }
         }
+    	
+    	
     }
     
     
@@ -589,17 +593,25 @@ public class PhysicalTopology {
 		double xt = 0;
 		
 		for(FlexGridLink link : linkVector) {
-			for(int c = 0; c < cores; c++) {
-				for(int s = 0; s < slots; s++) {
-					Slot slot = new Slot(c, s);
-					int controller = link.getInterCoreCrosstalkInAdjacent(slot);
-					xt += link.getNewXT(slot, controller);
-				}
-			}
-			xt += xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : -80.0f;//db
+			xt += link.getXT();
 		}
 		
 		return (xt/(double)linkVector.length);
+	}
+
+	public double[] getClosenessCentrality() {
+		
+		double []c = new double[nodes];
+		
+		ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(graph);
+        
+    	for (int i = 0; i < nodes; i++) {
+            
+    		c[i] = cc.getVertexScore(i);
+    		nodeVector[i].setClosenessCentrality(c[i]);
+        }
+		
+		return c;
 	}
 
 }

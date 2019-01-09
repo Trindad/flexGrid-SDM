@@ -52,7 +52,7 @@ public class Symptom {
 		{
 			availableSlots = db.slotsAvailablePerLink;
 			bbr = db.bbrPerPair;
-			xt = db.xtAdjacentNodes;	
+			xt = db.xtLinks;	
 			
 			for (int i = 0; i < pt.getNumLinks(); i++) {
 				ArrayList<Double> row = new ArrayList<>();

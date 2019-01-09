@@ -48,36 +48,37 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 }
 		Database.setup(pt);
 		vne = new VirtualNetworkEmbedding();
-		 
-		 this.pt = pt;
-		 this.activeVons = new HashMap<Integer, VirtualTopology>();
-		 this.mappedFlows = new HashMap<VirtualTopology, ArrayList<Flow>>();
-		 this.xml = xml;
-		 this.eventScheduler = eventScheduler;
+		
+		this.pt = pt;
+		this.activeVons = new HashMap<Integer, VirtualTopology>();
+		this.mappedFlows = new HashMap<VirtualTopology, ArrayList<Flow>>();
+		this.xml = xml;
+		this.eventScheduler = eventScheduler;
 		 
 		 this.pt.setGraph();
 		 
 		 try 
 		 {
-            RSAClass = Class.forName(rsaAlgorithm);
-            rsa = (RSA) RSAClass.newInstance();
-            rsa.simulationInterface(xml, pt, traffic);     
-        } 
+		    RSAClass = Class.forName(rsaAlgorithm);
+		    rsa = (RSA) RSAClass.newInstance();
+		    rsa.simulationInterface(xml, pt, traffic);     
+		} 
 		catch (Throwable t) 
 		{
-            t.printStackTrace();
-        }
+		    t.printStackTrace();
+		}
 		 
 		 try 
 		 {
-            VonClass = Class.forName(mapper);
-            this.mapper = (Mapper) VonClass.newInstance();
-            this.mapper.simulationInterface(xml, pt, this, traffic, rsa);     
-        } 
+		    VonClass = Class.forName(mapper);
+		    this.mapper = (Mapper) VonClass.newInstance();
+		    this.mapper.simulationInterface(xml, pt, this, traffic, rsa);     
+		    Database.getInstance().closenessCentrality = pt.getClosenessCentrality();
+		} 
 		catch (Throwable t) 
 		{
-            t.printStackTrace();
-        }
+		    t.printStackTrace();
+		}
 		 
 	 }
 	 
@@ -215,21 +216,19 @@ public class VonControlPlane implements ControlPlaneForVon {
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			int available = pt.getLink(i).getSlotsAvailable();
 			
-			Database.getInstance().slotsAvailable.replace((long) i, available);
 			Database.getInstance().slotsOccupied.replace((long) i, (pt.getNumSlots() * pt.getCores() - available) );
-			Database.getInstance().closenessCentrality[i] = pt.getLink(i).closenessCentrality();
+			Database.getInstance().slotsAvailable.replace((long) i, available);
 			Database.getInstance().slotsAvailablePerLink[i] = available;
 			Database.getInstance().bbrPerPair[i] = statistics.getBandwidthBlockingRatioPerLink(i);
-			Database.getInstance().xtAdjacentNodes[i] = pt.getLink(i).getXT();
+			Database.getInstance().xtLinks[i] = pt.getLink(i).getXT();
 			Database.getInstance().numberOfLightpaths[i] = statistics.getNumberOfLightpaths(i);
 		}
 		
-		Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
 		
+		Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
 		Database.getInstance().vne = vne;
 		Database.getInstance().linkLoad = statistics.getLinkLoad();
 		Database.getInstance().cost = statistics.getRevenueToCostRatio();
-		
 		Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
 		
 		Database.getInstance().nVons = this.activeVons.size();//number of active vons

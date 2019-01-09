@@ -24,6 +24,7 @@ public class OXC {
 	private double computeResource;
 	private int transponders;
     private int id;
+    private double closenessCentrality;
     
     /**
      * Creates a new OXC object. 
@@ -34,6 +35,7 @@ public class OXC {
         idCount++;
         setTransponders(5);
         computeResource = 500;
+        closenessCentrality = 0;
     }
     
     /**
@@ -43,6 +45,14 @@ public class OXC {
      */
     public int getID() {
         return id;
+    }
+    
+    public double getClosenessCentrality() {
+    	return closenessCentrality;
+    }
+
+    public void setClosenessCentrality(double c) {
+    	closenessCentrality = c;
     }
 
 	public double getComputeResource() {
