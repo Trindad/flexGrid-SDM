@@ -17,6 +17,7 @@ public class Execute {
 				BlockCostlyNodeFilter filter = new BlockCostlyNodeFilter(step.target_id);
 				Hooks.blockCostlyNodeFilters.add(filter);
 			}
+			
 		}
 	}
 }

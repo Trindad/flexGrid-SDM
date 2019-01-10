@@ -17,11 +17,12 @@ import vne.VirtualNetworkEmbedding;
 public class Database {
 	
 	
+	public double meanTransponders;
 	public int []usedTransponders;
 	public int []availableTransponders;
-	
-	public double totalTransponders;//mean transponders used
+	public double totalTransponders;
 	public int totalNumberOfTranspondersAvailable;
+	
 	public int totalComputeResource;
 	
 	public int []slotsAvailablePerLink;
@@ -92,6 +93,7 @@ public class Database {
 		instance.nVons = 0;//number of active vons
 		instance.flowCount = 0;
 		instance.acceptance = 0;
+		instance.meanTransponders = 0;
 		instance.bbr = 0;
 		instance.cost = 0;
 		instance.totalNumberOfTranspondersAvailable = 0;
@@ -118,6 +120,7 @@ public class Database {
 		instance.distances = new int[pt.getNumLinks()];
 		instance.meanCrosstalk = -90;
 		instance.bbrPerPair = new double[pt.getNumLinks()];
+		instance.meanTransponders = 0;
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			instance.slotsAvailable.put((long) i, pt.getNumSlots() * pt.getCores());

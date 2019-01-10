@@ -34,20 +34,28 @@ public class VONRCSA extends SCVCRCSA {
 	private VonControlPlane cp;
 	
 	public void flowArrival(Flow flow) {
+		
+//		System.out.println(pt.getNode(flow.getSource()).getTransponders() +" :::  "+pt.getNode(flow.getDestination()).getTransponders());
+		
+		
+		
+		if(pt.getNode(flow.getSource()).getTransponders() <= 0 || pt.getNode(flow.getDestination()).getTransponders() <= 0) {
+			
+			return;
+		}
+		
 		kPaths = 3;
 		setkShortestPaths(flow);
 		
-		if(paths.isEmpty()) {
-			return;
+		if(paths.size() >= 1) {
+			
+			int []modulationFormats = new int[paths.size()];
+			ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
+			
+			int index = selectPath(blockOfSLots, flow);
+			
+			establishConnection(paths.get(index), blockOfSLots.get(index), modulationFormats[index], flow);
 		}
-
-		int []modulationFormats = new int[paths.size()];
-		ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
-		
-		int index = selectPath(blockOfSLots, flow);
-		
-		establishConnection(paths.get(index), blockOfSLots.get(index), modulationFormats[index], flow);
-
 	}
 
 	protected int preProcessSpectrumResources(boolean [][]spectrum) {
@@ -218,7 +226,12 @@ public class VONRCSA extends SCVCRCSA {
 		flow.setPathLength(getPathLength(links));
 		flow.setCore(slotList.get(0).c);
 		
-		cp.addFlowToPT(flow);
+		
+        // Implements it
+        for (int j = 0; j < links.length; j++) {
+            pt.getLink(links[j]).reserveSlots(flow.getSlotList());
+            pt.getLink(links[j]).updateNoise(flow.getSlotList(), flow.getModulationLevel());
+        }  
 		
 		return true;
 		
@@ -231,10 +244,6 @@ public class VONRCSA extends SCVCRCSA {
 	public void setkShortestPaths(Flow flow) {
 		
 		this.paths  = new ArrayList<int []>();
-		if(pt.getNode(flow.getSource()).getTransponders() <= 0) {
-			
-			return;
-		}
 		
 		if(pt == null) {
 			System.out.println("Physical topology is NULL");

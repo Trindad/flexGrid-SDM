@@ -27,7 +27,6 @@ public class VirtualNetworkEmbedding {
 	
 	public void setLightpath(VirtualTopology von) {
 		
-		System.out.println("add VON");
 		for(VirtualLink link : von.links) {
 			
 			int index = match( link.getPhysicalLinks() );

@@ -14,6 +14,7 @@ import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
 
 public class MAPEMapper extends KeyLinkMapper {
+	PhysicalTopology temp;
 
 	public void vonArrival(VirtualTopology von) {
 		
@@ -32,6 +33,10 @@ public class MAPEMapper extends KeyLinkMapper {
 			cp.blockVon(von.getID());
 			return;
 		}
+		
+		this.temp = pt;
+		PhysicalTopology ptCopy = new PhysicalTopology(pt);
+		this.pt = ptCopy;
 		
 		vons.sort(Comparator.comparing(VirtualTopology::getTotalResources).reversed());
 		
@@ -52,7 +57,7 @@ public class MAPEMapper extends KeyLinkMapper {
 		von.links.sort(Comparator.comparing(VirtualLink::getBandwidth).reversed());
 		
 		boolean accepted = false;
-		PhysicalTopology ptCopy = new PhysicalTopology(pt);
+		
 		ArrayList<Flow> flows = new ArrayList<Flow>();
 		for(VirtualLink link : von.links) {
 			
@@ -60,8 +65,8 @@ public class MAPEMapper extends KeyLinkMapper {
 			int destination = link.getDestination().getPhysicalNode();
 			Flow flow = new Flow(link.getID(), source, destination, von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
 			
-			if(pt.getNode(source).getComputeResource() >= link.getSource().getComputeResource() || 
-					pt.getNode(destination).getComputeResource() >= link.getDestination().getComputeResource()) {
+			if(ptCopy.getNode(source).getComputeResource() >= link.getSource().getComputeResource() || 
+					ptCopy.getNode(destination).getComputeResource() >= link.getDestination().getComputeResource()) {
 			
 				if (rsa instanceof VONRCSA) {
 					
@@ -78,10 +83,23 @@ public class MAPEMapper extends KeyLinkMapper {
 		
 			if(!flow.isAccepeted()) {
 				System.out.println("VON Blocked: "+von.getID());
+				
+				for(Flow f : flows) {
+					
+					if(f.isAccepeted()) {
+						ptCopy.getNode(f.getSource()).updateTransponders(1);
+						ptCopy.getNode(f.getDestination()).updateTransponders(1);
+					}
+				}
+				
 				accepted = false;
 				cp.blockVon(von.getID());
+				
 				return;
 			}
+			
+			ptCopy.getNode(flow.getSource()).updateTransponders(-1);
+			ptCopy.getNode(flow.getDestination()).updateTransponders(-1);
 			
 			accepted = true;
 			flows.add(flow);
@@ -89,11 +107,14 @@ public class MAPEMapper extends KeyLinkMapper {
 		}
 		
 		if(accepted == true) {
+			
 			System.out.println("VON Accepted: "+von.getID());
-			pt.updateEverything(ptCopy);
+			temp.updateEverything(ptCopy);
 			cp.updateControlPlane(ptCopy);
 			cp.acceptVon(von.getID(), flows);
 		}
+		
+		this.pt = temp;
 	}
 	
 }

@@ -1,7 +1,6 @@
 package flexgridsim;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,8 +12,6 @@ import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
-import javafx.scene.chart.PieChart.Data;
-//import flexgridsim.von.mappers.KeyLinkMapper;
 import vne.VirtualNetworkEmbedding;
 
 /**
@@ -126,12 +123,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 		{
 			this.mappedFlows.put(activeVons.get(id), flows);
 			
-			for(Flow flow : flows) {
-				pt.getNode(flow.getSource()).updateTransponders(-1);
-				pt.getNode(flow.getDestination()).updateTransponders(-1);
-			}
-			
-			
 			this.pt.setComputeResourceUsed(activeVons.get(id).nodes, -1.0);
 			this.statistics.acceptVon(activeVons.get(id));
 		}
@@ -140,7 +131,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			System.out.println("ACCEPTED: "+activeVons.get(id).getID());
 			vne.setLightpath(activeVons.get(id));
-			updateDatabase();
+			updateDatabase(flows);
 			Orchestrator.getInstance().run();
 		}
 		
@@ -164,7 +155,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 			throw (new IllegalArgumentException());
 		}
 		
-		System.out.println("BLOCKED: "+activeVons.get(id).getID());
 		this.statistics.blockVon(activeVons.get(id));
 		activeVons.remove(id);
 		
@@ -181,36 +171,33 @@ public class VonControlPlane implements ControlPlaneForVon {
 	/**
 	 * Update the database status
 	 */
-	private void updateDatabase() {
-		
-		Collection<ArrayList<Flow>> it = mappedFlows.values();
-		
-		
-		for(ArrayList<Flow> flows : it) {
+	private void updateDatabase(ArrayList<Flow> flows) {
 			
-			for(Flow flow : flows) {
-				
-				if(!flow.isAccepeted()) continue;
-				
-				Database.getInstance().totalTransponders += 2;
-				Database.getInstance().usedTransponders[flow.getSource()] += 1;
-				Database.getInstance().flowCount += 1;
-				
-				Database.getInstance().usedBandwidth[flow.getSource()] += flow.getRate();
-				Database.getInstance().usedTransponders[flow.getSource()] += 1;
-				Database.getInstance().usedTransponders[flow.getDestination()] += 1;
-				Database.getInstance().computing[flow.getSource()] += flow.getComputingResource();
-				Database.getInstance().totalComputeResource += flow.getComputingResource();
-			}
+		for(Flow flow : flows) {
+			
+			if(!flow.isAccepeted()) continue;
+			
+			Database.getInstance().totalTransponders += 2;
+			Database.getInstance().flowCount += 1;
+			
+			Database.getInstance().usedBandwidth[flow.getSource()] += flow.getRate();
+			Database.getInstance().usedBandwidth[flow.getDestination()] += flow.getRate();
+			
+			Database.getInstance().usedTransponders[flow.getSource()] += 1;
+			Database.getInstance().usedTransponders[flow.getDestination()] += 1;
+			Database.getInstance().computing[flow.getSource()] += flow.getComputingResource();
+			Database.getInstance().totalComputeResource += flow.getComputingResource();
+			
+			getLinkInPath(flow); 
 		}
 		
-		Database.getInstance().totalTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
+		Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
 		Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
-		
+	
+		Database.getInstance().totalNumberOfTranspondersAvailable = 0;
 		for(int i : Database.getInstance().availableTransponders) {
 			Database.getInstance().totalNumberOfTranspondersAvailable += i;
 		}
-		
 		
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
@@ -221,7 +208,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 			Database.getInstance().slotsAvailablePerLink[i] = available;
 			Database.getInstance().bbrPerPair[i] = statistics.getBandwidthBlockingRatioPerLink(i);
 			Database.getInstance().xtLinks[i] = pt.getLink(i).getXT();
-			Database.getInstance().numberOfLightpaths[i] = statistics.getNumberOfLightpaths(i);
 		}
 		
 		
@@ -237,6 +223,14 @@ public class VonControlPlane implements ControlPlaneForVon {
 		Database.dataWasUpdated();
 	}
 
+	private void getLinkInPath(Flow flow) {
+		
+		for(int i : flow.getLinks()) {
+			
+			Database.getInstance().numberOfLightpaths[i] += 1;
+		}
+	}
+
 	public void updateControlPlane(PhysicalTopology newPT) {
 		
 		pt.updateEverything(newPT);
@@ -249,35 +243,79 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(Flow flow : mappedFlows.get(activeVons.get(id)) ) {
 				
+				if(!flow.isAccepeted()) continue;
+				
 				pt.getNode(flow.getSource()).updateTransponders(1);
 				pt.getNode(flow.getDestination()).updateTransponders(1);
-				
-				this.pt.setComputeResourceUsed(activeVons.get(id).nodes, 1.0);
+				pt.setComputeResourceUsed(activeVons.get(id).nodes, 1.0);
 				
 				RemoveFlowFromPhysicalTopology(flow, flow.getLinks());
 				
 				rsa.flowDeparture(flow);
 				
-//				System.out.println("Flow departure: "+flow);
-			}
-			
-			if(mappedFlows.containsKey(activeVons.get(id))) {
+				if(this.mape == true) {
 				
-				mappedFlows.remove(activeVons.get(id));
-//				System.out.println("VON departure complete... ");
-			}
-			else 
-			{
-				System.out.println("Something wrong occur in VON departure process... ");
-				throw (new IllegalArgumentException());
+					Database.getInstance().totalTransponders -= 2;
+					Database.getInstance().usedTransponders[flow.getSource()] = pt.getNode(flow.getSource()).getTransponders();
+					Database.getInstance().usedTransponders[flow.getDestination()] = pt.getNode(flow.getDestination()).getTransponders();
+					Database.getInstance().flowCount -= 1;
+					
+					Database.getInstance().usedBandwidth[flow.getSource()] -= flow.getRate();
+					Database.getInstance().usedBandwidth[flow.getDestination()] -= flow.getRate();
+					Database.getInstance().computing[flow.getSource()] -= flow.getComputingResource();
+					Database.getInstance().totalComputeResource -= flow.getComputingResource();
+					
+					getLinkInPath(flow); 
+					
+					for (int i : flow.getLinks()) {
+						int available = pt.getLink(i).getSlotsAvailable();
+						
+						Database.getInstance().slotsOccupied.replace((long) i, (pt.getNumSlots() * pt.getCores() - available) );
+						Database.getInstance().slotsAvailable.replace((long) i, available);
+						Database.getInstance().slotsAvailablePerLink[i] = available;
+						Database.getInstance().bbrPerPair[i] = statistics.getBandwidthBlockingRatioPerLink(i);
+						Database.getInstance().xtLinks[i] = pt.getLink(i).getXT();
+						
+						Database.getInstance().numberOfLightpaths[i] -= 1;
+					}
+				}
 			}
 			
 			statistics.updateStatisticsDeparture(activeVons.get(id));
 			if(this.mape == true) {
 				vne.removeLightpaths(activeVons.get(id));
-				updateDatabase();
-				Orchestrator.getInstance().run();
+				
+				Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
+				Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
+				
+				Database.getInstance().totalNumberOfTranspondersAvailable = 0;
+				for(int i : Database.getInstance().availableTransponders) {
+					Database.getInstance().totalNumberOfTranspondersAvailable += i;
+				}
+				
+				
+//				Orchestrator.getInstance().run();
 				Hooks.checkBlockCostlyNodeFiltersDone(pt);
+
+				Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
+				Database.getInstance().vne = vne;
+				Database.getInstance().linkLoad = statistics.getLinkLoad();
+				Database.getInstance().cost = statistics.getRevenueToCostRatio();
+				
+				Database.getInstance().nVons = this.activeVons.size()-1;//number of active vons
+				
+				
+				Database.dataWasUpdated();
+			}
+
+			if(mappedFlows.containsKey(activeVons.get(id))) {
+				
+				mappedFlows.remove(activeVons.get(id));
+			}
+			else 
+			{
+				System.out.println("Something wrong occur in VON departure process... ");
+				throw (new IllegalArgumentException());
 			}
 			
 			activeVons.remove(id);
@@ -289,7 +327,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		return false;
 	}
 
-	
+
 	private void RemoveFlowFromPhysicalTopology(Flow flow, int []links) {
 		
     	for (int j = 0; j < links.length; j++) {

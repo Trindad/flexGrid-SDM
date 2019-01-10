@@ -126,7 +126,7 @@ public class VonStatistics {
 			cost += ( bandwidths.get(von) * hops.get(von) ) + computeResource.get(von);
 		}
 
-		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
+//		System.out.println("Long-term revenue to cost ratio: "+revenue/cost);
 		
 		return (revenue/cost);
 	}
@@ -249,10 +249,6 @@ public class VonStatistics {
 		return ((double)pairOfNodesBlocked[source][destination] / (double)pairOfNodesBandwidthRequiered[source][destination]);
 	}
 
-	public int getNumberOfLightpaths(int i) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	public double[] getAllocatedBandwidth() {
 		// TODO Auto-generated method stub
