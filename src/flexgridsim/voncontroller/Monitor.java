@@ -30,19 +30,14 @@ public class Monitor {
 		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
 		String problem = checkOverload(db);
-	
-		if(!problem.equals("perfect")) 
-		{
-			Symptom symptom = new Symptom(db.pt);
-			
-			symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", ""));
-			
-			symptom.setDataset(db);
-			symptoms.add(symptom);
-		}
-		else {
-			System.out.println("No problems "+problem);
-		}
+		System.out.println("PROBLEM: "+problem);
+		
+		Symptom symptom = new Symptom(db.pt);
+		
+		symptom.type = SYMPTOM.valueOf(problem.toUpperCase().replace("-", "").trim());
+		
+		symptom.setDataset(db);
+		symptoms.add(symptom);
 		
 		return symptoms;
 	}

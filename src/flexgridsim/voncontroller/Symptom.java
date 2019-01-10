@@ -15,7 +15,9 @@ public class Symptom {
 	public enum SYMPTOM {
 		COSTLY,
 		NONBALANCED,
-		PERFORMANCE
+		OVERLOADED,
+		PERFORMANCE,
+		PERFECT
 	}
 	
 	private double []bbr;//pair of adjacent nodes
@@ -94,9 +96,12 @@ public class Symptom {
 			}
 			
 		}
+		else if(type == SYMPTOM.OVERLOADED) {
+			
+		}
 		else 
 		{
-			System.err.println("This problem doesn't exist...");
+			System.err.println("This problem doesn't exist..."+type.toString().length());
 		}
 		
 		this.dataset = matrix;

@@ -53,6 +53,9 @@ public class Analyze {
 		{
 			classification = knnCostly.run(data);
 		}
+		else if(symptom.type == SYMPTOM.OVERLOADED) {
+			
+		}
 		else 
 		{
 			System.err.println("This problem doesn't exist...");

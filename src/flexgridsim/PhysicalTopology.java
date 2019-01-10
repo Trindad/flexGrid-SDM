@@ -7,9 +7,11 @@ package flexgridsim;
 import java.util.ArrayList;
 //import java.util.Arrays;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
@@ -380,11 +382,11 @@ public class PhysicalTopology {
 		for(int i : links) {
 			for(Slot s: slotList) {
 				int controller = this.getLink(i).getInterCoreCrosstalkInAdjacent(s);
-				xt += this.getLink(i).getNewXT(s, controller);
+				double x= this.getLink(i).getNewXT(s, controller);
+				
+				xt += x > 0 ? ( 10.0f * Math.log10(x)/Math.log10(10) ) : -80.0f;//db
 			}
 		}
-		
-		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : -80.0f;//db
 		
 		return xt;
     }
@@ -601,14 +603,18 @@ public class PhysicalTopology {
 
 	public double[] getClosenessCentrality() {
 		
-		double []c = new double[nodes];
+		double []c = new double[links];
 		
 		ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(graph);
-        
-    	for (int i = 0; i < nodes; i++) {
-            
-    		c[i] = cc.getVertexScore(i);
-    		nodeVector[i].setClosenessCentrality(c[i]);
+       
+    	for (int i = 0; i < links; i++) {
+    		int source = linkVector[i].getSource();
+    		int destination = linkVector[i].getDestination();
+    		
+    		c[i] = cc.getVertexScore(source) + cc.getVertexScore(destination);
+    		
+    		nodeVector[source].setClosenessCentrality(cc.getVertexScore(source));
+    		nodeVector[destination].setClosenessCentrality(cc.getVertexScore(destination));
         }
 		
 		return c;

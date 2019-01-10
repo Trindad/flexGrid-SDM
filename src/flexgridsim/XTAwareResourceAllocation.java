@@ -57,7 +57,7 @@ public class XTAwareResourceAllocation {
 		if(n == 0) {
 			this.xt[core][slot] = 0;
 			this.modulationDbLimit[core][slot] = 0;
-			return 0;
+			return -80;
 		}
 
 		double h = (Math.pow(k, 2) / B) * (R / corePitch);

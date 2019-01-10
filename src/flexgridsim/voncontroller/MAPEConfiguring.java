@@ -2,6 +2,8 @@ package flexgridsim.voncontroller;
 
 import java.util.ArrayList;
 
+import flexgridsim.voncontroller.Symptom.SYMPTOM;
+
 
 /**
  * 
@@ -35,6 +37,8 @@ public class MAPEConfiguring {
 		
 		try {
 			ArrayList<Symptom> symptoms = monitor.run();
+			
+			if(symptoms.get(0).type == SYMPTOM.PERFECT) return;
 			
 			if(symptoms.size() <= 0) return;
 			
