@@ -133,6 +133,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			vne.setLightpath(activeVons.get(id));
 			updateDatabase(flows);
 			Orchestrator.getInstance().run();
+			Hooks.runPendingReconfiguration(pt, this, vne);
 		}
 		
 		return true;
@@ -295,8 +296,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 				
 				
 //				Orchestrator.getInstance().run();
-				Hooks.checkBlockCostlyNodeFiltersDone(pt);
-
+				Hooks.runPendingReconfiguration(pt, this, vne);
+				Hooks.checkDone(pt);
+			
 				Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
 				Database.getInstance().vne = vne;
 				Database.getInstance().linkLoad = statistics.getLinkLoad();
@@ -459,5 +461,19 @@ public class VonControlPlane implements ControlPlaneForVon {
 	
 		xt = xt > 0 ? convertToDB(xt) : 0.0f;//db
 		return (xt == 0 || xt < db);
+	}
+
+	public Map<Long, Flow> getActiveFlows() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology pt2, flexgridsim.VirtualTopology vt) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void updateControlPlane(PhysicalTopology pt2, VirtualNetworkEmbedding vne, Map<Long, Flow> flows) {
+		
 	}
 }

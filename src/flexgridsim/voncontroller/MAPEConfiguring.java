@@ -48,10 +48,13 @@ public class MAPEConfiguring {
 			
 			ArrayList<String> classification = analyzer.run(symptoms.get(0));
 			
-			if(!classification.isEmpty()) {
+			if(!classification.isEmpty()) 
+			{
 				knowledge.classifications.add(classification);
 				
 				Plan executionPlan = plan.run(classification, symptoms.get(0) );
+				knowledge.plans.add(executionPlan);
+				
 				execute.run(executionPlan);
 			}
 		} catch (Exception e) {

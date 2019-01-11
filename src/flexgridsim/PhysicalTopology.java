@@ -5,13 +5,9 @@
 package flexgridsim;
 
 import java.util.ArrayList;
-//import java.util.Arrays;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
 import org.jgrapht.alg.scoring.ClosenessCentrality;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;

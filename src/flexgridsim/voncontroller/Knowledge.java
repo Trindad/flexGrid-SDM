@@ -11,6 +11,7 @@ public class Knowledge {
 	
 	public ArrayList<Symptom> symptoms;//monitor
 	public ArrayList< ArrayList<String> > classifications;//analyze
+	public ArrayList<Plan> plans;
 	
 	public Knowledge() {
 		
@@ -24,6 +25,10 @@ public class Knowledge {
 	
 	public void addNewClassification(ArrayList<String> classication) {
 		classifications.add(classication);
+	}
+
+	public void addNewPlanner(Plan plan) {
+		plans.add(plan);
 	}
 
 }

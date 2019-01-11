@@ -13,7 +13,7 @@ import flexgridsim.voncontroller.Symptom.SYMPTOM;
 public class Planner {
 
 	public Plan run(ArrayList<String> classification, Symptom symptom) {
-		Plan plan = new Plan();
+		Plan plan = new Plan(symptom);
 		
 		for (int i = 0; i < classification.size(); i++) {
 			
@@ -31,6 +31,11 @@ public class Planner {
 				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
 				plan.addStep(step);
 			}
+			else if (classification.get(i).equals("high") && symptom.type == SYMPTOM.OVERLOADED) {
+				
+				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
+				plan.addStep(step);
+			}
 			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.COSTLY) {
 				Step step = new Step(ACTIONS.LIMIT_COSTLY_NODE, "node", i);
 				plan.addStep(step);
@@ -45,6 +50,12 @@ public class Planner {
 				Step step = new Step(ACTIONS.LIMIT_BALANCED_LINK, "link", i);
 				plan.addStep(step);
 			}
+			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.OVERLOADED) {
+				
+				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
+				plan.addStep(step);
+			}
+			
 		}
 		
 		return plan;

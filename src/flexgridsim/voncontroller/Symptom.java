@@ -97,7 +97,18 @@ public class Symptom {
 			
 		}
 		else if(type == SYMPTOM.OVERLOADED) {
+			numberOfLightpaths = db.numberOfLightpaths;	
+			bbr = db.bbrPerPair;
+			xt = db.xtLinks;	
 			
+			for (int i = 0; i < pt.getNumLinks(); i++) {
+				ArrayList<Double> row = new ArrayList<>();
+				row.add(bbr[i]);
+				row.add((double)numberOfLightpaths[i]);
+				row.add((double) xt[i]);
+				
+				matrix.add(row);
+			}
 		}
 		else 
 		{

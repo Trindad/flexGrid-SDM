@@ -1,9 +1,11 @@
 package flexgridsim.voncontroller;
 import flexgridsim.Hooks;
 import flexgridsim.filters.BlockCostlyNodeFilter;
+import flexgridsim.filters.BlockNonBalancedLinkFilter;
+import flexgridsim.filters.LimitingOverloadLinkFilter;
+import flexgridsim.filters.ReconfigurationPerfomanceFilter;
 import flexgridsim.voncontroller.Step.ACTIONS;
 
-import flexgridsim.util.ReinforcementLearning;
 /**
  * 
  * @author trindade
@@ -12,12 +14,24 @@ import flexgridsim.util.ReinforcementLearning;
 public class Execute {
 
 	public void run(Plan plan) {
+		
 		for (Step step : plan.getSteps()) {
 			if (step.action == ACTIONS.BLOCK_COSTLY_NODE) {
 				BlockCostlyNodeFilter filter = new BlockCostlyNodeFilter(step.target_id);
 				Hooks.blockCostlyNodeFilters.add(filter);
 			}
-			
+			if (step.action == ACTIONS.BLOCK_BALANCED_LINK) {
+				BlockNonBalancedLinkFilter filter = new BlockNonBalancedLinkFilter(step.target_id);
+				Hooks.blockNonBalancedLinkFilters.add(filter);
+			}
+			if (step.action == ACTIONS.LIMIT_OVERLOAD_LINK) {
+				LimitingOverloadLinkFilter filter = new LimitingOverloadLinkFilter(step.target_id);
+				Hooks.limitingOverloadLinkFilters.add(filter);
+			}
+			if (step.action == ACTIONS.RECONFIGURATION_PERFORMANCE_LINK) {
+				ReconfigurationPerfomanceFilter filter = new ReconfigurationPerfomanceFilter();
+				Hooks.reconfigurationFilter = filter;
+			}
 		}
 	}
 }
