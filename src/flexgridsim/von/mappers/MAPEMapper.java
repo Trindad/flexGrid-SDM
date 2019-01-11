@@ -1,7 +1,7 @@
 package flexgridsim.von.mappers;
 
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +58,7 @@ public class MAPEMapper extends KeyLinkMapper {
 		
 		boolean accepted = false;
 		
-		ArrayList<Flow> flows = new ArrayList<Flow>();
+		Map<Long, Flow> flows = new HashMap<Long, Flow>();
 		for(VirtualLink link : von.links) {
 			
 			int source = link.getSource().getPhysicalNode();
@@ -84,8 +84,8 @@ public class MAPEMapper extends KeyLinkMapper {
 			if(!flow.isAccepeted()) {
 				System.out.println("VON Blocked: "+von.getID());
 				
-				for(Flow f : flows) {
-					
+				for(Long key : flows.keySet()) {
+					Flow f = flows.get(key);
 					if(f.isAccepeted()) {
 						ptCopy.getNode(f.getSource()).updateTransponders(1);
 						ptCopy.getNode(f.getDestination()).updateTransponders(1);
@@ -102,7 +102,7 @@ public class MAPEMapper extends KeyLinkMapper {
 			ptCopy.getNode(flow.getDestination()).updateTransponders(-1);
 			
 			accepted = true;
-			flows.add(flow);
+			flows.put(flow.getID(),flow);
 			link.setPhysicalPath(flow.getLinks());
 		}
 		

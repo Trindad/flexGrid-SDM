@@ -22,7 +22,7 @@ import vne.VirtualNetworkEmbedding;
 public class VonControlPlane implements ControlPlaneForVon {
 	
 	 private Map<Integer, VirtualTopology> activeVons;//vons that are accepted
-	 private Map<VirtualTopology, ArrayList<Flow>> mappedFlows;//flows accepted mapped in their vons
+	 private Map<VirtualTopology, Map<Long, Flow>> mappedFlows;//flows accepted mapped in their vons
 	 private RSA rsa;
 	 private Mapper mapper;
 	 private PhysicalTopology pt;
@@ -48,7 +48,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		this.pt = pt;
 		this.activeVons = new HashMap<Integer, VirtualTopology>();
-		this.mappedFlows = new HashMap<VirtualTopology, ArrayList<Flow>>();
+		this.mappedFlows = new HashMap<VirtualTopology, Map<Long, Flow>>();
 		this.xml = xml;
 		this.eventScheduler = eventScheduler;
 		 
@@ -113,7 +113,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		this.activeVons.put(von.getID(), von);
 	}
 
-	public boolean acceptVon(int id, ArrayList<Flow> flows) {
+	public boolean acceptVon(int id, Map<Long, Flow> flows) {
 		
 		if(id < 0 || !activeVons.containsKey(id)) 
 		{
@@ -121,6 +121,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		}
 		else 
 		{
+			
 			this.mappedFlows.put(activeVons.get(id), flows);
 			
 			this.pt.setComputeResourceUsed(activeVons.get(id).nodes, -1.0);
@@ -172,10 +173,11 @@ public class VonControlPlane implements ControlPlaneForVon {
 	/**
 	 * Update the database status
 	 */
-	private void updateDatabase(ArrayList<Flow> flows) {
+	private void updateDatabase(Map<Long, Flow> flows) {
 			
-		for(Flow flow : flows) {
+		for(Long key: flows.keySet()) {
 			
+			Flow flow = flows.get(key);
 			if(!flow.isAccepeted()) continue;
 			
 			Database.getInstance().totalTransponders += 2;
@@ -242,8 +244,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		if(activeVons.containsKey(id)) {
 			
-			for(Flow flow : mappedFlows.get(activeVons.get(id)) ) {
+			for(Long key : mappedFlows.get(activeVons.get(id)).keySet() ) {
 				
+				Flow flow = mappedFlows.get(activeVons.get(id)).get(key);
 				if(!flow.isAccepeted()) continue;
 				
 				pt.getNode(flow.getSource()).updateTransponders(1);
@@ -425,37 +428,37 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			for(VirtualTopology von : mappedFlows.keySet()) {
 				
-				for(Flow f : mappedFlows.get(von)) {
+				for(Long key: mappedFlows.get(von).keySet()) {
+					Flow f = mappedFlows.get(von).get(key);
 					
-				ArrayList<Integer> matching =  getMatchingLinks(links, f.getLinks());
-				
-				if(!matching.isEmpty()) {
-					int c = slotList.get(0).c;
-					LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
-					ArrayList<Slot> t = getMatchingSlots(slotList, f.getSlotList(), adj);
+					ArrayList<Integer> matching =  getMatchingLinks(links, f.getLinks());
 					
-					if(!t.isEmpty()) 
-					{
-						xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList(), t);
+					if(!matching.isEmpty()) {
+						int c = slotList.get(0).c;
+						LinkedList<Integer> adj = pt.getLink(0).getAdjacentCores(c);
+						ArrayList<Slot> t = getMatchingSlots(slotList, f.getSlotList(), adj);
 						
-						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-						
-						if(xti < 0 && xti >= db) {
-							return false;
+						if(!t.isEmpty()) 
+						{
+							xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList(), t);
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
+								return false;
+							}
+						}
+						else
+						{
+							xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList());
+							
+							xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
+							
+							if(xti < 0 && xti >= db) {
+								return false;
+							}
 						}
 					}
-					else
-					{
-						xt = xt + pt.canAcceptInterCrosstalk(f, matching, f.getSlotList());
-						
-						xti = xt > 0 ? convertToDB(xt) : 0.0f;//db
-						
-						if(xti < 0 && xti >= db) {
-							return false;
-						}
-					}
-				}
-				
 			}
 		}
 	
@@ -464,14 +467,28 @@ public class VonControlPlane implements ControlPlaneForVon {
 	}
 
 	public Map<Long, Flow> getActiveFlows() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		Map<Long, Flow> flows = new HashMap<Long, Flow>();
+		
+		for(VirtualTopology von : mappedFlows.keySet()) {
+			flows.putAll(mappedFlows.get(von));
+		}
+		
+		return flows;
 	}
 
-	public void removeFlowFromPT(Flow flow, LightPath lightpath, PhysicalTopology pt2, flexgridsim.VirtualTopology vt) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void removeFlowFromPT(Flow flow, PhysicalTopology ptTemp) {
+
+    	int[] links;
+        links = flow.getLinks();
+        
+    	for (int j : links) {
+    		ptTemp.getLink(j).releaseSlots(flow.getSlotList());
+    		ptTemp.getLink(j).updateNoise(flow.getSlotList(), flow.getModulationLevel());
+    		ptTemp.getLink(j).resetCrosstalk(flow.getSlotList());
+        }
+    	
+    }
 
 	public void updateControlPlane(PhysicalTopology pt2, VirtualNetworkEmbedding vne, Map<Long, Flow> flows) {
 		

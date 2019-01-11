@@ -15,8 +15,9 @@ public class Knowledge {
 	
 	public Knowledge() {
 		
-		this.symptoms = new ArrayList<Symptom>();
+		symptoms = new ArrayList<Symptom>();
 		classifications = new ArrayList< ArrayList<String> >();
+		plans = new ArrayList<Plan>(); 
 	}
 	
 	public void addNewSymptom(Symptom symptom) {

@@ -9,6 +9,7 @@ public class KMeansResult {
 	public KMeansResult(String output) {
 		
 		String []preparts = output.split("@");
+//		System.out.println("output: "+output);
 		this.silhouette = Double.parseDouble(preparts[0]);
 		
 		String []parts = preparts[1].split("&");

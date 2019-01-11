@@ -1,13 +1,13 @@
 package flexgridsim.von;
 
-import java.util.ArrayList;
+import java.util.Map;
 
 import flexgridsim.Flow;
 import flexgridsim.von.VirtualTopology;
 
 public interface ControlPlaneForVon {
 	
-	public boolean acceptVon(int id, ArrayList<Flow> flows);
+	public boolean acceptVon(int id, Map<Long, Flow> flows);
 	
 	public boolean blockVon(int id);
 	

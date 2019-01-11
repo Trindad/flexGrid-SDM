@@ -32,7 +32,7 @@ public class PythonCaller {
 //		System.out.println(convertToJSON(features));
 		
 		StringBuilder st = new StringBuilder();
-		st.append("python ");
+		st.append("python3 ");
 		st.append(path);
 		st.append(" ");
 		st.append(String.valueOf(k));

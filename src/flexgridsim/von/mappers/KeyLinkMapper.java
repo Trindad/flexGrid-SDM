@@ -60,7 +60,7 @@ public class KeyLinkMapper extends Mapper {
 			
 			boolean accepted = false;
 			PhysicalTopology ptCopy = new PhysicalTopology(pt);
-			ArrayList<Flow> flows = new ArrayList<Flow>();
+			Map<Long, Flow> flows = new HashMap<Long, Flow>();
 			for(VirtualLink link : von.links) {
 				
 				int source = link.getSource().getPhysicalNode();
@@ -91,7 +91,7 @@ public class KeyLinkMapper extends Mapper {
 				}
 				
 				accepted = true;
-				flows.add(flow);
+				flows.put(flow.getID(), flow);
 				link.setPhysicalPath(flow.getLinks());
 			}
 			

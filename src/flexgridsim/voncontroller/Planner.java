@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import flexgridsim.voncontroller.Step.ACTIONS;
 import flexgridsim.voncontroller.Symptom.SYMPTOM;
 
+import flexgridsim.util.ReinforcementLearning;
+
 /**
  * 
  * @author trindade
