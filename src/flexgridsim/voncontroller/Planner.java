@@ -13,9 +13,14 @@ import flexgridsim.util.ReinforcementLearning;
  *
  */
 public class Planner {
-
+	
 	public Plan run(ArrayList<String> classification, Symptom symptom) {
 		Plan plan = new Plan(symptom);
+		
+		return plan;
+	}
+	
+	public Plan addingSteps(ArrayList<String> classification, Symptom symptom, Plan plan) {
 		
 		for (int i = 0; i < classification.size(); i++) {
 			

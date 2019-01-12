@@ -11,11 +11,14 @@ import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueItera
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.Environment;
+import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.statehashing.HashableStateFactory;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld;
 
 public class ReinforcementLearning {
 	
-
+	
 	private SADomain domain;
 	private HashableStateFactory hashingFactory;
 	private State initialState;
@@ -27,19 +30,11 @@ public class ReinforcementLearning {
 
 	public void QLearningExecute(String outputPath){
 		
-		LearningAgent agent = new QLearning(domain, 0.99, hashingFactory, 0., 1.);
-
-		//run learning for 50 episodes
-		for(int i = 0; i < 50; i++){
-			
-			Episode e = agent.runLearningEpisode(env);
-
-			e.write(outputPath + "ql_" + i);
-			System.out.println(i + ": " + e.maxTimeStep());
-
-			//reset environment for next learning episode
-			env.resetEnvironment();
-		}
+		ReinforcementLearningWorld gen = new ReinforcementLearningWorld();
+		gen.setGoalLocation(10, 10);
+		SADomain domain = gen.generateDomain();
+		State initialState = new GridState(0, 0);
+		SimulatedEnvironment env = new SimulatedEnvironment(domain, initialState);
 		
 	}	
 	
