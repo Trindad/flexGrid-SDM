@@ -83,8 +83,10 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	};
 
 	public void setGoalLocation(){
-		this.goalx = map[0].length - 2;
-		this.goaly = map.length - 2;
+		this.goalx = map.length - 2;
+		this.goaly = map[0].length - 2;
+		
+		System.out.println("Goal " + goalx + ", " + goaly);
 	}
 
 
@@ -187,21 +189,16 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			//sample direction with random roll
 			double r = Math.random();
 			double sumProb = 0.;
-			int dir = 0;
-			for(int i = 0; i < 4; i++){
-				sumProb += this.transitionProbs[adir][i];
-				if(r < sumProb){
-					dir = i;
-					break; //found direction
-				}
-			}
+			
 
 			//get resulting position
-			int [] newPos = this.moveResult(curX, curY, dir);
+			int [] newPos = this.moveResult(curX, curY, adir);
 
 			//set the new position
 			gs.x = newPos[0];
 			gs.y = newPos[1];
+			
+			System.out.println(newPos[0] + ", " + newPos[1] + " action: " + a);
 
 			//return the state we just modified
 			return gs;
@@ -227,24 +224,24 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			int ydelta = 0;
 			
 			if(direction == 1){
-				ydelta = -1;
-			}
-			else if(direction == 2){
 				xdelta = 1;
 			}
-			else{
-				xdelta = -1;
+			else if(direction == 2){
+				ydelta = 1;
 			}
 
 			int nx = curX + xdelta;
 			int ny = curY + ydelta;
 
-			int width = 13;
-			int height = 13;
+			int width = map[0].length;
+			int height = map.length;
+			
+//			System.out.println(curX + ", " + curY + " Direction: " + direction + " new pos " + nx + ", " + ny + " : " + map[nx][ny]);
+//			System.out.println((nx < 0 ? 1 : 0) + ", " + (nx >= width ? 1 : 0) + ", " + (ny < 0 ? 1 : 0) + ", " + (ny >= height ? 1 : 0));
 
 			//make sure new position is valid (not a wall or off bounds)
-			if(nx < 0 || nx >= width || ny < 0 || ny >= height ||
-					ReinforcementLearningWorld.this.map[nx][ny] == 1){
+			if(nx < 0 || nx >= height || ny < 0 || ny >= width ||
+					map[nx][ny] == 1){
 				nx = curX;
 				ny = curY;
 			}
