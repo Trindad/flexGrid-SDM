@@ -14,60 +14,72 @@ import flexgridsim.util.ReinforcementLearning;
  */
 public class Planner {
 	
+	private ReinforcementLearning rl;
+	
+	public Planner() {
+		
+		rl = new ReinforcementLearning();
+		rl.QLearningExecute();
+	}
+	
 	public Plan run(ArrayList<String> classification, Symptom symptom) {
 		Plan plan = new Plan(symptom);
 		
-		ReinforcementLearning rl = new ReinforcementLearning();
-		rl.QLearningExecute();
-		
-		return plan;
-	}
-	
-	public Plan addingSteps(ArrayList<String> classification, Symptom symptom, Plan plan) {
-		
-		for (int i = 0; i < classification.size(); i++) {
+		for(int i = 0; i < classification.size(); i++) {
+			String c = classification.get(i);
 			
-			if (classification.get(i).equals("high") && symptom.type == SYMPTOM.COSTLY) {
-				Step step = new Step(ACTIONS.BLOCK_COSTLY_NODE, "node", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("high") && symptom.type == SYMPTOM.PERFORMANCE) {
-				
-				Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "link", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("high") && symptom.type == SYMPTOM.NONBALANCED) {
-				
-				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("high") && symptom.type == SYMPTOM.OVERLOADED) {
-				
-				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.COSTLY) {
-				Step step = new Step(ACTIONS.LIMIT_COSTLY_NODE, "node", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.PERFORMANCE) {
-				
-				Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "link", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.NONBALANCED) {
-				
-				Step step = new Step(ACTIONS.LIMIT_BALANCED_LINK, "link", i);
-				plan.addStep(step);
-			}
-			else if (classification.get(i).equals("medium") && symptom.type == SYMPTOM.OVERLOADED) {
-				
-				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
-				plan.addStep(step);
-			}
+			String str = symptom.type.toString().toLowerCase() + "_" + c.toLowerCase();
 			
+			ArrayList<String> actions = rl.valueIteration(str);
+			ArrayList<Step> steps = convertActionsToSteps(actions, symptom, i);
+			
+			for (Step e : steps) {
+				plan.addStep(e);
+			}
 		}
 		
 		return plan;
+	}
+
+	private ArrayList<Step> convertActionsToSteps(ArrayList<String> actions, Symptom symptom, int i) {
+		ArrayList<Step> steps = new ArrayList<>();
+		
+		for (String a : actions) {
+			if (a.equals("block_node")) {
+				Step step = new Step(ACTIONS.BLOCK_COSTLY_NODE, "node", i);
+				steps.add(step);
+			}
+			else if (a.equals("defragment_network")) {
+				
+				Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "network");
+				steps.add(step);
+			}
+			else if (a.equals("block_link")) {
+				
+				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_node")) {
+				Step step = new Step(ACTIONS.LIMIT_COSTLY_NODE, "node", i);
+				steps.add(step);
+			}
+			else if (a.equals("redirect_traffic")) {
+				
+				Step step = new Step(ACTIONS.REDIRECT_TRAFFIC, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_links")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_OVERLOADED_LINKS, "links");
+				steps.add(step);
+			}
+		}
+		
+		return steps;
 	}
 }

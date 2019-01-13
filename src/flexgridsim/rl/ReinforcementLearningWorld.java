@@ -32,61 +32,97 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	protected int goalx = 5;
 	protected int goaly = 13;
 	
-	public int [][]map = new int [][] {
-	    {1, 1, 1, 1, 1, 1, 1},
-	    {1, 0, 0, 0, 1, 1, 1},
+	public static int [][]map = new int [][] {
+	    {1, 1, 1, 1, 1, 1, 1}, // non balanced high
+	    {1, 0, 2, 0, 1, 1, 1},
 	    {1, 0, 0, 0, 0, 0, 1},
 	    {1, 1, 1, 1, 1, 0, 1},
 	    
+	    {1, 0, 3, 0, 1, 0, 1}, // non balanced medium
+	    {1, 0, 4, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1}, // non balanced low
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 5, 0, 1, 0, 1}, // performance high
+	    {1, 0, 6, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 7, 0, 1, 0, 1}, // performance medium
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1}, // performance low
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 8, 0, 1, 0, 1}, // cost high
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 9, 0, 1, 0, 1}, // cost medium
 	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 10, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1}, // cost low
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1}, // overload high
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 11, 0, 1, 0, 1}, // overload medium
 	    {1, 0, 0, 0, 0, 0, 1},
 	    {1, 1, 1, 1, 1, 0, 1},
 	    
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
-	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
-	    
-	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 12, 0, 1, 0, 1}, // overload low
 	    {1, 0, 0, 0, 0, 0, 1},
 	    {1, 1, 1, 1, 1, 1, 1}
 	};
+	
+	public static String getRelevantActionFromState(int x, int y) {
+		String str =  "nothing";
+		
+		int code = map[x][y];
+		
+		switch (code) {
+			case 2:
+				str = "block_link";
+				break;
+			case 3:
+				str = "redirect_traffic";
+				break;
+			case 4:
+			case 12:
+				str = "limit_link";
+				break;
+			case 5:
+				str = "defragment_network";
+				break;
+			case 6:
+			case 7:
+				str = "limit_links";
+				break;
+			case 8:
+			case 9:
+				str = "block_node";
+				break;
+			case 10:
+				str = "limit_node";
+				break;
+			case 11:
+				str = "block_link";
+				break;
+		}
+		
+		return str;
+	}
 
 	public void setGoalLocation(){
 		this.goalx = map.length - 2;
 		this.goaly = map[0].length - 2;
-		
-		System.out.println("Goal " + goalx + ", " + goaly);
 	}
 
 
@@ -115,7 +151,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 
 		
 		public GridWorldStateModel() {
-			int n = 13;
+//			int n = 13;
 			this.transitionProbs = new double[][] {
 					{0,0,0,0,0,0,0,0,0,0,0,0,1},
 					{0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -198,7 +234,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			gs.x = newPos[0];
 			gs.y = newPos[1];
 			
-			System.out.println(newPos[0] + ", " + newPos[1] + " action: " + a);
+//			System.out.println(newPos[0] + ", " + newPos[1] + " action: " + a);
 
 			//return the state we just modified
 			return gs;
@@ -236,7 +272,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			int width = map[0].length;
 			int height = map.length;
 			
-//			System.out.println(curX + ", " + curY + " Direction: " + direction + " new pos " + nx + ", " + ny + " : " + map[nx][ny]);
+//			System.out.println(curX + ", " + curY + " Direction: " + direction + " new pos " + nx + ", " + ny);
 //			System.out.println((nx < 0 ? 1 : 0) + ", " + (nx >= width ? 1 : 0) + ", " + (ny < 0 ? 1 : 0) + ", " + (ny >= height ? 1 : 0));
 
 			//make sure new position is valid (not a wall or off bounds)

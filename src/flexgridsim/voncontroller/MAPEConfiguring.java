@@ -20,16 +20,17 @@ public class MAPEConfiguring {
 	
 	public MAPEConfiguring() {
 		
-		try {
-			monitor = new Monitor();
+			try {
+				monitor = new Monitor();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			analyzer = new Analyze();
 			plan = new Planner();
 			execute = new Execute();
 			knowledge = new Knowledge();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 		
 	}
 
@@ -40,7 +41,9 @@ public class MAPEConfiguring {
 			
 			if(symptoms.get(0).type == SYMPTOM.PERFECT) return;
 			
-			if(symptoms.size() <= 0) return;
+			if(symptoms.isEmpty()) return;
+			
+			if(knowledge == null) System.out.println("ERRROR");
 			
 			for(Symptom symptom : symptoms) {
 				knowledge.symptoms.add(symptom);
