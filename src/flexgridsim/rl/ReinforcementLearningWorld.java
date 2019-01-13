@@ -19,41 +19,72 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.model.RewardFunction;
 import burlap.mdp.singleagent.model.statemodel.FullStateModel;
 import flexgridsim.voncontroller.Step.ACTIONS;
+import flexgridsim.voncontroller.Symptom.SYMPTOM;
 
 public class ReinforcementLearningWorld implements DomainGenerator {
 	
 	public static final String VAR_X = "x";
 	public static final String VAR_Y = "y";
 
-	public static final String ACTION_BLOCK_COSTLY_NODE = "block_costly_node";
-	public static final String ACTION_RECONFIGURATION_PERFORMANCE_LINK = "south";
-	public static final String ACTION_BLOCK_BALANCED_LINK = "block_balanced_link";
-	public static final String ACTION_LIMIT_OVERLOAD_LINK = "limit_overload_node";
-	public static final String ACTION_LIMIT_COSTLY_NODE = "limit_costly_node";
-	public static final String ACTION_NOTHING = "nothing";
+	public static final String ACTION_RIGHT = "right";
+	public static final String ACTION_DOWN = "down";
 
-
-	protected int goalx = 10;
-	protected int goaly = 10;
-
-	//ordered so first dimension is x
-	protected int [][] map = new int[][]{
-			{0,0,0,0,0,1,0,0,0,0,0},
-			{0,0,0,0,0,0,0,0,0,0,0},
-			{0,0,0,0,0,1,0,0,0,0,0},
-			{0,0,0,0,0,1,0,0,0,0,0},
-			{0,0,0,0,0,1,0,0,0,0,0},
-			{1,0,1,1,1,1,1,1,0,1,1},
-			{0,0,0,0,1,0,0,0,0,0,0},
-			{0,0,0,0,1,0,0,0,0,0,0},
-			{0,0,0,0,0,0,0,0,0,0,0},
-			{0,0,0,0,1,0,0,0,0,0,0},
-			{0,0,0,0,1,0,0,0,0,0,0},
+	protected int goalx = 5;
+	protected int goaly = 13;
+	
+	public int [][]map = new int [][] {
+	    {1, 1, 1, 1, 1, 1, 1},
+	    {1, 0, 0, 0, 1, 1, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},
+	    
+	    {1, 0, 0, 0, 1, 0, 1},
+	    {1, 0, 0, 0, 0, 0, 1},
+	    {1, 1, 1, 1, 1, 1, 1}
 	};
 
-	public void setGoalLocation(int goalx, int goaly){
-		this.goalx = goalx;
-		this.goaly = goaly;
+	public void setGoalLocation(){
+		this.goalx = map[0].length - 2;
+		this.goaly = map.length - 2;
 	}
 
 
@@ -62,14 +93,9 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 
 		SADomain domain = new SADomain();
 
-
 		domain.addActionTypes(
-				new UniversalActionType(ACTION_BLOCK_BALANCED_LINK),
-				new UniversalActionType(ACTION_BLOCK_COSTLY_NODE),
-				new UniversalActionType(ACTION_LIMIT_COSTLY_NODE),
-				new UniversalActionType(ACTION_LIMIT_OVERLOAD_LINK),
-				new UniversalActionType(ACTION_RECONFIGURATION_PERFORMANCE_LINK),
-				new UniversalActionType(ACTION_NOTHING));
+				new UniversalActionType(ACTION_RIGHT),
+				new UniversalActionType(ACTION_DOWN));
 
 		GridWorldStateModel smodel = new GridWorldStateModel();
 		RewardFunction rf = new PlanRF(this.goalx, this.goaly);
@@ -87,14 +113,22 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 
 		
 		public GridWorldStateModel() {
-			int n = 6;
-			this.transitionProbs = new double[n][n];
-			for(int i = 0; i < n; i++){
-				for(int j = 0; j < n; j++){
-					double p = i != j ? 0.2/3 : 0.8;
-					transitionProbs[i][j] = p;
-				}
-			}
+			int n = 13;
+			this.transitionProbs = new double[][] {
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,1},
+					{0,0,0,0,0,0,0,0,0,0,0,0,0},
+			};
 		}
 
 		public List<StateTransitionProb> stateTransitions(State s, Action a) {
@@ -175,23 +209,11 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 
 		protected int actionDir(Action a) {
 			int adir = -1;
-			if(a.actionName().equals(ACTION_BLOCK_BALANCED_LINK)){
-				adir = 0;
-			}
-			else if(a.actionName().equals(ACTION_BLOCK_COSTLY_NODE)){
-				adir = 1;
-			}
-			else if(a.actionName().equals(ACTION_LIMIT_COSTLY_NODE)){
+			if(a.actionName().equals(ACTION_RIGHT)){
 				adir = 2;
 			}
-			else if(a.actionName().equals(ACTION_LIMIT_OVERLOAD_LINK)){
-				adir = 3;
-			}
-			else if(a.actionName().equals(ACTION_RECONFIGURATION_PERFORMANCE_LINK)){
-				adir = 4;
-			}
-			else if(a.actionName().equals(ACTION_NOTHING)){
-				adir = 5;
+			else if(a.actionName().equals(ACTION_DOWN)){
+				adir = 1;
 			}
 			
 			return adir;
@@ -203,10 +225,8 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			//first get change in x and y from direction using 0: north; 1: south; 2:east; 3: west
 			int xdelta = 0;
 			int ydelta = 0;
-			if(direction == 0){
-				ydelta = 1;
-			}
-			else if(direction == 1){
+			
+			if(direction == 1){
 				ydelta = -1;
 			}
 			else if(direction == 2){
@@ -219,8 +239,8 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			int nx = curX + xdelta;
 			int ny = curY + ydelta;
 
-			int width = ReinforcementLearningWorld.this.map.length;
-			int height = ReinforcementLearningWorld.this.map[0].length;
+			int width = 13;
+			int height = 13;
 
 			//make sure new position is valid (not a wall or off bounds)
 			if(nx < 0 || nx >= width || ny < 0 || ny >= height ||

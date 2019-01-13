@@ -28,12 +28,11 @@ public class ReinforcementLearning {
 		
 	}
 
-	public void QLearningExecute(String outputPath){
+	public void QLearningExecute(){
 		
 		ReinforcementLearningWorld gen = new ReinforcementLearningWorld();
-		gen.setGoalLocation(10, 10);
 		SADomain domain = gen.generateDomain();
-		State initialState = new GridState(0, 0);
+		State initialState = new GridState(1, 1);
 		SimulatedEnvironment env = new SimulatedEnvironment(domain, initialState);
 		
 	}	

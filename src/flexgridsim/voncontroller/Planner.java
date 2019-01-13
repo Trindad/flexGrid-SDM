@@ -17,6 +17,9 @@ public class Planner {
 	public Plan run(ArrayList<String> classification, Symptom symptom) {
 		Plan plan = new Plan(symptom);
 		
+		ReinforcementLearning rl = new ReinforcementLearning();
+		rl.QLearningExecute();
+		
 		return plan;
 	}
 	
