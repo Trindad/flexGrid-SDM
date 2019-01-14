@@ -60,10 +60,6 @@ public class Analyze {
 		else if(symptom.type == SYMPTOM.OVERLOADED) {
 			classification = knnOverload.run(data);
 		}
-		else 
-		{
-			System.err.println("This problem doesn't exist...");
-		}
 		
 		return classification;
 		

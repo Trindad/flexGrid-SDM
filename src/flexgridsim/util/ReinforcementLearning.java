@@ -1,13 +1,10 @@
 package flexgridsim.util;
 
-
 import java.util.ArrayList;
 
-import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.PolicyUtils;
 import burlap.behavior.singleagent.Episode;
-import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
 import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
@@ -64,7 +61,7 @@ public class ReinforcementLearning {
 			//run learning for 5 episodes
 			for(int i = 0; i < n; i++) {
 				
-				Episode e = agent.runLearningEpisode(env);
+				agent.runLearningEpisode(env);
 				
 //				System.out.println(i + ": " + e.maxTimeStep());
 

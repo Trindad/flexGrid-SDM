@@ -21,6 +21,17 @@ public class GridState implements MutableState {
 			this.x = x;
 			this.y = y;
 		}
+		
+		public boolean equals(Object o) {
+			
+			if(o != null && o instanceof GridState) {
+				GridState s = (GridState)o;
+				
+				return s.x == this.x && s.y == this.y;
+			}
+			
+			return false;
+		}
 
 		@Override
 		public MutableState set(Object variableKey, Object value) {

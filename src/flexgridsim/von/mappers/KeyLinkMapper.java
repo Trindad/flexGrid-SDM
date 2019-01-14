@@ -47,7 +47,12 @@ public class KeyLinkMapper extends Mapper {
 		
 		Map<List<Integer>, List<Integer>> shortestPaths = shortestPaths();
 		
+		
 		for(VirtualTopology von: vons) {
+			
+			if(shortestPaths.isEmpty()) {
+				cp.blockVon(von.getID());
+			}
 			
 			von.nodes.sort(Comparator.comparing(VirtualNode::getRequestResource).reversed());
 			
@@ -147,7 +152,7 @@ public class KeyLinkMapper extends Mapper {
 			rcd[i] = Double.MIN_VALUE;
 			nodeIndices.add(i);
 		}
-		
+		System.out.println(shortestPaths.size());
 		for(int source = 0; source < pt.getNumNodes(); source++) {
 	
 			for(int destination = 0; destination < pt.getNumNodes(); destination++) {
@@ -156,12 +161,14 @@ public class KeyLinkMapper extends Mapper {
 				{
 					List<Integer> listOfVertices = shortestPaths.get(Arrays.asList(new Integer[] {source, destination}));
 					
-					for(int i = 0; i < (listOfVertices.size()-1); i++) {
-						
-						int index = listOfVertices.get(i);
-						double c = pt.getNode(index).getComputeResource() * pt.getNode(listOfVertices.get(i+1)).getComputeResource();
-						double distance = pt.getLink(listOfVertices.get(i), listOfVertices.get(i+1)).getDistance();
-						rcd[listOfVertices.get(i)] += (getMinimumBandwdith() * (c / Math.pow(distance, 2)));
+					if (listOfVertices != null)  {
+						for(int i = 0; i < (listOfVertices.size()-1); i++) {
+							
+							int index = listOfVertices.get(i);
+							double c = pt.getNode(index).getComputeResource() * pt.getNode(listOfVertices.get(i+1)).getComputeResource();
+							double distance = pt.getLink(listOfVertices.get(i), listOfVertices.get(i+1)).getDistance();
+							rcd[listOfVertices.get(i)] += (getMinimumBandwdith() * (c / Math.pow(distance, 2)));
+						}
 					}
 				}
 			}

@@ -14,6 +14,8 @@ import flexgridsim.PhysicalTopology;
  */
 public class VirtualTopologyGenerator {
 	
+	public static ArrayList<Integer> bandwidths;
+	
 	public static VirtualTopology generate(PhysicalTopology physicalTopology, int minNodes, int maxNodes, int connectivityProbability, int minAlternativeNodes, int maxAlternativeNodes,
 											int minComputingResources, int maxComputingResources, int minCapacity, int maxCapacity)
 	{
@@ -43,6 +45,8 @@ public class VirtualTopologyGenerator {
 		}
 		
 		
+		setBandwidthVector(minCapacity, maxCapacity);
+		
 		//Connecting virtual nodes
 		for(int u = 0; u < (topology.nodes.size()-1); u++) {
 			
@@ -59,7 +63,7 @@ public class VirtualTopologyGenerator {
 					if(connect == true) {
 						
 						VirtualLink link = new VirtualLink(topology.nodes.get(u), topology.nodes.get(v));
-						int bandwidth = getRandomValue(minCapacity, maxCapacity);
+						int bandwidth = getRandomBandwidth();
 						link.setBandwidth(bandwidth);
 						connected = connect;
 						if(bandwidth > maxBandwidth) {
@@ -88,6 +92,17 @@ public class VirtualTopologyGenerator {
 		return topology;
 	}
 	
+	private static void setBandwidthVector(int minCapacity, int maxCapacity) {
+		
+		int add = 25, temp = minCapacity;
+		bandwidths = new ArrayList<Integer>();
+		
+		while(temp <= maxCapacity) {
+			bandwidths.add(temp);
+			temp += add;
+		}
+	}
+
 	private static boolean isValid(ArrayList<Integer> candidateNodes, int[] nodes) {
 		
 		for(int node : candidateNodes)  {
@@ -135,6 +150,18 @@ public class VirtualTopologyGenerator {
 		int result = r.nextInt(high-low) + low;
 		
 		return result;
+	}
+	
+	public static int getRandomBandwidth() {
+		
+		Random r = new Random();
+		
+		int low = 0;
+		int high = bandwidths.size();
+		
+		int result = r.nextInt(high-low) + low;
+		
+		return bandwidths.get(result);
 	}
 	
 }

@@ -1,5 +1,6 @@
 package flexgridsim;
 
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 import flexgridsim.voncontroller.MAPEConfiguring;
 import flexgridsim.voncontroller.MAPEOptimizing;
 
@@ -36,6 +37,8 @@ public class Orchestrator {
 		instance.optimize = null;
 		
 		Hooks.reset();
+		ShapedPlanRF.reset();
+		
 	}
 	
 	public void run() {

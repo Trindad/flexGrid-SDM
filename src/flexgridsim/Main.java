@@ -4,10 +4,7 @@
  */
 package flexgridsim;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-
+import burlap.debugtools.DPrint;
 
 /**
  * The Main class takes care of the execution of the simulator, which includes
@@ -29,6 +26,8 @@ public class Main {
 	 */
  
 	public static void main(String[] args) {
+		
+		DPrint.toggleUniversal(false);
 		
 		Simulator flexgridsim;
 		String usage = "Usage: flexgridsim simulation_file seed [-trace] [-verbose] [minload maxload step]";

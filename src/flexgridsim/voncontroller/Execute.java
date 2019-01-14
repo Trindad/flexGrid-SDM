@@ -4,6 +4,7 @@ import flexgridsim.filters.BlockCostlyNodeFilter;
 import flexgridsim.filters.BlockNonBalancedLinkFilter;
 import flexgridsim.filters.LimitingOverloadLinkFilter;
 import flexgridsim.filters.ReconfigurationPerfomanceFilter;
+import flexgridsim.filters.RedirectingLightpathFilter;
 import flexgridsim.voncontroller.Step.ACTIONS;
 
 /**
@@ -31,6 +32,14 @@ public class Execute {
 			if (step.action == ACTIONS.RECONFIGURATION_PERFORMANCE_LINK) {
 				ReconfigurationPerfomanceFilter filter = new ReconfigurationPerfomanceFilter();
 				Hooks.reconfigurationFilter = filter;
+			}
+			if(step.action == ACTIONS.REDIRECT_TRAFFIC) {
+				RedirectingLightpathFilter filter = new RedirectingLightpathFilter(step.target_id);
+				Hooks.redirectFilters.add(filter);
+			}
+			if(step.action == ACTIONS.LIMIT_OVERLOADED_LINKS) {
+				LimitingOverloadLinkFilter filter = new LimitingOverloadLinkFilter(step.target_id);
+				Hooks.limitingOverloadLinkFilters.add(filter);
 			}
 		}
 	}

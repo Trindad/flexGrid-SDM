@@ -6,24 +6,28 @@ import flexgridsim.filters.BlockCostlyNodeFilter;
 import flexgridsim.filters.BlockNonBalancedLinkFilter;
 import flexgridsim.filters.LimitingOverloadLinkFilter;
 import flexgridsim.filters.ReconfigurationPerfomanceFilter;
+import flexgridsim.filters.RedirectingLightpathFilter;
 import vne.VirtualNetworkEmbedding;
 
 public class Hooks {
 	public static ArrayList<BlockCostlyNodeFilter> blockCostlyNodeFilters;
 	public static ArrayList<BlockNonBalancedLinkFilter> blockNonBalancedLinkFilters;
 	public static ArrayList<LimitingOverloadLinkFilter> limitingOverloadLinkFilters;
+	public static ArrayList<RedirectingLightpathFilter> redirectFilters;
 	public static ReconfigurationPerfomanceFilter reconfigurationFilter;
-	
+
 	public static void init() {
 		blockCostlyNodeFilters = new ArrayList<>();
 		blockNonBalancedLinkFilters = new ArrayList<>();
 		limitingOverloadLinkFilters = new ArrayList<>();
+		redirectFilters = new ArrayList<>();
 	}
 	
 	public static void reset() {
 		blockCostlyNodeFilters.clear();
 		blockNonBalancedLinkFilters.clear();
 		limitingOverloadLinkFilters.clear();
+		redirectFilters.clear();
 	}
 	
 	public static void runPendingReconfiguration(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne) {

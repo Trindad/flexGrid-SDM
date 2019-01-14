@@ -1,9 +1,12 @@
 package flexgridsim.rl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import burlap.behavior.singleagent.shaping.ShapedRewardFunction;
 import burlap.mdp.auxiliary.DomainGenerator;
 import burlap.mdp.core.StateTransitionProb;
 import burlap.mdp.core.TerminalFunction;
@@ -137,9 +140,11 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 
 		GridWorldStateModel smodel = new GridWorldStateModel();
 		RewardFunction rf = new PlanRF(this.goalx, this.goaly);
+		ShapedRewardFunction srf = new ShapedPlanRF(rf);
+		
 		TerminalFunction tf = new PlanTF(this.goalx, this.goaly);
 
-		domain.setModel(new FactoredModel(smodel, rf, tf));
+		domain.setModel(new FactoredModel(smodel, srf, tf));
 
 		return domain;
 	}
@@ -286,6 +291,58 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			return new int[]{nx,ny};
 
 		}
+	}
+	
+	public static class ShapedPlanRF extends ShapedRewardFunction {
+		
+		public static Map< State, Map<Action, Double> > shaping =  new HashMap< State, Map<Action, Double> >();
+
+		public ShapedPlanRF(RewardFunction baseRF) {
+			super(baseRF);
+			// TODO Auto-generated constructor stub
+		}
+	
+		@Override
+		public double additiveReward(State state, Action action, State newState) {
+			
+			if(!shaping.containsKey(state)) {
+				return 0;
+			}
+
+			Map<Action, Double> v = shaping.get(state);
+			
+			if(!v.containsKey(action)) {
+				return 0;
+			}
+			
+			return v.get(action);
+		}
+		
+		public static void updateValue(State s, Action a, double value) {
+			if(!shaping.containsKey(s)) {
+				shaping.put(s, new HashMap<Action, Double>());
+			}
+
+			Map<Action, Double> v = shaping.get(s);
+			
+			if(v.containsKey(a)) {
+				value += v.get(a);
+				
+				v.remove(a);
+			}
+			
+			v.put(a, value);
+		}
+		
+		public static void reset() {
+			
+			for(State state : shaping.keySet()) {
+				shaping.remove(state);
+			}
+			
+			shaping.clear();
+		}
+		
 	}
 	
 	public static class PlanRF implements RewardFunction {

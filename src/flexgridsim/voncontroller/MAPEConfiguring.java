@@ -23,7 +23,7 @@ public class MAPEConfiguring {
 			try {
 				monitor = new Monitor();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 			
@@ -41,9 +41,8 @@ public class MAPEConfiguring {
 			
 			if(symptoms.get(0).type == SYMPTOM.PERFECT) return;
 			
-			if(symptoms.isEmpty()) return;
+			if(symptoms.isEmpty() || knowledge == null) return;
 			
-			if(knowledge == null) System.out.println("ERRROR");
 			
 			for(Symptom symptom : symptoms) {
 				knowledge.symptoms.add(symptom);

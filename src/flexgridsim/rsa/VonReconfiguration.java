@@ -199,7 +199,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		int next = index;
 		
 		
-		if(flows.size() <= Math.pow(k, 2) || !this.runKMeans(this.k, flows)) return;
+		if(flows.size() <= 100 || !this.runKMeans(this.k, flows)) return;
 		
 		this.activeFlows = new HashMap<Long, Flow>(); 
 		this.pt.resetAllSpectrum();
@@ -545,11 +545,11 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		PythonCaller caller = new PythonCaller();
 		KMeansResult result = caller.kmeans(features, k);
 		
-//		System.out.println("silhouette: "+result.getSilhouette());
-//		if(result.getSilhouette() <= 0.7) {
-//			
-//			return false;
-//		}
+		System.out.println("silhouette: "+result.getSilhouette());
+		if(result.getSilhouette() <= 0.7) {
+			
+			return false;
+		}
 		
 		String []labels = result.getLabels();
 		double [][]centroids = result.getCentroids();

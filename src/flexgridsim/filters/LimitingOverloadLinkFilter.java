@@ -11,7 +11,7 @@ public class LimitingOverloadLinkFilter {
 		
 		this.targetLink = id;
 	}
-	
+
 	public boolean filter(int node) {
 		return node != targetLink;
 	}

@@ -46,6 +46,12 @@ public class MAPEMapper extends KeyLinkMapper {
 		}
 		
 		Map<List<Integer>, List<Integer>> shortestPaths = shortestPaths();
+		
+		if(shortestPaths.isEmpty()) {
+			cp.blockVon(von.getID());
+			
+			return;
+		}
 			
 		von.nodes.sort(Comparator.comparing(VirtualNode::getRequestResource).reversed());
 		
