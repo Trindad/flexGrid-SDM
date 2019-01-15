@@ -309,6 +309,9 @@ public class PhysicalTopology {
 					
             		continue;
             	}
+				if(!Hooks.runLimitCostlyNodeFilter(i, this) || !Hooks.runLimitCostlyNodeFilter(j, this)) {
+					continue;
+				}
 		       
 		    	if (hasLink(i, j)) 
 		    	{

@@ -2,6 +2,7 @@ package flexgridsim.util;
 
 import java.util.ArrayList;
 
+import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.PolicyUtils;
 import burlap.behavior.singleagent.Episode;
@@ -22,17 +23,38 @@ public class ReinforcementLearning {
 	private SADomain domain;
 	private HashableStateFactory hashingFactory;
 	private ArrayList<State> initialStates;
+	private QLearning agent;
 	
 	private int n = 5;
 	
 	public ReinforcementLearning() {
 		hashingFactory = new SimpleHashableStateFactory();
 	}
+	
+	public void relearn() {
+		agent.resetSolver();
+		
+		for(State initialState : initialStates) {
+			SimulatedEnvironment env = new SimulatedEnvironment(domain, initialState);
+
+			//run learning for 5 episodes
+			for(int i = 0; i < 100; i++) {
+				agent.runLearningEpisode(env);
+				
+//				System.out.println(i + ": " + e.maxTimeStep());
+
+				//reset environment for next learning episode
+				env.resetEnvironment();
+			}
+			
+		}
+	}
 
 	public void QLearningExecute() {
 		
 		ReinforcementLearningWorld gen = new ReinforcementLearningWorld();
 		gen.setGoalLocation();
+		gen.setParent(this);
 		
 		domain = gen.generateDomain();
 		initialStates = new ArrayList<State>(){{
@@ -50,17 +72,13 @@ public class ReinforcementLearning {
 				add(new GridState(33, 1));
 		}};
 		
+		agent = new QLearning(domain, 0.99, hashingFactory, 0., 1.);
+		
 		for(State initialState : initialStates) {
 			SimulatedEnvironment env = new SimulatedEnvironment(domain, initialState);
-			
-			
-			QLearning agent = new QLearning(domain, 0.99, hashingFactory, 0., 1.);
-			
-//			EpsilonGreedy epsilon = new EpsilonGreedy(agent, 0.5);
 
 			//run learning for 5 episodes
-			for(int i = 0; i < n; i++) {
-				
+			for(int i = 0; i < 100; i++) {
 				agent.runLearningEpisode(env);
 				
 //				System.out.println(i + ": " + e.maxTimeStep());
@@ -106,9 +124,10 @@ public class ReinforcementLearning {
 		
 		State s = new GridState(y,x);
 		
-		Planner planner = new ValueIteration(domain, 2, hashingFactory, 0.001, 100);
-		Policy p = planner.planFromState(s);
-
+//		Planner planner = new ValueIteration(domain, 0.99, hashingFactory, 0.001, 100);
+//		Policy p = planner.planFromState(s);
+		Policy p = agent.planFromState(s);
+		
 		Episode ea  = PolicyUtils.rollout(p, s, domain.getModel());
 		
 		for (State a : ea.stateSequence) {

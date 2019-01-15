@@ -2,6 +2,8 @@ package flexgridsim.filters;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 
 public class LimitingOverloadLinkFilter {
 	
@@ -27,12 +29,14 @@ public class LimitingOverloadLinkFilter {
 		
 		double ratio = ((double)Database.getInstance().slotsAvailablePerLink[targetLink]/(double) (pt.getNumSlots() * pt.getCores()));
 		
-		if(ratio < 0.4) 
+		if(ratio < 0.35) 
 		{
+			ShapedPlanRF.updateValue(new GridState(30,1), "right", -1);
 			return false;
 		}
 		
 		if(Database.getInstance().xtLinks[targetLink] > Database.getInstance().meanCrosstalk) {
+			ShapedPlanRF.updateValue(new GridState(30,1), "right", -1);
 			return false;
 		}
 		

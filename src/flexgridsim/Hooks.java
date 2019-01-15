@@ -12,12 +12,14 @@ import flexgridsim.filters.RedirectingLightpathFilter;
 import vne.VirtualNetworkEmbedding;
 
 public class Hooks {
+	
 	public static ArrayList<BlockCostlyNodeFilter> blockCostlyNodeFilters;
 	public static ArrayList<BlockNonBalancedLinkFilter> blockNonBalancedLinkFilters;
 	public static ArrayList<LimitingOverloadLinkFilter> limitingOverloadLinkFilters;
 	public static ArrayList<LimitCostlyNodeFilter> limitingCostlyNodeFilters;
-	public static ArrayList<RedirectingLightpathFilter> redirectFilters;
 	public static ArrayList<BlockOverloadedLinkFilter> blockOverloadedLinkFilters;
+	
+	public static ArrayList<RedirectingLightpathFilter> redirectFilters;
 	public static ReconfigurationPerfomanceFilter reconfigurationFilter;
 
 	public static void init() {
@@ -68,11 +70,11 @@ public class Hooks {
 		return b;
 	}
 	
-	public static boolean runLimitCostlyNodeFilter(int node) {
+	public static boolean runLimitCostlyNodeFilter(int node, PhysicalTopology pt) {
 		boolean b = true;
 
 		for (LimitCostlyNodeFilter f : limitingCostlyNodeFilters) {
-			if (!f.filter(node)) {
+			if (!f.filter(node) && !f.isDone(pt)) {
 				b = false;
 			}
 		}

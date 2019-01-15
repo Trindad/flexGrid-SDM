@@ -16,6 +16,7 @@ import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.model.RewardFunction;
 import burlap.mdp.singleagent.model.statemodel.FullStateModel;
+import flexgridsim.util.ReinforcementLearning;
 
 public class ReinforcementLearningWorld implements DomainGenerator {
 	
@@ -28,54 +29,56 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	protected int goalx = 5;
 	protected int goaly = 13;
 	
+	private ReinforcementLearning parent;
+	
 	public static int [][]map = new int [][] {
 	    {1, 1, 1, 1, 1, 1, 1}, // non balanced high
 	    {1, 0, 2, 0, 1, 1, 1},
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//4
 	    
 	    {1, 0, 3, 0, 1, 0, 1}, // non balanced medium
 	    {1, 0, 4, 0, 1, 0, 1},
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//8
 	    
 	    {1, 0, 0, 0, 0, 0, 1}, // non balanced low
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//10
 	    
 	    {1, 0, 5, 0, 1, 0, 1}, // performance high
 	    {1, 0, 6, 0, 1, 0, 1},
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//14
 	    
 	    {1, 0, 7, 0, 1, 0, 1}, // performance medium
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//17
 	    
 	    {1, 0, 0, 0, 0, 0, 1}, // performance low
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//19
 	    
 	    {1, 0, 8, 0, 1, 0, 1}, // cost high
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//22
 	    
 	    {1, 0, 9, 0, 1, 0, 1}, // cost medium
 	    {1, 0, 0, 0, 1, 0, 1},
 	    {1, 10, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//26
 	    
 	    {1, 0, 0, 0, 0, 0, 1}, // cost low
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//28
 	    
 	    {1, 0, 0, 0, 0, 0, 1}, // overload high
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//30
 	    
 	    {1, 0, 11, 0, 1, 0, 1}, // overload medium
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 0, 1},
+	    {1, 1, 1, 1, 1, 0, 1},//33
 	    
 	    {1, 0, 12, 0, 1, 0, 1}, // overload low
 	    {1, 0, 0, 0, 0, 0, 1},
-	    {1, 1, 1, 1, 1, 1, 1}
+	    {1, 1, 1, 1, 1, 1, 1}//36
 	};
 	
 	public static String getRelevantActionFromState(int x, int y) {
@@ -99,7 +102,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 				break;
 			case 6:
 			case 7:
-				str = "limit_links";
+				str = "limit_link";
 				break;
 			case 8:
 			case 9:
@@ -121,6 +124,10 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 		this.goaly = map[0].length - 2;
 	}
 
+	public void setParent(ReinforcementLearning reinforcementLearning) {
+		this.parent = reinforcementLearning;
+	}
+
 
 	@Override
 	public SADomain generateDomain() {
@@ -134,12 +141,19 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 		GridWorldStateModel smodel = new GridWorldStateModel();
 		RewardFunction rf = new PlanRF(this.goalx, this.goaly);
 		ShapedRewardFunction srf = new ShapedPlanRF(rf);
+		ShapedPlanRF.observe(this);
 		
 		TerminalFunction tf = new PlanTF(this.goalx, this.goaly);
 
 		domain.setModel(new FactoredModel(smodel, srf, tf));
 
 		return domain;
+	}
+	
+	public void relearn() {
+		if (this.parent != null) {
+			this.parent.relearn();
+		}
 	}
 	
 	protected class GridWorldStateModel implements FullStateModel{
@@ -289,10 +303,14 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	public static class ShapedPlanRF extends ShapedRewardFunction {
 		
 		public static Map< String, Map<String, Double> > shaping =  new HashMap< String, Map<String, Double> >();
+		public static List<ReinforcementLearningWorld> observers = new ArrayList<>();
 
 		public ShapedPlanRF(RewardFunction baseRF) {
 			super(baseRF);
-			// TODO Auto-generated constructor stub
+		}
+		
+		public static void observe(ReinforcementLearningWorld o) {
+			observers.add(o);
 		}
 	
 		@Override
@@ -330,9 +348,15 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			}
 			
 			v.put(a, value);
+			
+			for (ReinforcementLearningWorld o : observers) {
+				
+				o.relearn();
+			}
 		}
 		
 		public static void reset() {
+			observers.clear();
 			shaping.clear();
 		}
 		

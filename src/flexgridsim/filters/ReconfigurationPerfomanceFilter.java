@@ -40,7 +40,11 @@ public class ReconfigurationPerfomanceFilter {
     	//rewarding negatively
     	if(rate >= before) 
     	{
-    		ShapedPlanRF.updateValue(new GridState(10,1), "right", -10);
+    		ShapedPlanRF.updateValue(new GridState(10,1), "right", -1);
+    	}
+    	else 
+    	{
+    		ShapedPlanRF.updateValue(new GridState(10,1), "right", 1);
     	}
 	}
 	

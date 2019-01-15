@@ -42,13 +42,7 @@ public class Execute {
 				RedirectingLightpathFilter filter = new RedirectingLightpathFilter(step.target_id);
 				Hooks.redirectFilters.add(filter);
 			}
-			if(step.action == ACTIONS.LIMIT_OVERLOADED_LINKS) {
-//				System.out.println("ACTION - limiting links");
-//				for() {
-//					LimitingOverloadLinkFilter filter = new LimitingOverloadLinkFilter();
-//					Hooks.limitingOverloadLinkFilters.add(filter);
-//				}
-			}
+
 		}
 	}
 }

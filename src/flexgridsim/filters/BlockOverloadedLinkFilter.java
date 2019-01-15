@@ -2,6 +2,8 @@ package flexgridsim.filters;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 
 public class BlockOverloadedLinkFilter {
 	private int targetLink;
@@ -17,8 +19,9 @@ public class BlockOverloadedLinkFilter {
 	
 	public boolean isDone(PhysicalTopology pt) {
 		
-		if(Database.getInstance().bbrPerPair[targetLink] > (Database.getInstance().bbr * 0.75)) {
-			
+		if(Database.getInstance().bbrPerPair[targetLink] > (Database.getInstance().bbr * 0.75))
+		{
+			ShapedPlanRF.updateValue(new GridState(30,1), "right", -1);
 			return false;
 		}
 		
@@ -33,8 +36,11 @@ public class BlockOverloadedLinkFilter {
 		
 		if(ratio < (total/(double)pt.getNumLinks())) 
 		{
+			ShapedPlanRF.updateValue(new GridState(30,1), "right", -1);
 			return false;
 		}
+		
+		ShapedPlanRF.updateValue(new GridState(30,1), "right", 1);
 		
 		return true;
 	}

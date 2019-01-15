@@ -55,24 +55,25 @@ public class Planner {
 	private ArrayList<Step> convertActionsToSteps(ArrayList<String> actions, Symptom symptom, int i) {
 		ArrayList<Step> steps = new ArrayList<>();
 		
+		if (actions.contains("defragment_network")) {
+			Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "network");
+			steps.add(step);
+			return steps;
+		}
+		
 		for (String a : actions) {
 			if (a.equals("block_node")) {
 				Step step = new Step(ACTIONS.BLOCK_COSTLY_NODE, "node", i);
 				steps.add(step);
 			}
-			else if (a.equals("defragment_network")) {
-				
-				Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "network");
-				steps.add(step);
-			}
 			else if (a.equals("block_link")) {
 				
-				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", 0);
+				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
 				steps.add(step);
 			}
 			else if (a.equals("block_link_overloaded")) {
 				
-				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", 0);
+				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", i);
 				steps.add(step);
 			}
 			else if (a.equals("limit_link")) {
@@ -87,11 +88,6 @@ public class Planner {
 			else if (a.equals("redirect_traffic")) {
 				
 				Step step = new Step(ACTIONS.REDIRECT_TRAFFIC, "link", i);
-				steps.add(step);
-			}
-			else if (a.equals("limit_links")) {
-				
-				Step step = new Step(ACTIONS.LIMIT_OVERLOADED_LINKS, "links");
 				steps.add(step);
 			}
 				
