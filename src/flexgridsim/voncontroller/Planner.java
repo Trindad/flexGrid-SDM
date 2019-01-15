@@ -30,7 +30,7 @@ public class Planner {
 			
 			int count = Collections.frequency(classification, "high");
 			
-			if(count < ((double)classification.size()/3.0)) {
+			if(count < ((double)classification.size()*0.4)) {
 				Collections.replaceAll(classification, "high", "medium");
 			}
 		}

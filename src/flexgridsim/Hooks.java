@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import flexgridsim.filters.BlockCostlyNodeFilter;
 import flexgridsim.filters.BlockNonBalancedLinkFilter;
 import flexgridsim.filters.BlockOverloadedLinkFilter;
+import flexgridsim.filters.LimitCostlyNodeFilter;
 import flexgridsim.filters.LimitingOverloadLinkFilter;
 import flexgridsim.filters.ReconfigurationPerfomanceFilter;
 import flexgridsim.filters.RedirectingLightpathFilter;
@@ -14,23 +15,29 @@ public class Hooks {
 	public static ArrayList<BlockCostlyNodeFilter> blockCostlyNodeFilters;
 	public static ArrayList<BlockNonBalancedLinkFilter> blockNonBalancedLinkFilters;
 	public static ArrayList<LimitingOverloadLinkFilter> limitingOverloadLinkFilters;
+	public static ArrayList<LimitCostlyNodeFilter> limitingCostlyNodeFilters;
 	public static ArrayList<RedirectingLightpathFilter> redirectFilters;
 	public static ArrayList<BlockOverloadedLinkFilter> blockOverloadedLinkFilters;
 	public static ReconfigurationPerfomanceFilter reconfigurationFilter;
 
 	public static void init() {
+		
 		blockCostlyNodeFilters = new ArrayList<>();
 		blockNonBalancedLinkFilters = new ArrayList<>();
 		limitingOverloadLinkFilters = new ArrayList<>();
 		redirectFilters = new ArrayList<>();
 		blockOverloadedLinkFilters = new ArrayList<>();
+		limitingCostlyNodeFilters = new ArrayList<>();
 	}
 	
 	public static void reset() {
+		
 		blockCostlyNodeFilters.clear();
 		blockNonBalancedLinkFilters.clear();
 		limitingOverloadLinkFilters.clear();
 		redirectFilters.clear();
+		blockOverloadedLinkFilters.clear();
+		limitingCostlyNodeFilters.clear();
 	}
 	
 	public static void runPendingReconfiguration(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne) {
@@ -41,10 +48,30 @@ public class Hooks {
 		reconfigurationFilter = null;		
 	}
 	
+	public static void runPendingRedirectingLightpath(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne, int link) {
+		
+		if(redirectFilters == null) return;
+		
+		redirectFilters.get(link).run(pt, cp, vne);
+
+	}
+	
 	public static boolean runBlockCostlyNodeFilter(int node) {
 		boolean b = true;
 
 		for (BlockCostlyNodeFilter f : blockCostlyNodeFilters) {
+			if (!f.filter(node)) {
+				b = false;
+			}
+		}
+		
+		return b;
+	}
+	
+	public static boolean runLimitCostlyNodeFilter(int node) {
+		boolean b = true;
+
+		for (LimitCostlyNodeFilter f : limitingCostlyNodeFilters) {
 			if (!f.filter(node)) {
 				b = false;
 			}
@@ -77,11 +104,11 @@ public class Hooks {
 		return b;
 	}
 	
-	public static boolean runLimitingOverloadLinkFilters(int link) {
+	public static boolean runLimitingOverloadLinkFilters(int link, PhysicalTopology pt) {
 		boolean b = true;
 
 		for (LimitingOverloadLinkFilter f : limitingOverloadLinkFilters) {
-			if (!f.filter(link)) {
+			if (!f.filter(link) && !f.isDone(pt)) {
 				b = false;
 			}
 		}
@@ -89,10 +116,13 @@ public class Hooks {
 		return b;
 	}
 	
+	
 	public static void checkDone(PhysicalTopology pt) {
+		
 		ArrayList<BlockCostlyNodeFilter> done1 = new ArrayList<>();
 		ArrayList<BlockNonBalancedLinkFilter> done2 = new ArrayList<>();
 		ArrayList<LimitingOverloadLinkFilter> done3 = new ArrayList<>();
+		ArrayList<LimitCostlyNodeFilter> done4 = new ArrayList<>();
 		
 		for (BlockCostlyNodeFilter f : blockCostlyNodeFilters) {
 			if (f.isDone(pt)) {
@@ -112,9 +142,16 @@ public class Hooks {
 			}
 		}
 		
+		for (LimitCostlyNodeFilter f : limitingCostlyNodeFilters) {
+			if (f.isDone(pt)) {
+				done4.add(f);
+			}
+		}
+		
 		blockCostlyNodeFilters.removeAll(done1);
 		blockNonBalancedLinkFilters.removeAll(done2);
 		limitingOverloadLinkFilters.removeAll(done3);
+		limitingCostlyNodeFilters.removeAll(done4);
 	}
 
 }

@@ -17,7 +17,7 @@ public class BlockNonBalancedLinkFilter {
 	}
 	
 	public boolean isDone(PhysicalTopology pt) {
-		System.out.println("Unblocking link " + targetLink);
+		
 		if(Database.getInstance().bbrPerPair[targetLink] > Database.getInstance().bbr) {
 			
 			return false;

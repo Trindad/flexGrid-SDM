@@ -223,7 +223,12 @@ public class PhysicalTopology {
         	{
         		return false;
         	}
-        	if(!Hooks.runBlockNonBalancedLinkFilter( getLink(node1, node2).getID()) ) {
+        	if(!Hooks.runBlockNonBalancedLinkFilter( getLink(node1, node2).getID()) )
+        	{
+        		return false;
+        	}
+        	if(!Hooks.runLimitingOverloadLinkFilters( getLink(node1, node2).getID(), this) )
+        	{
         		return false;
         	}
         	

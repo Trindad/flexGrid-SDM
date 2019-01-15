@@ -11,8 +11,8 @@ public class BlockOverloadedLinkFilter {
 		this.targetLink = id;
 	}
 	
-	public boolean filter(int node) {
-		return node != targetLink;
+	public boolean filter(int link) {
+		return link != targetLink;
 	}
 	
 	public boolean isDone(PhysicalTopology pt) {
@@ -22,14 +22,17 @@ public class BlockOverloadedLinkFilter {
 			return false;
 		}
 		
-		int total = 0;
+		double total = 0;
 		for(Long link : Database.getInstance().slotsAvailable.keySet()) {
 			int n = Database.getInstance().slotsAvailable.get(link);
 			
 			total += n;
 		}
 		
-		if(Database.getInstance().slotsAvailablePerLink[targetLink] < (total/pt.getNumLinks())) {
+		double ratio = ((double)Database.getInstance().slotsAvailablePerLink[targetLink]/(double) (pt.getNumSlots() * pt.getCores()));
+		
+		if(ratio < (total/(double)pt.getNumLinks())) 
+		{
 			return false;
 		}
 		

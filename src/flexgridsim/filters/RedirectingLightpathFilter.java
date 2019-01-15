@@ -1,9 +1,20 @@
 package flexgridsim.filters;
 
-public class RedirectingLightpathFilter {
+import flexgridsim.PhysicalTopology;
+import flexgridsim.VonControlPlane;
+import vne.VirtualNetworkEmbedding;
 
-	public RedirectingLightpathFilter(int target_id) {
-		// TODO Auto-generated constructor stub
+public class RedirectingLightpathFilter {
+	
+	private int targetLink;
+
+	public RedirectingLightpathFilter(int id) {
+		targetLink = id;
+	}
+
+	public void run(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne) {
+		
+		
 	}
 
 }
