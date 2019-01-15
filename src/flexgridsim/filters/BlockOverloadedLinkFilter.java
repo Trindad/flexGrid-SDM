@@ -3,11 +3,10 @@ package flexgridsim.filters;
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
 
-public class BlockNonBalancedLinkFilter {
-
+public class BlockOverloadedLinkFilter {
 	private int targetLink;
 	
-	public BlockNonBalancedLinkFilter(int id) {
+	public BlockOverloadedLinkFilter(int id) {
 		
 		this.targetLink = id;
 	}
@@ -17,8 +16,8 @@ public class BlockNonBalancedLinkFilter {
 	}
 	
 	public boolean isDone(PhysicalTopology pt) {
-		System.out.println("Unblocking link " + targetLink);
-		if(Database.getInstance().bbrPerPair[targetLink] > Database.getInstance().bbr) {
+		
+		if(Database.getInstance().bbrPerPair[targetLink] > (Database.getInstance().bbr * 0.75)) {
 			
 			return false;
 		}
@@ -36,4 +35,5 @@ public class BlockNonBalancedLinkFilter {
 		
 		return true;
 	}
+
 }

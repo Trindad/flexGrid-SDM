@@ -106,7 +106,7 @@ public class ReinforcementLearning {
 		
 		State s = new GridState(y,x);
 		
-		Planner planner = new ValueIteration(domain, 0.99, hashingFactory, 0.001, 100);
+		Planner planner = new ValueIteration(domain, 2, hashingFactory, 0.001, 100);
 		Policy p = planner.planFromState(s);
 
 		Episode ea  = PolicyUtils.rollout(p, s, domain.getModel());

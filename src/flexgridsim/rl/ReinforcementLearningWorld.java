@@ -2,7 +2,6 @@ package flexgridsim.rl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,15 +13,9 @@ import burlap.mdp.core.action.Action;
 import burlap.mdp.core.action.UniversalActionType;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
-import burlap.mdp.singleagent.environment.Environment;
-import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import burlap.mdp.singleagent.environment.extensions.EnvironmentObserver;
-import burlap.mdp.singleagent.environment.extensions.EnvironmentServerInterface;
 import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.model.RewardFunction;
 import burlap.mdp.singleagent.model.statemodel.FullStateModel;
-import flexgridsim.voncontroller.Step.ACTIONS;
-import flexgridsim.voncontroller.Symptom.SYMPTOM;
 
 public class ReinforcementLearningWorld implements DomainGenerator {
 	
@@ -116,7 +109,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 				str = "limit_node";
 				break;
 			case 11:
-				str = "block_link";
+				str = "block_link_overloaded";
 				break;
 		}
 		
@@ -228,8 +221,8 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 			int adir = actionDir(a);
 
 			//sample direction with random roll
-			double r = Math.random();
-			double sumProb = 0.;
+//			double r = Math.random();
+//			double sumProb = 0.;
 			
 
 			//get resulting position
@@ -295,7 +288,7 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	
 	public static class ShapedPlanRF extends ShapedRewardFunction {
 		
-		public static Map< State, Map<Action, Double> > shaping =  new HashMap< State, Map<Action, Double> >();
+		public static Map< String, Map<String, Double> > shaping =  new HashMap< String, Map<String, Double> >();
 
 		public ShapedPlanRF(RewardFunction baseRF) {
 			super(baseRF);
@@ -304,26 +297,31 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 	
 		@Override
 		public double additiveReward(State state, Action action, State newState) {
+			GridState s = (GridState) state;
+			String k = s.x + "," + s.y;
 			
-			if(!shaping.containsKey(state)) {
-				return 0;
-			}
-
-			Map<Action, Double> v = shaping.get(state);
-			
-			if(!v.containsKey(action)) {
+			if(!shaping.containsKey(k)) {
 				return 0;
 			}
 			
-			return v.get(action);
+			Map<String, Double> v = shaping.get(k);
+			
+			if(!v.containsKey(action.actionName())) {
+				return 0;
+			}
+			
+			return v.get(action.actionName());
 		}
 		
-		public static void updateValue(State s, Action a, double value) {
-			if(!shaping.containsKey(s)) {
-				shaping.put(s, new HashMap<Action, Double>());
+		public static void updateValue(State state, String a, double value) {
+			GridState s = (GridState) state;
+			String k = s.x + "," + s.y;
+			
+			if(!shaping.containsKey(k)) {
+				shaping.put(k, new HashMap<String, Double>());
 			}
-
-			Map<Action, Double> v = shaping.get(s);
+			
+			Map<String, Double> v = shaping.get(k);
 			
 			if(v.containsKey(a)) {
 				value += v.get(a);
@@ -335,11 +333,6 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 		}
 		
 		public static void reset() {
-			
-			for(State state : shaping.keySet()) {
-				shaping.remove(state);
-			}
-			
 			shaping.clear();
 		}
 		

@@ -18,7 +18,8 @@ public class LimitingOverloadLinkFilter {
 	
 	public boolean isDone(PhysicalTopology pt) {
 		
-		if(Database.getInstance().bbrPerPair[targetLink] > 0.7) {
+		
+		if(Database.getInstance().bbrPerPair[targetLink] > 0.6) {
 			
 			return false;
 		}
@@ -27,7 +28,6 @@ public class LimitingOverloadLinkFilter {
 		if(ratio < 0.4) {
 			return false;
 		}
-		
 		
 		if(Database.getInstance().xtLinks[targetLink] > -50) {
 			return false;

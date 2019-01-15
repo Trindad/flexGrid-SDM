@@ -216,9 +216,21 @@ public class PhysicalTopology {
      * @return true if the link exists in the PhysicalTopology's adjMatrix
      */
     public boolean hasLink(int node1, int node2) {
+    	
         if (adjMatrix[node1][node2] != null) {
+        	
+        	if(!Hooks.runBlockOverloadedLinkFilter( getLink(node1, node2).getID()) ) 
+        	{
+        		return false;
+        	}
+        	if(!Hooks.runBlockNonBalancedLinkFilter( getLink(node1, node2).getID()) ) {
+        		return false;
+        	}
+        	
             return true;
-        } else {
+        } 
+        else 
+        {
             return false;
         }
     }

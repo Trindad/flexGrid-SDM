@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import flexgridsim.filters.BlockCostlyNodeFilter;
 import flexgridsim.filters.BlockNonBalancedLinkFilter;
+import flexgridsim.filters.BlockOverloadedLinkFilter;
 import flexgridsim.filters.LimitingOverloadLinkFilter;
 import flexgridsim.filters.ReconfigurationPerfomanceFilter;
 import flexgridsim.filters.RedirectingLightpathFilter;
@@ -14,6 +15,7 @@ public class Hooks {
 	public static ArrayList<BlockNonBalancedLinkFilter> blockNonBalancedLinkFilters;
 	public static ArrayList<LimitingOverloadLinkFilter> limitingOverloadLinkFilters;
 	public static ArrayList<RedirectingLightpathFilter> redirectFilters;
+	public static ArrayList<BlockOverloadedLinkFilter> blockOverloadedLinkFilters;
 	public static ReconfigurationPerfomanceFilter reconfigurationFilter;
 
 	public static void init() {
@@ -21,6 +23,7 @@ public class Hooks {
 		blockNonBalancedLinkFilters = new ArrayList<>();
 		limitingOverloadLinkFilters = new ArrayList<>();
 		redirectFilters = new ArrayList<>();
+		blockOverloadedLinkFilters = new ArrayList<>();
 	}
 	
 	public static void reset() {
@@ -54,6 +57,18 @@ public class Hooks {
 		boolean b = true;
 
 		for (BlockNonBalancedLinkFilter f : blockNonBalancedLinkFilters) {
+			if (!f.filter(link)) {
+				b = false;
+			}
+		}
+		
+		return b;
+	}
+	
+	public static boolean runBlockOverloadedLinkFilter(int link) {
+		boolean b = true;
+
+		for (BlockOverloadedLinkFilter f : blockOverloadedLinkFilters) {
 			if (!f.filter(link)) {
 				b = false;
 			}

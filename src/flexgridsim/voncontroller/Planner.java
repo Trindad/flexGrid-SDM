@@ -1,6 +1,7 @@
 package flexgridsim.voncontroller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import flexgridsim.voncontroller.Step.ACTIONS;
 import flexgridsim.voncontroller.Symptom.SYMPTOM;
@@ -25,6 +26,15 @@ public class Planner {
 	public Plan run(ArrayList<String> classification, Symptom symptom) {
 		Plan plan = new Plan(symptom);
 		
+		if(classification.contains("high") && symptom.type == SYMPTOM.PERFORMANCE) {
+			
+			int count = Collections.frequency(classification, "high");
+			
+			if(count < ((double)classification.size()/3.0)) {
+				Collections.replaceAll(classification, "high", "medium");
+			}
+		}
+		
 		for(int i = 0; i < classification.size(); i++) {
 			String c = classification.get(i);
 			
@@ -36,6 +46,7 @@ public class Planner {
 			for (Step e : steps) {
 				plan.addStep(e);
 			}
+			
 		}
 		
 		return plan;
@@ -56,7 +67,12 @@ public class Planner {
 			}
 			else if (a.equals("block_link")) {
 				
-				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
+				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", 0);
+				steps.add(step);
+			}
+			else if (a.equals("block_link_overloaded")) {
+				
+				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", 0);
 				steps.add(step);
 			}
 			else if (a.equals("limit_link")) {
@@ -78,6 +94,7 @@ public class Planner {
 				Step step = new Step(ACTIONS.LIMIT_OVERLOADED_LINKS, "links");
 				steps.add(step);
 			}
+				
 		}
 		
 		return steps;

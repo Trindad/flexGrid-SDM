@@ -77,7 +77,6 @@ public class DecisionTree {
 				add("non-balanced");
 				add("overloaded");
 				add("perfect");
-				add("high-xt");
 				add("performance");
 				add("costly");
 			}

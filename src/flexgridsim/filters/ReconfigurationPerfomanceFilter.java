@@ -1,7 +1,11 @@
 package flexgridsim.filters;
 
+import burlap.behavior.singleagent.shaping.ShapedRewardFunction;
+import burlap.mdp.core.action.SimpleAction;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.VonControlPlane;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 import flexgridsim.rsa.VonReconfiguration;
 import vne.VirtualNetworkEmbedding;
 
@@ -26,14 +30,21 @@ public class ReconfigurationPerfomanceFilter {
 		this.defragmentation = new VonReconfiguration();
     	this.defragmentation.initialize(pt, vne, cp);
     	
-    	getFragmentationRatio(pt);
+    	updateFragmentationRatio(pt);
+    	double before = rate;
     	System.out.println("before: "+rate);
     	defragmentation.runDefragmentantion();
-    	getFragmentationRatio(pt);
+    	updateFragmentationRatio(pt);
     	System.out.println("after: "+rate);
+    	
+    	//rewarding negatively
+    	if(rate >= before) 
+    	{
+    		ShapedPlanRF.updateValue(new GridState(10,1), "right", -5);
+    	}
 	}
 	
-	private double []getFragmentationRatio(PhysicalTopology pt) {
+	private void updateFragmentationRatio(PhysicalTopology pt) {
     	
     	int nLinks = pt.getNumLinks();
     	double []fi = new double[nLinks];
@@ -46,8 +57,6 @@ public class ReconfigurationPerfomanceFilter {
     	}
     	
     	rate = (rate / (double)nLinks);
-    	
-    	return fi;
 	}
 	
 }
