@@ -221,7 +221,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		Database.getInstance().bbr = statistics.getBandwidthBlockingRatio();
 		
 		Database.getInstance().nVons = this.activeVons.size();//number of active vons
-		
+		Database.getInstance().acceptance = statistics.getAcceptance();
 		
 		Database.dataWasUpdated();
 	}
@@ -490,7 +490,7 @@ public class VonControlPlane implements ControlPlaneForVon {
     	
     }
 
-	public void updateControlPlane(PhysicalTopology pt2, VirtualNetworkEmbedding vne, Map<Long, Flow> flows) {
+	public void updateControlPlane(PhysicalTopology newPt, VirtualNetworkEmbedding newVne, Map<Long, Flow> flows) {
 		
 	}
 }

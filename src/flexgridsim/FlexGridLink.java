@@ -29,7 +29,7 @@ public class FlexGridLink {
 	private int reserved;
 	private boolean isBlocked = false;
 	private int slotsAvailable = 0;
-	private double XT = 0;
+	private double XT = -80;
 //	private double currentXT = 0;
 	
 	/**
@@ -192,7 +192,6 @@ public class FlexGridLink {
 				xti = this.xt.interCoreCrosstalk(i, j, n, this.distance);
 				
 				if(xti > 0) {
-//					System.out.println(xti + " "+n+ " c: "+i);
 					nXT++;
 					xt = xt + xti;
 				}

@@ -2,6 +2,8 @@ package flexgridsim.filters;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 
 public class BlockNonBalancedLinkFilter {
 
@@ -17,6 +19,21 @@ public class BlockNonBalancedLinkFilter {
 	}
 	
 	public boolean isDone(PhysicalTopology pt) {
+		
+		if(!check(pt)) 
+		{	
+			ShapedPlanRF.updateValue(new GridState(1,1), "right", -1);
+			
+			return false;
+		}
+		
+		ShapedPlanRF.updateValue(new GridState(1,1), "right", 1);
+		
+		return true;
+	}
+	
+	
+	public boolean check(PhysicalTopology pt) {
 		
 		if(Database.getInstance().bbrPerPair[targetLink] > Database.getInstance().bbr) {
 			
@@ -35,5 +52,8 @@ public class BlockNonBalancedLinkFilter {
 		}
 		
 		return true;
+		
 	}
+	
+	
 }

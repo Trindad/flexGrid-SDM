@@ -219,11 +219,11 @@ public class PhysicalTopology {
     	
         if (adjMatrix[node1][node2] != null) {
         	
-        	if(!Hooks.runBlockOverloadedLinkFilter( getLink(node1, node2).getID()) ) 
+        	if(!Hooks.runBlockOverloadedLinkFilter( getLink(node1, node2).getID(), this) ) 
         	{
         		return false;
         	}
-        	if(!Hooks.runBlockNonBalancedLinkFilter( getLink(node1, node2).getID()) )
+        	if(!Hooks.runBlockNonBalancedLinkFilter( getLink(node1, node2).getID(), this) )
         	{
         		return false;
         	}
@@ -231,6 +231,12 @@ public class PhysicalTopology {
         	{
         		return false;
         	}
+        	if(!Hooks.runLimitingPerformanceLinkFilters(getLink(node1, node2).getID(), this)) {
+				return false;
+			}
+        	if(!Hooks.runLimitingNonBalancedLinkFilters(getLink(node1, node2).getID(), this)) {
+				return false;
+			}
         	
             return true;
         } 
@@ -252,9 +258,14 @@ public class PhysicalTopology {
     	WeightedGraph g = new WeightedGraph(nodes);
         for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
-            	if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+            	if (!Hooks.runBlockCostlyNodeFilter(i, this) || !Hooks.runBlockCostlyNodeFilter(j, this)) {
+					
             		continue;
             	}
+				if(!Hooks.runLimitCostlyNodeFilter(i, this) || !Hooks.runLimitCostlyNodeFilter(j, this)) {
+					continue;
+				}
+				
             	
                 if (hasLink(i, j)) {
                     g.addEdge(i, j, getLink(i, j).getWeight());
@@ -305,13 +316,14 @@ public class PhysicalTopology {
 		    
 			for (int j = i+1; j < nodes; j++) {
 				
-				if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+				if (!Hooks.runBlockCostlyNodeFilter(i, this) || !Hooks.runBlockCostlyNodeFilter(j, this)) {
 					
             		continue;
             	}
 				if(!Hooks.runLimitCostlyNodeFilter(i, this) || !Hooks.runLimitCostlyNodeFilter(j, this)) {
 					continue;
 				}
+				
 		       
 		    	if (hasLink(i, j)) 
 		    	{
@@ -574,11 +586,18 @@ public class PhysicalTopology {
 		
 		for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
-            	if (!Hooks.runBlockCostlyNodeFilter(i) || !Hooks.runBlockCostlyNodeFilter(j)) {
+            	if (!Hooks.runBlockCostlyNodeFilter(i, this) || !Hooks.runBlockCostlyNodeFilter(j, this)) {
+					
             		continue;
             	}
+				if(!Hooks.runLimitCostlyNodeFilter(i, this) || !Hooks.runLimitCostlyNodeFilter(j, this)) {
+					continue;
+				}
+				
+				
             	
-                if (hasLink(i, j)) {
+                if (hasLink(i, j)) 
+                {
                     g.addEdge(i, j, getLink(i, j).getWeight());
                 }
             }

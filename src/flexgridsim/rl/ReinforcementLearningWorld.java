@@ -94,15 +94,17 @@ public class ReinforcementLearningWorld implements DomainGenerator {
 				str = "redirect_traffic";
 				break;
 			case 4:
-			case 12:
-				str = "limit_link";
-				break;
-			case 5:
-				str = "defragment_network";
+				str = "limit_non_balanced_link";
 				break;
 			case 6:
 			case 7:
-				str = "limit_link";
+				str = "limit_performance_link";
+				break;
+			case 12:
+				str = "limit_overloaded_link";
+				break;
+			case 5:
+				str = "defragment_network";
 				break;
 			case 8:
 			case 9:

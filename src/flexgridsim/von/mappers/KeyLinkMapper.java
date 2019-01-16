@@ -152,7 +152,7 @@ public class KeyLinkMapper extends Mapper {
 			rcd[i] = Double.MIN_VALUE;
 			nodeIndices.add(i);
 		}
-		System.out.println(shortestPaths.size());
+//		System.out.println(shortestPaths.size());
 		for(int source = 0; source < pt.getNumNodes(); source++) {
 	
 			for(int destination = 0; destination < pt.getNumNodes(); destination++) {

@@ -2,6 +2,8 @@ package flexgridsim.filters;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
+import flexgridsim.rl.GridState;
+import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
 
 public class LimitCostlyNodeFilter {
 
@@ -18,19 +20,38 @@ public class LimitCostlyNodeFilter {
 	
 	public boolean isDone(PhysicalTopology pt) {
 		
+		
+		if(!check(pt)) 
+		{	
+			ShapedPlanRF.updateValue(new GridState(23,1), "down", -1);
+			return false;
+		}
+		
+		
+		ShapedPlanRF.updateValue(new GridState(23,1), "down", 1);
+		
+		return true;
+	}
+
+	public boolean check(PhysicalTopology pt) {
+		
 		double total = pt.getNumNodes() * 5.0;
 		double meanTransponders = (double)( total - Database.getInstance().totalTransponders ) / total;
 		
-		if(pt.getNode(targetNode).getTransponders() > (meanTransponders + meanTransponders * 0.25)) 
+		if(pt.getNode(targetNode).getTransponders() > meanTransponders) 
 		{	
+			
 			return false;
 		}
 		
 		double meanComputeResource = (double)Database.getInstance().totalComputeResource/ (double)pt.getNumNodes();
 		
-		if(pt.getNode(targetNode).getComputeResource() > (meanComputeResource + meanComputeResource * 0.25)) {
+		if(pt.getNode(targetNode).getComputeResource() > meanComputeResource) 
+		{
+			
 			return false;
 		}	
+		
 		
 		return true;
 	}

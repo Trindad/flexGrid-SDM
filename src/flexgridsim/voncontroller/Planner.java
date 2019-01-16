@@ -30,8 +30,12 @@ public class Planner {
 			
 			int count = Collections.frequency(classification, "high");
 			
-			if(count < ((double)classification.size()*0.4)) {
+			if(count < ( (double)classification.size()*0.3) ) 
+			{
 				Collections.replaceAll(classification, "high", "medium");
+			}
+			else {
+				System.out.println("Performance aborted");
 			}
 		}
 		
@@ -47,7 +51,13 @@ public class Planner {
 				plan.addStep(e);
 			}
 			
+			if(!plan.getSteps().isEmpty() && plan.getSteps().get(0).action.equals(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK) )
+			{
+				break;
+			}
+			
 		}
+		
 		
 		return plan;
 	}
@@ -76,9 +86,19 @@ public class Planner {
 				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", i);
 				steps.add(step);
 			}
-			else if (a.equals("limit_link")) {
+			else if (a.equals("limit_overloaded_link")) {
 				
 				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_non_balanced_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_NON_BALANCED_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_performance_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_PERFORMANCE_LINK, "link", i);
 				steps.add(step);
 			}
 			else if (a.equals("limit_node")) {

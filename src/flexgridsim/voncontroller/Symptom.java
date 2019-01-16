@@ -110,10 +110,7 @@ public class Symptom {
 				matrix.add(row);
 			}
 		}
-		else 
-		{
-			System.err.println("This problem doesn't exist..."+type.toString().length());
-		}
+		
 		
 		this.dataset = matrix;
 	}

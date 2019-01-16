@@ -14,7 +14,7 @@ import flexgridsim.von.VirtualNode;
 import flexgridsim.von.VirtualTopology;
 
 public class MAPEMapper extends KeyLinkMapper {
-	PhysicalTopology temp;
+	private PhysicalTopology temp;
 
 	public void vonArrival(VirtualTopology von) {
 		
@@ -22,7 +22,7 @@ public class MAPEMapper extends KeyLinkMapper {
 		
 		int count = 0;
 		for(int i = 0; i < pt.getNumNodes(); i++) {
-			if (!Hooks.runBlockCostlyNodeFilter(i)) {
+			if (!Hooks.runBlockCostlyNodeFilter(i,pt) || !Hooks.runLimitCostlyNodeFilter(i, pt)) {
 				
 				count++;
         	}
