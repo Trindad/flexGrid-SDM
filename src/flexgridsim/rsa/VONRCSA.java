@@ -34,11 +34,7 @@ public class VONRCSA extends SCVCRCSA {
 	private VonControlPlane cp;
 	
 	public void flowArrival(Flow flow) {
-		
-//		System.out.println(pt.getNode(flow.getSource()).getTransponders() +" :::  "+pt.getNode(flow.getDestination()).getTransponders());
-		
-		
-		
+
 		if(pt.getNode(flow.getSource()).getTransponders() <= 0 || pt.getNode(flow.getDestination()).getTransponders() <= 0) {
 			
 			return;
@@ -149,7 +145,7 @@ public class VONRCSA extends SCVCRCSA {
 		return selectedPath;
 	}
 
-	private ArrayList<ArrayList<Slot>> getBlockOfSlots(Flow flow, int []modulationFormats) {
+	protected ArrayList<ArrayList<Slot>> getBlockOfSlots(Flow flow, int []modulationFormats) {
 		
 		ArrayList<ArrayList<Slot>> blockOfSlots = new ArrayList<ArrayList<Slot>>();
 		modulationFormats = getModulationFormat(flow);

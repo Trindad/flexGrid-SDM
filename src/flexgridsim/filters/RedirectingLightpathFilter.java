@@ -17,6 +17,7 @@ import flexgridsim.Slot;
 import flexgridsim.VonControlPlane;
 import flexgridsim.rl.GridState;
 import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
+import flexgridsim.rsa.VONRCSA;
 import vne.VirtualNetworkEmbedding;
 
 public class RedirectingLightpathFilter {
@@ -40,12 +41,19 @@ public class RedirectingLightpathFilter {
 		
 		for(Long key : flows.keySet()) {
 			
-			if(Arrays.asList( flows.get(key).getLinks() ).contains(targetLink))
-			{		
-				boolean accept = redirectingLightpath(flows.get(key), pt);
+			ArrayList<Integer> t = new ArrayList<>();
+			
+			for (int i : flows.get(key).getLinks()) {
+				t.add(i);
+			}
+			
+			if(t.contains(targetLink))
+			{
+				System.out.println("In link? " + targetLink);
+				boolean accept = redirectingLightpath(flows.get(key), pt, cp);
 				
 				if(!accept) continue;
-				
+				System.out.println("GOT IT");
 				double current = (double)pt.getLink(targetLink).getNumFreeSlots()/(double)(pt.getCores() * pt.getNumSlots());
 				if(current >= meanAvailableSlots) 
 				{
@@ -61,7 +69,7 @@ public class RedirectingLightpathFilter {
 		
 	}
 
-	private boolean redirectingLightpath(Flow flow, PhysicalTopology pt) {
+	private boolean redirectingLightpath(Flow flow, PhysicalTopology pt, VonControlPlane cp) {
 		
 		PhysicalTopology temp = new PhysicalTopology(pt);
 		
@@ -90,6 +98,8 @@ public class RedirectingLightpathFilter {
 		List< GraphPath<Integer, DefaultWeightedEdge> > p = ksp.getPaths( flow.getSource(), flow.getDestination() );
 		
 		if(p == null) return false;
+		
+		System.out.println("pass");
 		
 		ArrayList<int[]> paths = new ArrayList<>();
 		for (int k = 0; k < p.size(); k++) {
@@ -123,22 +133,53 @@ public class RedirectingLightpathFilter {
 		
 		indices.sort((a,b) -> ratio[a] - ratio[b]);
 		
+		RedirectingRSA rsa = new RedirectingRSA(temp, cp);
+		rsa.paths = paths;
+		rsa.indices = indices;
+		flow.setAccepeted(false);
 		
-		for(int i : indices) {
-			
-			links = paths.get(i);
-			
-			RSA rcsa = new MyRCSA();
-			if(fitConnection(flow, bitMapAll(links, temp), links)) {
-				
-				return true;
-			}
-		}
+		rsa.flowArrival(flow);
         
-		return false;
+		return flow.isAccepeted();
 	}
 
-	
+	protected class RedirectingRSA extends VONRCSA {
+		
+		public ArrayList<Integer> indices;
+		
+		public RedirectingRSA(PhysicalTopology pt, VonControlPlane cp) {
+			super.setPhysicalTopology(pt);
+			super.setVonControlPlane(cp);
+		
+		}
+		
+		public void flowArrival(Flow flow) {
+
+			if(pt.getNode(flow.getSource()).getTransponders() <= 0 || pt.getNode(flow.getDestination()).getTransponders() <= 0) {
+				
+				return;
+			}
+			
+			if(!paths.isEmpty()) 
+			{
+				int []modulationFormats = new int[paths.size()];
+				ArrayList<ArrayList<Slot>> blockOfSLots = getBlockOfSlots(flow, modulationFormats);
+				
+				for(int i : indices) {
+					
+					int []links = paths.get(i);
+					
+					establishConnection(links, blockOfSLots.get(i), modulationFormats[i], flow);
+					
+					if(flow.isAccepeted()) {
+						
+						return;
+					}
+				}
+				
+			}
+		}
+	}
 	
 
 }

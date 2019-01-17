@@ -135,6 +135,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			updateDatabase(flows);
 			Orchestrator.getInstance().run();
 			Hooks.runPendingReconfiguration(pt, this, vne);
+			Hooks.runPendingRedirectingLightpath(pt, this, vne);
 		}
 		
 		return true;

@@ -58,12 +58,13 @@ public class Hooks {
 		reconfigurationFilter = null;		
 	}
 	
-	public static void runPendingRedirectingLightpath(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne, int link) {
+	public static void runPendingRedirectingLightpath(PhysicalTopology pt, VonControlPlane cp, VirtualNetworkEmbedding vne) {
 		
-		if(redirectFilters == null) return;
+		for(RedirectingLightpathFilter filter : redirectFilters) {
+			filter.run(pt, cp, vne);
+		}
 		
-		redirectFilters.get(link).run(pt, cp, vne);
-
+		redirectFilters.clear();
 	}
 	
 	public static boolean runBlockCostlyNodeFilter(int node, PhysicalTopology pt) {
