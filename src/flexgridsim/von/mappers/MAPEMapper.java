@@ -18,8 +18,6 @@ public class MAPEMapper extends KeyLinkMapper {
 
 	public void vonArrival(VirtualTopology von) {
 		
-		System.out.println("MAPE Mapper");
-		
 		int count = 0;
 		for(int i = 0; i < pt.getNumNodes(); i++) {
 			if (!Hooks.runBlockCostlyNodeFilter(i,pt) || !Hooks.runLimitCostlyNodeFilter(i, pt)) {

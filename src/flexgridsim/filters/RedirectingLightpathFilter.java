@@ -49,14 +49,15 @@ public class RedirectingLightpathFilter {
 			
 			if(t.contains(targetLink))
 			{
-				System.out.println("In link? " + targetLink);
+				
 				boolean accept = redirectingLightpath(flows.get(key), pt, cp);
 				
 				if(!accept) continue;
-				System.out.println("GOT IT");
+				
 				double current = (double)pt.getLink(targetLink).getNumFreeSlots()/(double)(pt.getCores() * pt.getNumSlots());
 				if(current >= meanAvailableSlots) 
 				{
+					
 					ShapedPlanRF.updateValue(new GridState(4,1), "right", 1);
 					
 					return;
@@ -98,8 +99,6 @@ public class RedirectingLightpathFilter {
 		List< GraphPath<Integer, DefaultWeightedEdge> > p = ksp.getPaths( flow.getSource(), flow.getDestination() );
 		
 		if(p == null) return false;
-		
-		System.out.println("pass");
 		
 		ArrayList<int[]> paths = new ArrayList<>();
 		for (int k = 0; k < p.size(); k++) {

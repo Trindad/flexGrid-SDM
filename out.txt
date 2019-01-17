@@ -15361,3 +15361,4 @@ For n clusters: 2 The average silhouette_score is: 0.909090909091
 For n clusters: 2 The average silhouette_score is: 0.583333333333
 For n clusters: 2 The average silhouette_score is: 0.785714285714
 For n clusters: 2 The average silhouette_score is: 0.875
+For n clusters: 2 The average silhouette_score is: 0.541560217981

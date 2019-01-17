@@ -63,68 +63,57 @@ public class Planner {
 	}
 
 	private ArrayList<Step> convertActionsToSteps(ArrayList<String> actions, Symptom symptom, int i) {
+		
 		ArrayList<Step> steps = new ArrayList<>();
 		
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 27));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 11));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 13));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 9));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 30));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 32));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 2));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 3));
-		steps.add(new Step(ACTIONS.REDIRECT_TRAFFIC, "link", 4));
+		if (actions.contains("defragment_network")) {
+			Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "network");
+			steps.add(step);
+			return steps;
+		}
+		
+		for (String a : actions) {
+			if (a.equals("block_node")) {
+				Step step = new Step(ACTIONS.BLOCK_COSTLY_NODE, "node", i);
+				steps.add(step);
+			}
+			else if (a.equals("block_link")) {
+				
+				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("block_link_overloaded")) {
+				
+				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_overloaded_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_non_balanced_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_NON_BALANCED_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_performance_link")) {
+				
+				Step step = new Step(ACTIONS.LIMIT_PERFORMANCE_LINK, "link", i);
+				steps.add(step);
+			}
+			else if (a.equals("limit_node")) {
+				Step step = new Step(ACTIONS.LIMIT_COSTLY_NODE, "node", i);
+				steps.add(step);
+			}
+			else if (a.equals("redirect_traffic")) {
+				
+				Step step = new Step(ACTIONS.REDIRECT_TRAFFIC, "link", i);
+				steps.add(step);
+			}
+				
+		}
 		
 		return steps;
-		
-//		if (actions.contains("defragment_network")) {
-//			Step step = new Step(ACTIONS.RECONFIGURATION_PERFORMANCE_LINK, "network");
-//			steps.add(step);
-//			return steps;
-//		}
-//		
-//		for (String a : actions) {
-//			if (a.equals("block_node")) {
-//				Step step = new Step(ACTIONS.BLOCK_COSTLY_NODE, "node", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("block_link")) {
-//				
-//				Step step = new Step(ACTIONS.BLOCK_BALANCED_LINK, "link", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("block_link_overloaded")) {
-//				
-//				Step step = new Step(ACTIONS.BLOCK_OVERLOADED_LINK, "link", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("limit_overloaded_link")) {
-//				
-//				Step step = new Step(ACTIONS.LIMIT_OVERLOAD_LINK, "link", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("limit_non_balanced_link")) {
-//				
-//				Step step = new Step(ACTIONS.LIMIT_NON_BALANCED_LINK, "link", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("limit_performance_link")) {
-//				
-//				Step step = new Step(ACTIONS.LIMIT_PERFORMANCE_LINK, "link", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("limit_node")) {
-//				Step step = new Step(ACTIONS.LIMIT_COSTLY_NODE, "node", i);
-//				steps.add(step);
-//			}
-//			else if (a.equals("redirect_traffic")) {
-//				
-//				Step step = new Step(ACTIONS.REDIRECT_TRAFFIC, "link", i);
-//				steps.add(step);
-//			}
-//				
-//		}
-//		
-//		return steps;
 	}
 }

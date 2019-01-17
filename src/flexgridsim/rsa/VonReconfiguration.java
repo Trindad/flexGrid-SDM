@@ -199,7 +199,10 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		int next = index;
 		
 		
-		if(flows.size() <= 100 || !this.runKMeans(this.k, flows)) return;
+		if(flows.size() <= 10 || !this.runKMeans(this.k, flows)) {
+			
+			return;
+		}
 		
 		this.activeFlows = new HashMap<Long, Flow>(); 
 		this.pt.resetAllSpectrum();
