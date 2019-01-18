@@ -67,7 +67,7 @@ public class MAPEMapper extends KeyLinkMapper {
 			
 			int source = link.getSource().getPhysicalNode();
 			int destination = link.getDestination().getPhysicalNode();
-			Flow flow = new Flow(link.getID(), source, destination, von.arrivalTime, link.getBandwidth(), von.holdingTime, link.getSource().getComputeResource(), 0);
+			Flow flow = new Flow(link.getID(), source, destination, von.arrivalTime, link.getBandwidth(), von.holdingTime, 0, 0);
 			
 			if(ptCopy.getNode(source).getComputeResource() >= link.getSource().getComputeResource() || 
 					ptCopy.getNode(destination).getComputeResource() >= link.getDestination().getComputeResource()) {
@@ -78,7 +78,7 @@ public class MAPEMapper extends KeyLinkMapper {
 					((VONRCSA) rsa).setVonControlPlane(cp);
 				}
 				
-				
+				flow.setComputingResource(link.getSource().getComputeResource(), link.getDestination().getComputeResource());
 				flow.setVonID(von.getID());
 				flow.setLightpathID(link.getID());
 				rsa.flowArrival(flow);

@@ -74,9 +74,11 @@ public class VonStatistics {
 			plotter.addDotToGraph("linkload", arrivals, getLinkLoad());
 			
 			System.out.println("Arrivals: " + arrivals+" Departures: "+departures);
-			System.out.println("acceptance: "+((float) this.vonAcceptedRate) / ((float) arrivals)+" blocked: "+((float) this.vonBlockedRate) / ((float) arrivals)+" bbr: "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth));
+			System.out.println("acceptance: "+((float) this.vonAcceptedRate) / ((float) arrivals)+" blocked: "+((float) this.vonBlockedRate) / ((float) arrivals)+" bbr: "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth)
+					+" linkload: "+linkLoad);
 		}
-		else {
+		else 
+		{
 			System.out.println("Something wrong occured...");
 			throw (new IllegalArgumentException());
 		}

@@ -29,6 +29,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 private VirtualNetworkEmbedding vne;
 	 public boolean mape;
 	 
+	 private Map<Flow, Integer> flowCount;
+	 
 	 Element xml;
 	 EventScheduler eventScheduler;
 	 private VonStatistics statistics = VonStatistics.getVonStatisticsObject();
@@ -51,7 +53,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 		this.mappedFlows = new HashMap<VirtualTopology, Map<Long, Flow>>();
 		this.xml = xml;
 		this.eventScheduler = eventScheduler;
-		 
+		
+		this.flowCount = new HashMap<Flow, Integer>();
+		
 		 this.pt.setGraph();
 		 
 		 try 
@@ -177,7 +181,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 	private void updateDatabase(Map<Long, Flow> flows) {
 			
 		for(Long key: flows.keySet()) {
-			
 			Flow flow = flows.get(key);
 			if(!flow.isAccepeted()) continue;
 			
@@ -189,8 +192,12 @@ public class VonControlPlane implements ControlPlaneForVon {
 			
 			Database.getInstance().usedTransponders[flow.getSource()] += 1;
 			Database.getInstance().usedTransponders[flow.getDestination()] += 1;
-			Database.getInstance().computing[flow.getSource()] += flow.getComputingResource();
+			
+			Database.getInstance().computing[flow.getSource()] += flow.getComputingResourceSource();
+			Database.getInstance().computing[flow.getDestination()] += flow.getComputingResourceDestination();
 			Database.getInstance().totalComputeResource += flow.getComputingResource();
+			
+			flowCount.put(flow, flow.getComputingResource());
 			
 			getLinkInPath(flow); 
 		}
@@ -250,6 +257,9 @@ public class VonControlPlane implements ControlPlaneForVon {
 				Flow flow = mappedFlows.get(activeVons.get(id)).get(key);
 				if(!flow.isAccepeted()) continue;
 				
+				int c = flowCount.get(flow) - flow.getComputingResource();
+				flowCount.put(flow, c);
+				
 				pt.getNode(flow.getSource()).updateTransponders(1);
 				pt.getNode(flow.getDestination()).updateTransponders(1);
 				pt.setComputeResourceUsed(activeVons.get(id).nodes, 1.0);
@@ -261,13 +271,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 				if(this.mape == true) {
 				
 					Database.getInstance().totalTransponders -= 2;
-					Database.getInstance().usedTransponders[flow.getSource()] = pt.getNode(flow.getSource()).getTransponders();
-					Database.getInstance().usedTransponders[flow.getDestination()] = pt.getNode(flow.getDestination()).getTransponders();
+					Database.getInstance().usedTransponders[flow.getSource()] -= 1;
+					Database.getInstance().usedTransponders[flow.getDestination()] -= 1;
 					Database.getInstance().flowCount -= 1;
+					
 					
 					Database.getInstance().usedBandwidth[flow.getSource()] -= flow.getRate();
 					Database.getInstance().usedBandwidth[flow.getDestination()] -= flow.getRate();
-					Database.getInstance().computing[flow.getSource()] -= flow.getComputingResource();
+					Database.getInstance().computing[flow.getSource()] -= flow.getComputingResourceSource();
+					Database.getInstance().computing[flow.getDestination()] -= flow.getComputingResourceDestination();
 					Database.getInstance().totalComputeResource -= flow.getComputingResource();
 					
 					getLinkInPath(flow); 

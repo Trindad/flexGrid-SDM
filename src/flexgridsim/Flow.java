@@ -30,7 +30,9 @@ public class Flow {
     private double time;
     private int modulationLevel;
     
-    private double computingResource;
+    private int computingResource;
+    private int computingResourceSource;
+    private int computingResourceDestination;
     
     //Batch requests
     boolean isBatchRequest;
@@ -78,7 +80,7 @@ public class Flow {
             this.dst = dst;
             this.bw = bw;
             this.duration = duration;
-            this.cos = cos;
+            this.cos = computingResource = cos;
             this.deadline = deadline;
             this.accepeted = false;
             this.time = time;
@@ -508,8 +510,22 @@ public class Flow {
 		this.vLinkID = vLinkID;
 	}
 
-	public double getComputingResource() {
+	public int getComputingResourceSource() {
+		return this.computingResourceSource;
+	}
+
+	public int getComputingResourceDestination() {
+		return this.computingResourceDestination;
+	}
+	
+	public void setComputingResource(int s, int d) {
 		
-		return this.computingResource;
+		this.computingResourceSource = s;
+		this.computingResourceDestination = d;
+	}
+
+	public int getComputingResource() {
+		
+		return computingResourceDestination + computingResourceSource;
 	}
 }
