@@ -467,7 +467,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		
 		xt = xt > 0 ? ( 10.0f * Math.log10(xt)/Math.log10(10) ) : -80f;//db
 		
-		return xt == 0 || xt <= db;
+		return xt <= db;
 	}
 	
 	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation, int s, int e) {
@@ -548,8 +548,8 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		PythonCaller caller = new PythonCaller();
 		KMeansResult result = caller.kmeans(features, k);
 		
-		System.out.println("silhouette: "+result.getSilhouette());
-		if(result.getSilhouette() <= 0.7) {
+//		System.out.println("silhouette: "+result.getSilhouette());
+		if(result.getSilhouette() <= 0.5) {
 			
 			return false;
 		}

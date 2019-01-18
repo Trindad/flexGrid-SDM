@@ -6,12 +6,12 @@
 @ATTRIBUTE class {'high', 'medium', 'low'}
 
 @DATA
-0.5,0.6,20,high
-0.5,0.6,20,high
-0.5,0.6,20,high
-0.5,0.6,20,medium
-0.5,0.6,20,medium
-0.5,0.6,20,medium
-0.5,0.6,20,low
-0.5,0.6,20,low
-0.5,0.6,20,low
+0.5,1,1000,high
+0.5,2,1000,high
+0.5,2,900,high
+0.5,3,500,medium
+0.5,3,500,medium
+0.5,3,200,medium
+0.4,4,100,low
+0.4,4,400,low
+0.5,5,0,low

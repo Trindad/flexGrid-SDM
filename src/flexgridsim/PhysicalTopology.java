@@ -565,17 +565,27 @@ public class PhysicalTopology {
     	for (Integer key : weights.keySet()) {
                
     		int source = linkVector[key].getSource(),  destination = linkVector[key].getDestination();
-    		if (!hasLink(source, destination)) 
-        	{
-    			System.out.println("source and destination not connected");
+    		
+    		if (!Hooks.runBlockCostlyNodeFilter(source, this) || !Hooks.runBlockCostlyNodeFilter(destination, this)) 
+    		{
+				
+        		continue;
         	}
-    		else if(!vonGraph.containsEdge(source, destination)){
-    			double w = weights.get(key);
-    			
-    			DefaultWeightedEdge edge = vonGraph.addEdge(source, destination);
-               
-                vonGraph.setEdgeWeight(edge, w);
-               
+			if(!Hooks.runLimitCostlyNodeFilter(source, this) || !Hooks.runLimitCostlyNodeFilter(destination, this)) 
+			{
+				continue;
+			}
+    		
+    		if (hasLink(source, destination)) 
+        	{
+    			if(!vonGraph.containsEdge(source, destination))
+    			{
+	    			double w = weights.get(key);
+	    			
+	    			DefaultWeightedEdge edge = vonGraph.addEdge(source, destination);
+	               
+	                vonGraph.setEdgeWeight(edge, w);
+    			}
     		} 
         }
 	}

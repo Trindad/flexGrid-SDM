@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import flexgridsim.Database;
 import flexgridsim.PhysicalTopology;
+import javafx.scene.chart.PieChart.Data;
 
 /**
  * 
@@ -60,7 +61,8 @@ public class Symptom {
 				ArrayList<Double> row = new ArrayList<>();
 				row.add(bbr[i]);
 				row.add(xt[i]);
-				row.add((double) availableSlots[i]);
+				double a = db.pt.getCores() * db.pt.getNumSlots();
+				row.add((double) availableSlots[i]/a );
 				
 				matrix.add(row);
 			}
@@ -72,8 +74,10 @@ public class Symptom {
 			numberOfLightpaths = db.numberOfLightpaths;	
 			
 			for (int i = 0; i < pt.getNumLinks(); i++) {
+				
 				ArrayList<Double> row = new ArrayList<>();
-				row.add(bbr[i]);
+				double a = (double)availableSlots[i]/(double)(db.pt.getCores() * db.pt.getNumSlots());
+				row.add(a);
 				row.add(closenessCentrality[i]);
 				row.add((double) numberOfLightpaths[i]);
 				
@@ -88,6 +92,7 @@ public class Symptom {
 			
 			for (int i = 0; i < pt.getNumNodes(); i++) {
 				ArrayList<Double> row = new ArrayList<>();
+				System.out.println(computing[i]+" "+usedTransponders[i]+" "+usedBandwidth[i]);
 				row.add(computing[i]);
 				row.add((double) usedTransponders[i]);
 				row.add((double) usedBandwidth[i]);
