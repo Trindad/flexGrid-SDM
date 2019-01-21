@@ -57,4 +57,8 @@ public class VirtualLink {
 	public int[] getPhysicalLinks() {
 		return this.links;
 	}
+
+	public static void resetID() {
+		ID = 0;
+	}
 }

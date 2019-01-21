@@ -57,6 +57,7 @@ public class Main {
 			}
 			
 			flexgridsim = new VirtualizationSimulator();
+			
 			((VirtualizationSimulator)flexgridsim).Execute(simConfigFile, verbose, nSimulations, minload, maxload, step);
 			
 			return;

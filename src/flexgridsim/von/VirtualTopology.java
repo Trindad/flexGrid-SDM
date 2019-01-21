@@ -79,5 +79,9 @@ public class VirtualTopology {
 		
 		return false;
 	}
+
+	public static void resetID() {
+		ID = 0;
+	}
 	 
 }

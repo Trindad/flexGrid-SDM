@@ -1,6 +1,9 @@
 package flexgridsim;
 
 import flexgridsim.rl.ReinforcementLearningWorld.ShapedPlanRF;
+import flexgridsim.von.VirtualLink;
+import flexgridsim.von.VirtualNode;
+import flexgridsim.von.VirtualTopology;
 import flexgridsim.voncontroller.MAPEConfiguring;
 import flexgridsim.voncontroller.MAPEOptimizing;
 
@@ -31,14 +34,15 @@ public class Orchestrator {
 		return instance;
 	}
 
-	public static void reset() {
-		
-		instance.configure = null;
-		instance.optimize = null;
+	public static void reset() {		
+		instance.configure = new MAPEConfiguring();
+		instance.optimize = new MAPEOptimizing();
 		
 		Hooks.reset();
 		ShapedPlanRF.reset();
-		
+		VirtualTopology.resetID();
+		VirtualNode.resetID();
+		VirtualLink.resetID();
 	}
 	
 	public void run() {

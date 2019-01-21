@@ -118,7 +118,7 @@ public class MAPEMapper extends KeyLinkMapper {
 			cp.acceptVon(von.getID(), flows);
 		}
 		
-		this.pt = temp;
+		pt = temp;
 	}
 	
 }

@@ -245,7 +245,7 @@ public class VONRCSA extends SCVCRCSA {
 			System.out.println("Physical topology is NULL");
 		}
 		
-		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getVONGraph(), kPaths);
+		org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kSP = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getWeightGraph(), kPaths);
 		List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kSP.getPaths( flow.getSource(), flow.getDestination() );
 			
 		if(KPaths.size() >= 1)

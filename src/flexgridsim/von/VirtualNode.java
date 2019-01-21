@@ -71,4 +71,8 @@ public class VirtualNode {
 	public void setRequestResource(double requestResource) {
 		this.requestResource = requestResource;
 	}
+
+	public static void resetID() {
+		ID = 0;
+	}
 }

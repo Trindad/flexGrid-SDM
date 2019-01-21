@@ -32,7 +32,7 @@ public class BlockCostlyNodeFilter {
 	
 	public boolean check(PhysicalTopology pt) {
 		
-		double total = pt.getNumNodes() * 5.0;
+		double total = pt.getNumNodes() * pt.transponders;
 		double meanTransponders = (double)( total - Database.getInstance().totalTransponders ) / total;
 		
 		if(pt.getNode(targetNode).getTransponders() < meanTransponders) 

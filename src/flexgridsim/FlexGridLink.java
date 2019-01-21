@@ -29,7 +29,7 @@ public class FlexGridLink {
 	private int reserved;
 	private boolean isBlocked = false;
 	private int slotsAvailable = 0;
-	private double XT = -80;
+	private double XT;
 //	private double currentXT = 0;
 	
 	/**
@@ -82,6 +82,7 @@ public class FlexGridLink {
 				}
 			}
 			
+			XT = -80;
 			xt = new XTAwareResourceAllocation(this.cores, this.cores, this.slots);
 		}
 	}
@@ -176,38 +177,24 @@ public class FlexGridLink {
 	
 	public void updateCrosstalk() {
 		
-		double xt = 0, xti = 0;
-		int nXT = 0;
-		for(int i = 0; i < this.cores; i++) {
-			for(int j = 0; j < this.slots; j++) {
-				double n = 0;
-				if(reservedSlots[i][j]) {
-					for(Integer c: this.xt.getAdjacentsCores(i) ) {
-						if(reservedSlots[c][j]) {
-							n++;
-						}
-					}
-				}
-				
-				xti = this.xt.interCoreCrosstalk(i, j, n, this.distance);
-				
-				if(xti > 0) {
-					nXT++;
-					xt = xt + xti;
-				}
-			}
-		}
+
+		double meanXT = 0;
 		
-		if( nXT >= 1) {
-			xt = convertToDB(xt);//db
-			if(XT > xt) 
-			{
-				XT = xt;
+		for(int c = 0; c < cores; c++) {
+			for(int s = 0; s < slots; s++) {
+				Slot slot = new Slot(c, s);
+				int controller = getInterCoreCrosstalkInAdjacent(slot);
+				double x = getNewXT(slot, controller);
+				meanXT += x > 0 ? ( 10.0f * Math.log10(x)/Math.log10(10) ) : -80.0f;//db
 			}
 		}
+
+		XT = (meanXT/(double)(cores * slots));
+
 	}
 	
 	public double getSumOfInterCoreCrosstalk() {
+		
 		return XT;
 	}
 

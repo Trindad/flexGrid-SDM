@@ -37,6 +37,8 @@ public class PhysicalTopology {
     private SimpleWeightedGraph<Integer, DefaultWeightedEdge> graph;
     private SimpleWeightedGraph<Integer, DefaultWeightedEdge> vonGraph;
     
+    public int transponders = 20; 
+    
     
     /**
      * Creates a new PhysicalTopology object.
@@ -433,7 +435,7 @@ public class PhysicalTopology {
 			}
 		}
 		
-		return xt == 0 || xt <= db;
+		return xt <= db;
 	}
 
     public double canAcceptInterCrosstalk(Flow flow, ArrayList<Integer> links, ArrayList<Slot> s1, ArrayList<Slot> s2) {
@@ -529,7 +531,7 @@ public class PhysicalTopology {
         this.links = p.links;
         this.cores = p.cores;
         this.slots = p.slots;
-        this.slotBw = p.slotBw;
+        this.slotBw = p.slotBw;    
         
         this.nodeVector = p.nodeVector.clone();
         this.linkVector = p.linkVector.clone();
@@ -591,10 +593,24 @@ public class PhysicalTopology {
     		} 
         }
 	}
-
-	public Graph<Integer, DefaultWeightedEdge> getVONGraph() {
+	
+	public SimpleWeightedGraph<Integer, DefaultWeightedEdge> getWeightGraph() {
 		
-		WeightedGraph g = new WeightedGraph(nodes);
+		if(vonGraph == null) 
+		{
+			return getVONGraph();
+		}
+		
+		return vonGraph ;
+	}
+
+	public SimpleWeightedGraph<Integer, DefaultWeightedEdge> getVONGraph() {
+		
+		SimpleWeightedGraph<Integer, DefaultWeightedEdge> g = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+		
+		for(int i = 0; i < nodes; i++) {
+    		g.addVertex(i);
+    	}
 		
 		for (int i = 0; i < nodes; i++) {
             for (int j = 0; j < nodes; j++) {
@@ -606,16 +622,21 @@ public class PhysicalTopology {
 					continue;
 				}
 				
-				
-            	
                 if (hasLink(i, j)) 
                 {
-                    g.addEdge(i, j, getLink(i, j).getWeight());
+                    if(!g.containsEdge(i, j))
+        			{
+    	    			double w = getLink(i, j).getWeight();
+    	    			
+    	    			DefaultWeightedEdge edge = g.addEdge(i, j);
+    	               
+    	                g.setEdgeWeight(edge, w);
+        			}
                 }
             }
         }
 		
-		return vonGraph;
+		return g;
 	}
 
 	public void setComputeResourceUsed(ArrayList<VirtualNode> virtualNodes, double factor) {
@@ -664,6 +685,17 @@ public class PhysicalTopology {
         }
 		
 		return c;
+	}
+
+	public double getMeanAvailableTransponders() {
+		
+		double available = 0;
+		
+		for(int i = 0; i < nodeVector.length; i++) {
+			available += nodeVector[i].getTransponders();
+		}
+		
+		return 1.0 - (available/(double)(nodes * transponders));
 	}
 
 }

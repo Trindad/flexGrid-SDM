@@ -90,19 +90,29 @@ public class KeyLinkMapper extends Mapper {
 			
 				if(!flow.isAccepeted()) {
 //					System.out.println("VON Blocked: "+von.getID());
+					for(Long key : flows.keySet()) {
+						Flow f = flows.get(key);
+						if(f.isAccepeted()) {
+							ptCopy.getNode(f.getSource()).updateTransponders(1);
+							ptCopy.getNode(f.getDestination()).updateTransponders(1);
+						}
+					}
+					
 					accepted = false;
 					cp.blockVon(von.getID());
 					break;
 				}
 				
+				ptCopy.getNode(flow.getSource()).updateTransponders(-1);
+				ptCopy.getNode(flow.getDestination()).updateTransponders(-1);
+				
 				accepted = true;
-				flows.put(flow.getID(), flow);
+				flows.put(flow.getID(),flow);
 				link.setPhysicalPath(flow.getLinks());
 			}
 			
-			if(accepted == true) {
-//				System.out.println("VON Accepted: "+von.getID());
-				pt.updateEverything(ptCopy);
+			if(accepted == true) 
+			{
 				cp.updateControlPlane(ptCopy);
 				cp.acceptVon(von.getID(), flows);
 			}

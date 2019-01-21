@@ -208,7 +208,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			getLinkInPath(flow); 
 		}
 		
-		Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
+		Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * pt.transponders);
 		Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
 	
 		Database.getInstance().totalNumberOfTranspondersAvailable = 0;
@@ -235,7 +235,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 //		System.out.println("COUNT: "+countAvailableSlots);
 		Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots <= (pt.getNumLinks() * 0.3) && countAvailableSlots >= 1 ? 1 : 0;
 		Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.4 ? 1 : 0;
-		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * 5 * 0.5) && countTransponders >= 1 ? 1 : 0; 
+		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * pt.transponders * 0.5) && countTransponders >= 1 ? 1 : 0; 
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			int available = pt.getLink(i).getSlotsAvailable();
@@ -345,7 +345,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 					
 					Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots <= (pt.getNumLinks() * 0.3) && countAvailableSlots >= 1 ? 1 : 0;
 					Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.4 ? 1 : 0;
-					Database.getInstance().availableTranspondersB = (double)countTransponders >= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * 5 * 0.5) && countTransponders >= 1 ? 1 : 0; 
+					Database.getInstance().availableTranspondersB = (double)countTransponders >= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * pt.transponders * 0.5) && countTransponders >= 1 ? 1 : 0; 
 					
 					
 				}
@@ -357,7 +357,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 			{
 				vne.removeLightpaths(activeVons.get(id));
 				
-				Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
+				Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * pt.transponders);
 				Database.getInstance().availableTransponders = pt.getNumberOfAvailableTransponders();
 				
 				Database.getInstance().totalNumberOfTranspondersAvailable = 0;
