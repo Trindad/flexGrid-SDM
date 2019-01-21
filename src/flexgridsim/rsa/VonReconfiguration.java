@@ -29,12 +29,13 @@ public class VonReconfiguration extends DefragmentationRCSA {
 
 	protected Map<Integer, ArrayList<Flow> > clusters;
 	protected int cores[];
-	protected int k = 2;//number of clusters
+	protected int k = 3;//number of clusters
 	private int nConnectionDisruption = 0;
 	protected double time;
 	private Map<Long, Flow>  activeFlows;
 	
 	private VonControlPlane cp;
+	@SuppressWarnings("unused")
 	private VirtualNetworkEmbedding vne;
 	
 	protected int nextLimit(int index, int key) {
@@ -75,7 +76,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 			ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
 			for(Integer i: priorityCores) {
 
-				if(fitConnection(flow, spectrum, flow.getLinks(), sortFreeCore.get(i), sortFreeCore.get(i) )) 
+				if(fitConnection(flow, spectrum, flow.getLinks() )) 
 				{
 					this.activeFlows.put(flow.getID(), flow);
 					
@@ -86,9 +87,10 @@ public class VonReconfiguration extends DefragmentationRCSA {
 			}
 			
 			
-			this.activeFlows.put(flow.getID(), flow);
+			if(!this.activeFlows.containsKey(flow)) this.activeFlows.put(flow.getID(), flow);
 			
 		}
+		
 		
 		return (this.nConnectionDisruption >= 1);
 	}
@@ -103,13 +105,6 @@ public class VonReconfiguration extends DefragmentationRCSA {
 			flows.get(key).getSlotList().clear();
 		}
 		
-		this.nConnectionDisruption = 0;
-	}
-	
-	@SuppressWarnings("unused")
-	private void updateControlPlane(Map<Long, Flow> flows) {
-		
-		cp.updateControlPlane(this.pt, vne, flows);
 		this.nConnectionDisruption = 0;
 	}
 	
@@ -140,7 +135,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		int index = this.pt.getCores();
 		int next = index;
 		int n = flows.size();
-//		printAllLinksStatus();
+
 		for(Integer key: clusters.keySet()) {
 			
 			if(!clusters.get(key).isEmpty()) 
@@ -150,12 +145,15 @@ public class VonReconfiguration extends DefragmentationRCSA {
 				next = (next - cores[key]);
 				for(Flow flow: clusters.get(key)) {
 					if(isInCorrectCore(flow.getCore(), next, index)) {
+						
 						int modulation = chooseModulationFormat(flow.getRate(), flow.getLinks());
 						
-						if(modulation == flow.getModulationLevel()) {
+						if(modulation == flow.getModulationLevel()) 
+						{
 							updateData(flow, flow.getLinks(), flow.getSlotList(), flow.getModulationLevel());
 						}
-						else {
+						else 
+						{
 							ArrayList<Slot> temp = new ArrayList<Slot>();
 
 							double requestedBandwidthInGHz = ( ((double)flow.getRate()) / ((double)modulation + 1) );
@@ -191,41 +189,61 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		}
 	}
 	
+	
+	public boolean[][]bitMapAll(int []links) {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		spectrum = initMatrix(spectrum, pt.getCores(),pt.getNumSlots());
+		
+		for(int i : links) {
+			bitMap(pt.getLink(i).getSpectrum(), spectrum, spectrum);
+		}
+		
+		this.totalSlotsAvailable = 0;
+		for(int i = 0; i < spectrum.length; i++) {
+			for(int j = 0; j < spectrum[i].length; j++) {
+				
+				if(spectrum[i][j]) {
+					this.totalSlotsAvailable++;
+				}
+				
+			}
+		}
+		
+		return spectrum;
+	}
+	
 	public void runDefragmentantion() {
 		
 		Map<Long, Flow> flows = cp.getActiveFlows();
 		ArrayList<Flow> secondChance = new ArrayList<Flow>();
-		int index = this.pt.getCores();
-		int next = index;
-		
-		
+
 		if(flows.size() <= 10 || !this.runKMeans(this.k, flows)) {
 			
 			return;
 		}
 		
+		System.out.println("NUMBER OF FLOWS: "+flows.size());
 		this.activeFlows = new HashMap<Long, Flow>(); 
 		this.pt.resetAllSpectrum();
-		if(removeFlowsInCorrectCore(flows)) 
-		{
-			return;
-		}
-		System.out.println("Number of flows: "+flows.size());
+
 		this.distributeCores();
 		
 		//re-assigned resources in the same link, but using clustering
 		for(Integer key: clusters.keySet()) {
 			if(!clusters.get(key).isEmpty()) {
-				index = nextLimit(index, key);
-				next = (next - cores[key]);
+				
 				clusters.get(key).sort((a, b) -> b.getRate() - a.getRate());
 				for(Flow flow: clusters.get(key)) {	
 					
 					if(flows.containsKey(flow.getID())) {
-						if(!fitConnection(flow, bitMapAllLimited(flow.getLinks(), index, next), flow.getLinks(), next, index )) {
+						
+						if(!fitConnection(flow, bitMapAll( flow.getLinks() ), flow.getLinks() ))
+						{
 							secondChance.add(flow);
 						}
-						else {
+						else 
+						{
 							this.activeFlows.put(flow.getID(), flow);
 							
 							flow.setCore(flow.getSlotList().get(0).c);
@@ -237,10 +255,10 @@ public class VonReconfiguration extends DefragmentationRCSA {
 				
 			}
 		}
-		
-//		System.out.println(secondChance.size());
+
 		if(secondChance.size() >= 1)
 		{
+			System.out.println("DISRUPTIONS: "+secondChance.size());
 			if(lastChanceToAllocating(secondChance)) 
 			{
 				this.nConnectionDisruption = 0;
@@ -250,24 +268,6 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		}
 		
 		clusters.clear();
-	}
-	
-	private boolean[][] bitMapAllLimited(int[] links, int a, int b) {
-		
-		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
-		boolean[][] spectrumOriginal = bitMapAll(links);
-		
-		for(int i = 0; i < spectrum.length; i++) {	
-			for(int j = 0; j < spectrum[i].length; j++) {
-				spectrum[i][j] = false;
-			}
-		}
-		
-		for(int i = a; i <= b; i++) {
-			spectrum[i] = spectrumOriginal[i];
-		}
-		
-		return spectrum;
 	}
 
 	protected void distributeCores() {
@@ -366,7 +366,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 	 * @param links
 	 * @return
 	 */
-	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links, int n , int i) {
+	public boolean fitConnection(Flow flow, boolean [][]spectrum, int[] links) {
 		
 		ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 		int modulation = chooseModulationFormat(flow.getRate(), flow.getLinks());
@@ -380,7 +380,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 			
 			demandInSlots = (demandInSlots % 2) >= 1 ? (demandInSlots + 1) : demandInSlots;
 			demandInSlots++;//adding guardband
-			fittedSlotList = FirstFitPolicy(flow, spectrum, links, demandInSlots, modulation, n, i);
+			fittedSlotList = FirstFitPolicy(flow, spectrum, links, demandInSlots, modulation);
 			
 			if(fittedSlotList.size() == flow.getSlotListSize()) 
 			{
@@ -470,11 +470,12 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		return xt <= db;
 	}
 	
-	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation, int s, int e) {
+	public ArrayList<Slot> FirstFitPolicy(Flow flow, boolean [][]spectrum, int[] links, int demandInSlots, int modulation) {
 		
 		ArrayList<ArrayList<Slot>> setOfSlots = new ArrayList<ArrayList<Slot>> ();
 		
-		for(int i = s; i >= e; i--) {
+		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
+		for(Integer i: priorityCores) {
 			
 			ArrayList<Slot> temp = new ArrayList<Slot>();
 			for(int j = 0; j < spectrum[i].length; j++) {	
@@ -495,7 +496,6 @@ public class VonReconfiguration extends DefragmentationRCSA {
 					if(CrosstalkIsAcceptable(flow, links, temp, ModulationsMuticore.inBandXT[modulation])) {
 						
 						setOfSlots.add(new ArrayList<Slot>(temp));
-//						return temp;
 					}
 					
 					break;
@@ -531,15 +531,23 @@ public class VonReconfiguration extends DefragmentationRCSA {
 
 	protected boolean runKMeans(int k, Map<Long, Flow> flows) {
 		
-		double[][] features = new double[flows.size()][2];
+		double[][] features = new double[flows.size()][5];
 		ArrayList<Flow> listOfFlows = new ArrayList<Flow>();
 		
 		int i = 0;
 		
 		for(Long f: flows.keySet()) {
 			
-			features[i][1] = (flows.get(f).getLinks().length * 100);
-			features[i][0] = (flows.get(f).getRate() * 10);
+			double length = 0;
+			for(int l : flows.get(f).getLinks()) {
+				length += pt.getLink(l).getDistance();
+			}
+			
+			features[i][0] = length;
+			features[i][1] = flows.get(f).getRate();
+			features[i][2] = flows.get(f).getLinks().length;//number of hops
+			features[i][3] = flows.get(f).getModulationLevel();
+			features[i][4] = Math.abs(flows.get(f).getDuration() - cp.time) * 100;
 			
 			listOfFlows.add(flows.get(f));
 			i++;
@@ -548,8 +556,8 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		PythonCaller caller = new PythonCaller();
 		KMeansResult result = caller.kmeans(features, k);
 		
-//		System.out.println("silhouette: "+result.getSilhouette());
-		if(result.getSilhouette() <= 0.5) {
+		System.out.println("silhouette: "+result.getSilhouette());
+		if(result.getSilhouette() <= 0.6) {
 			
 			return false;
 		}

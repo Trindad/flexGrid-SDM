@@ -514,6 +514,7 @@ public class PhysicalTopology {
 	public void resetAllSpectrum() {
 
 		for(int i = 0; i < linkVector.length; i++) {
+			
 			this.getLink(i).resetSpectrum();
 			this.getLink(i).resetNoises();
 			this.getLink(i).resetCrosstalk();
@@ -523,6 +524,7 @@ public class PhysicalTopology {
 	
 	
 	public void updateEverything(PhysicalTopology p) {
+		
 		this.nodes = p.nodes;
         this.links = p.links;
         this.cores = p.cores;
@@ -656,10 +658,9 @@ public class PhysicalTopology {
     		int source = linkVector[i].getSource();
     		int destination = linkVector[i].getDestination();
     		
-    		c[i] = cc.getVertexScore(source) + cc.getVertexScore(destination);
-    		
-    		nodeVector[source].setClosenessCentrality(cc.getVertexScore(source));
-    		nodeVector[destination].setClosenessCentrality(cc.getVertexScore(destination));
+    		c[i] = (cc.getVertexScore(source) + cc.getVertexScore(destination)) * 100;
+    		nodeVector[source].setClosenessCentrality(cc.getVertexScore(source) * 100);
+    		nodeVector[destination].setClosenessCentrality(cc.getVertexScore(destination) * 100);
         }
 		
 		return c;

@@ -3,7 +3,13 @@ package flexgridsim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.jgrapht.GraphPath;
+import org.jgrapht.graph.DefaultWeightedEdge;
+
+import com.kenai.jffi.Array;
 
 import flexgridsim.von.VirtualLink;
 import flexgridsim.von.VirtualTopology;
@@ -36,6 +42,8 @@ public class VonStatistics {
 	private Map<VirtualTopology, Integer> bandwidths;
 	private Map<VirtualTopology, Integer> computeResource;
 	private Map<VirtualTopology, Integer> hops;
+	
+	private double availableSlotsRatio;
 	
 	private OutputManager plotter;
 	
@@ -87,22 +95,26 @@ public class VonStatistics {
 	protected double getLinkLoad() {
 		
 		double a = 0;
+		ArrayList<Integer> maxIndex = new ArrayList<>();
 		for(int i = 0; i < pt.getNumLinks(); i++) {
 			
-			a += ( (pt.getNumSlots() * pt.getCores()) - pt.getLink(i).getNumFreeSlots());
+			maxIndex.add(pt.getLink(i).getMaxSlotIndex());
+			a += maxIndex.get(i);
 		}
-
-		a = (double)a / (double)pt.getNumLinks();
+		
+		a /= (double)pt.getNumLinks();
 		
 		double b = 0;
 		
 		for(int i = 0; i < pt.getNumLinks(); i++) {
 			
-			double temp = (double)( (pt.getNumSlots() * pt.getCores()) - pt.getLink(i).getNumFreeSlots());
-			b += Math.pow(temp - a, 2);
+			double temp = (double)(maxIndex.get(i)) - a;
+//			System.out.println(Math.pow(temp , 2));
+			b += Math.abs(temp);
 		}
 		
-		linkLoad = Math.sqrt( ( 1.0 / ( (double)pt.getNumLinks() - 1.0 ) ) * b);
+		int n = pt.getNumLinks() - 1;
+		linkLoad = Math.sqrt( 1.0 / (double)n * b);
 				
 //		System.out.println("Link load: "+linkLoad);
 		
@@ -275,6 +287,89 @@ public class VonStatistics {
 			computeResource.remove(von);
 		} catch (Exception e) {
 			System.out.println(e);
+		}
+	}
+
+	public double getAvailableSlotsRatio() {
+		double w = 0;
+		int count = 0;
+		for (int i = 0; i < pt.getNumNodes()-1; i++) {
+			for (int j = i+1; j < pt.getNumNodes(); j++) {
+				
+				org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge> kShortestPaths1 = new org.jgrapht.alg.shortestpath.KShortestPaths<Integer, DefaultWeightedEdge>(pt.getGraph(), 1);
+				List< GraphPath<Integer, DefaultWeightedEdge> > KPaths = kShortestPaths1.getPaths( i, j );
+				
+				if(KPaths.isEmpty()) 
+				{
+					return 0;
+				}
+				
+				List<Integer> listOfVertices = KPaths.get(0).getVertexList();
+				int[] links = new int[listOfVertices.size()-1];
+				for (int a = 0; a < listOfVertices.size()-1; a++) {
+					
+					links[a] = pt.getLink(listOfVertices.get(a), listOfVertices.get(a+1)).getID();
+				}
+				
+				int maxG = pt.getNumSlots() + 1;
+				boolean [][]spectrum = bitMapAll(links);
+				for (int a = 0; a < spectrum.length; a++) {
+					int n = 0;
+					int max = 0;
+					for (int b = 0; b < spectrum[a].length; b++) {
+						if(spectrum[a][b]) {
+							n++;
+							
+							if(n > max) {
+								max = n;
+							}
+						}
+						else
+						{
+							n = 0; 
+						}
+					}
+					maxG = Math.min(maxG, max);
+				}
+				w += ((double) (maxG) / (double)(pt.getNumSlots()));
+				count++;
+			}
+			
+		}
+
+		availableSlotsRatio = w / (double)count;
+		return  availableSlotsRatio;
+		
+	}
+
+	public double getFragmentationRatio() {
+		
+		return 1.0 - availableSlotsRatio;
+	}
+	
+	public boolean[][]bitMapAll(int []links) {
+		
+		boolean[][] spectrum = new boolean[pt.getCores()][pt.getNumSlots()];
+		for (int i = 0; i < pt.getCores(); i++) {
+			for (int j = 0; j < pt.getNumSlots(); j++) {
+				spectrum[i][j] = true;
+			}
+		}
+		
+		for(int i : links) {
+			bitMap(pt.getLink(i).getSpectrum(), spectrum, spectrum);
+		}
+		
+		return spectrum;
+	}
+	
+	public void bitMap(boolean[][] s1, boolean[][] s2, boolean[][] result) {
+
+		for (int i = 0; i < result.length; i++) {
+			
+			for (int j = 0; j < result[i].length; j++) {
+				result[i][j] = s1[i][j] && s2[i][j];
+			}
 		}
 	}
 }

@@ -3,9 +3,13 @@ package flexgridsim.util;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
+import weka.classifiers.trees.J48;
+import weka.classifiers.trees.RandomForest;
+import weka.classifiers.trees.RandomTree;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
@@ -15,7 +19,7 @@ public class DecisionTree {
 	private String trainingFilename;
 	private String testFilename;
 	
-	private HoeffdingTree classifier;
+	private RandomTree classifier;
 
 	
 	public DecisionTree(String filename, String filenameTest) {
@@ -31,7 +35,13 @@ public class DecisionTree {
 		Instances trainingDataset = getDataset(this.trainingFilename);
 
 //		classifier = new J48();
-		classifier = new HoeffdingTree();
+		classifier = new RandomTree();
+//		classifier.setBinarySplits(false);
+//		classifier.setUnpruned(true);
+//		classifier.setNumFolds(10);
+//		classifier.setDoNotMakeSplitPointActualValue(false);
+//		classifier.setNumDecimalPlaces(3);
+//		classifier.setUseLaplace(true);
 		classifier.buildClassifier(trainingDataset);
 		
 		Instances testingDataset = getDataset(this.testFilename);
@@ -40,13 +50,15 @@ public class DecisionTree {
 		
 		Evaluation eval = new Evaluation(trainingDataset);
 		eval.evaluateModel(classifier, testingDataset);
+//		eval.crossValidateModel(classifier, testingDataset, 10, new Random());
 		
 //		System.out.println("** Decision Tress Evaluation with Datasets **");
-//		System.out.println(eval.toSummaryString());
+		System.out.println(eval.toSummaryString());
+		System.out.println(classifier.toString());
 //		System.out.print(" the expression for the input data as per alogorithm is ");
 //		System.out.println(classifier);
-//		System.out.println(eval.toMatrixString());
-//		System.out.println(eval.toClassDetailsString());
+		System.out.println(eval.toMatrixString());
+		System.out.println(eval.toClassDetailsString());
 	}
 
 	public Instances getDataset(String filename) throws IOException {
@@ -71,6 +83,9 @@ public class DecisionTree {
 		final Attribute crosstalk = new Attribute("crosstalk"); 
 		final Attribute transponders = new Attribute("transponders");
 		final Attribute cost = new Attribute("cost"); 
+		final Attribute fragementation = new Attribute("fragementation");
+		final Attribute availableslots = new Attribute("availableslots");
+		final Attribute availabletransponders = new Attribute("availabletransponders");
 		@SuppressWarnings("serial")
 		final List<String> classes = new ArrayList<String>() {
 			{
@@ -91,6 +106,9 @@ public class DecisionTree {
 				add(crosstalk);
 				add(transponders);
 				add(cost);
+				add(fragementation);
+				add(availableslots);
+				add(availabletransponders);
 				Attribute attributeClass = new Attribute("@@class@@", classes);
 				add(attributeClass);
 				
@@ -110,6 +128,9 @@ public class DecisionTree {
 				setValue(crosstalk, data[3]);
 				setValue(transponders, data[4]);
 				setValue(cost, data[5]);
+				setValue(fragementation, data[6]);
+				setValue(availableslots, data[7]);
+				setValue(availabletransponders, data[8]);
 			}
 		};
 		
@@ -119,7 +140,7 @@ public class DecisionTree {
 			double result = classifier.classifyInstance(newInstance);
 			String className = classes.get(new Double(result).intValue());
 			
-			classifier.updateClassifier(newInstance);
+//			classifier.updateClassifier(newInstance);
 			
 			return className;
 	

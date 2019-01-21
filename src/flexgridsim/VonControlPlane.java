@@ -12,6 +12,7 @@ import flexgridsim.rsa.RSA;
 import flexgridsim.von.ControlPlaneForVon;
 import flexgridsim.von.VirtualTopology;
 import flexgridsim.von.mappers.Mapper;
+import javafx.scene.chart.PieChart.Data;
 import vne.VirtualNetworkEmbedding;
 
 /**
@@ -30,6 +31,8 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 public boolean mape;
 	 
 	 private Map<Flow, Integer> flowCount;
+	 
+	 public double time = 0;
 	 
 	 Element xml;
 	 EventScheduler eventScheduler;
@@ -87,13 +90,16 @@ public class VonControlPlane implements ControlPlaneForVon {
 		 
 		 
 		 if(event instanceof VonArrivalEvent) {
-//			 System.out.println("arrival");
+			 
+			 double t = ((VonArrivalEvent) event).getVon().arrivalTime;
+			 time = time <  t ? t : time;
+			 
 			 newVon(((VonArrivalEvent) event).getVon());
 	         mapper.vonArrival(((VonArrivalEvent) event).getVon());
 			 
 		 }
 		 else if(event instanceof VonDepartureEvent) {
-//			 System.out.println("departure");
+
 			 if(mappedFlows.containsKey(((VonDepartureEvent) event).getVon())) {
 
 				 mapper.vonDeparture(((VonDepartureEvent) event).getVon());
@@ -210,6 +216,26 @@ public class VonControlPlane implements ControlPlaneForVon {
 			Database.getInstance().totalNumberOfTranspondersAvailable += i;
 		}
 		
+		double countTransponders = 0;
+		for(int i = 0; i < pt.getNumNodes(); i++)
+		{
+			if(pt.getNode(i).getTransponders() <= 2) {
+				countTransponders++;
+			}
+		}
+		
+		double countAvailableSlots = 0;
+		for(int i = 0; i < pt.getNumLinks(); i++)
+		{
+			if(Database.getInstance().slotsAvailablePerLink[i] <= ( (pt.getCores() * pt.getNumSlots())/4 )) {
+				countAvailableSlots++;
+			}
+		}
+		
+//		System.out.println("COUNT: "+countAvailableSlots);
+		Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots <= (pt.getNumLinks() * 0.3) && countAvailableSlots >= 1 ? 1 : 0;
+		Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.4 ? 1 : 0;
+		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * 5 * 0.5) && countTransponders >= 1 ? 1 : 0; 
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			int available = pt.getLink(i).getSlotsAvailable();
@@ -220,7 +246,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 			Database.getInstance().bbrPerPair[i] = statistics.getBandwidthBlockingRatioPerLink(i);
 			Database.getInstance().xtLinks[i] = pt.getLink(i).getXT();
 		}
-		
 		
 		Database.getInstance().meanCrosstalk = pt.getMeanCrosstalk();
 		Database.getInstance().vne = vne;
@@ -252,13 +277,16 @@ public class VonControlPlane implements ControlPlaneForVon {
 		
 		if(activeVons.containsKey(id)) {
 			
+			
 			for(Long key : mappedFlows.get(activeVons.get(id)).keySet() ) {
 				
 				Flow flow = mappedFlows.get(activeVons.get(id)).get(key);
 				if(!flow.isAccepeted()) continue;
 				
-				int c = flowCount.get(flow) - flow.getComputingResource();
-				flowCount.put(flow, c);
+				if(this.mape == true) {
+					int c = flowCount.get(flow) - flow.getComputingResource();
+					flowCount.put(flow, c);
+				}
 				
 				pt.getNode(flow.getSource()).updateTransponders(1);
 				pt.getNode(flow.getDestination()).updateTransponders(1);
@@ -273,6 +301,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 					Database.getInstance().totalTransponders -= 2;
 					Database.getInstance().usedTransponders[flow.getSource()] -= 1;
 					Database.getInstance().usedTransponders[flow.getDestination()] -= 1;
+					
+					double countTransponders = 0;
+					for(int i = 0; i < pt.getNumNodes(); i++)
+					{
+						if(pt.getNode(i).getTransponders() <= 2) {
+							countTransponders++;
+						}
+					}
+					
 					Database.getInstance().flowCount -= 1;
 					
 					
@@ -281,6 +318,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 					Database.getInstance().computing[flow.getSource()] -= flow.getComputingResourceSource();
 					Database.getInstance().computing[flow.getDestination()] -= flow.getComputingResourceDestination();
 					Database.getInstance().totalComputeResource -= flow.getComputingResource();
+					
 					
 					getLinkInPath(flow); 
 					
@@ -295,11 +333,28 @@ public class VonControlPlane implements ControlPlaneForVon {
 						
 						Database.getInstance().numberOfLightpaths[i] -= 1;
 					}
+					
+					
+					double countAvailableSlots = 0;
+					for(int i = 0; i < pt.getNumLinks(); i++)
+					{
+						if(Database.getInstance().slotsAvailablePerLink[i] <= ( (pt.getCores() * pt.getNumSlots())/4 )) {
+							countAvailableSlots++;
+						}
+					}
+					
+					Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots <= (pt.getNumLinks() * 0.3) && countAvailableSlots >= 1 ? 1 : 0;
+					Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.4 ? 1 : 0;
+					Database.getInstance().availableTranspondersB = (double)countTransponders >= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * 5 * 0.5) && countTransponders >= 1 ? 1 : 0; 
+					
+					
 				}
 			}
 			
 			statistics.updateStatisticsDeparture(activeVons.get(id));
-			if(this.mape == true) {
+			
+			if(this.mape == true) 
+			{
 				vne.removeLightpaths(activeVons.get(id));
 				
 				Database.getInstance().meanTransponders = (double)Database.getInstance().totalTransponders / (double) (pt.getNumNodes() * 5);
@@ -310,8 +365,6 @@ public class VonControlPlane implements ControlPlaneForVon {
 					Database.getInstance().totalNumberOfTranspondersAvailable += i;
 				}
 				
-				
-//				Orchestrator.getInstance().run();
 				Hooks.runPendingReconfiguration(pt, this, vne);
 				Hooks.checkDone(pt);
 			
@@ -502,8 +555,4 @@ public class VonControlPlane implements ControlPlaneForVon {
         }
     	
     }
-
-	public void updateControlPlane(PhysicalTopology newPt, VirtualNetworkEmbedding newVne, Map<Long, Flow> flows) {
-		
-	}
 }

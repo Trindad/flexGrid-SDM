@@ -92,7 +92,7 @@ public class Symptom {
 			
 			for (int i = 0; i < pt.getNumNodes(); i++) {
 				ArrayList<Double> row = new ArrayList<>();
-				System.out.println(computing[i]+" "+usedTransponders[i]+" "+usedBandwidth[i]);
+//				System.out.println(computing[i]+" "+usedTransponders[i]+" "+usedBandwidth[i]);
 				row.add(computing[i]);
 				row.add((double) usedTransponders[i]);
 				row.add((double) usedBandwidth[i]);

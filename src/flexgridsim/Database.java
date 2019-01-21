@@ -53,6 +53,11 @@ public class Database {
 	public int[] numberOfLightpaths;
 	public double[] usedBandwidth;
 	
+	//Boolean values
+	public double availableSlotsB;
+	public double availableTranspondersB;
+	public double fragmentationB;
+	
 	private static Database instance;
 	private static List<DatabaseObserver> listeners = new ArrayList<DatabaseObserver>();
 	
@@ -60,6 +65,7 @@ public class Database {
 		
 		slotsAvailable = new HashMap<Long, Integer>();
 		slotsOccupied = new HashMap<Long, Integer>();
+
 	}
 	
 	public static Database getInstance() {
@@ -100,6 +106,11 @@ public class Database {
 		instance.computing = null;
 		instance.bbrPerPair = null;
 		instance.totalComputeResource = 0;
+		
+		
+		instance.availableSlotsB = 0;
+		instance.availableTranspondersB = 0;
+		instance.fragmentationB = 0;
 	}
 	
 	public static void setup(PhysicalTopology pt) {
@@ -118,13 +129,14 @@ public class Database {
 		instance.availableTransponders = new int[pt.getNumNodes()];
 		instance.usedTransponders = new int[pt.getNumNodes()];
 		instance.distances = new int[pt.getNumLinks()];
-		instance.meanCrosstalk = -90;
+		instance.meanCrosstalk = -80;
 		instance.bbrPerPair = new double[pt.getNumLinks()];
 		instance.meanTransponders = 0;
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			instance.slotsAvailable.put((long) i, pt.getNumSlots() * pt.getCores());
 			instance.slotsOccupied.put((long) i, 0);
+			instance.slotsAvailablePerLink[i] = (pt.getCores() * pt.getNumSlots());
 		}
 		
 		instance.linkLoad = 0;

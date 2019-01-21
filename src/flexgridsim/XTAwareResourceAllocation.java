@@ -49,7 +49,7 @@ public class XTAwareResourceAllocation {
 	
 	public void resetCrosstalk(int c, int s) {
 		xt[c][s] = -80;
-		modulationDbLimit[c][s] = 0.0;
+		modulationDbLimit[c][s] = -80;
 	}
 	
 	protected double interCoreCrosstalk(int core, int slot, double n, double L) {

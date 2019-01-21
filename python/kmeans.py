@@ -26,7 +26,7 @@ class MyKMeans:
         X = np.array(data)
         # k = 2
         transformation = [[-0.6083459, -0.63667341] , [-0.40887718, 0.85253229]]
-        X_aniso = np.dot(X, transformation)
+        # X_aniso = np.dot(X, transformation)
         kmeans = KMeans(init='k-means++', n_clusters = k, n_init=20, algorithm='elkan')
         cluster_labels = kmeans.fit_predict(X)
 

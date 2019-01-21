@@ -36,7 +36,8 @@ public class MAPEConfiguring {
 
 	public void run() {
 		
-		try {
+		try 
+		{
 			ArrayList<Symptom> symptoms = monitor.run();
 			
 			if(symptoms.get(0).type == SYMPTOM.PERFECT) return;

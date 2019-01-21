@@ -1,7 +1,5 @@
 package flexgridsim.filters;
 
-import burlap.behavior.singleagent.shaping.ShapedRewardFunction;
-import burlap.mdp.core.action.SimpleAction;
 import flexgridsim.PhysicalTopology;
 import flexgridsim.VonControlPlane;
 import flexgridsim.rl.GridState;
@@ -44,6 +42,7 @@ public class ReconfigurationPerfomanceFilter {
     	}
     	else 
     	{
+    		pt.updateEverything(defragmentation.pt);
     		ShapedPlanRF.updateValue(new GridState(10,1), "right", 1);
     	}
 	}

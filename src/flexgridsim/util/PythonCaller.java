@@ -40,9 +40,9 @@ public class PythonCaller {
 		st.append('"' + convertToJSON(features) + '"');
 		
 		
-//		System.out.println(st.toString());
+		System.out.println(st.toString());
 		String output = executeCommand(st.toString());
-//		System.out.println(output);
+		System.out.println(output);
 		KMeansResult result = new KMeansResult(output);
 		
 		

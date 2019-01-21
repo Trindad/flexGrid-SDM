@@ -44,8 +44,9 @@ public class Monitor {
 
 	public String checkOverload(Database db) {
 		
-		double[] data = {db.bbr, db.linkLoad, db.acceptance, db.meanCrosstalk, db.totalTransponders, db.cost};
+		double[] data = {db.bbr, db.linkLoad, db.acceptance, db.meanCrosstalk, db.meanTransponders, db.cost, db.fragmentationB, db.availableSlotsB, db.availableTranspondersB};
 		System.out.println("bbr: "+db.bbr+" linkload: "+ db.linkLoad+" acceptance: "+ db.acceptance+" xt: "+ db.meanCrosstalk+" meantransponders: "+ db.meanTransponders+" cost: "+ db.cost);
+		System.out.println("availableSlotsB: "+db.availableSlotsB+" fragmentationB: "+db.fragmentationB+" availableTranspondersB:"+db.availableTranspondersB);
 		return dt.run(data);
 	}
 }

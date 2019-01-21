@@ -16,8 +16,9 @@ public class KMeansResult {
 		this.labels = parts[0].split("-");
 		
 		String []temp = parts[1].split("/");
+		int ydim = temp[0].split(",").length;
 		
-		this.centroids = new double[temp.length][temp.length];
+		this.centroids = new double[temp.length][ydim];
 		
 		for (int i = 0; i < temp.length; i++) {
 			String []coords = temp[i].split(",");

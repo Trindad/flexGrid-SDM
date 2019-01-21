@@ -134,7 +134,7 @@ public class FlexGridLink {
 			}
 		}
 		
-		XT = 0;
+		XT = -80;
 	}
 	
 	public void resetCrosstalk(ArrayList<Slot> slotList) {
@@ -763,6 +763,25 @@ public class FlexGridLink {
 		}
 
 		return (meanXT/(double)(cores * slots));
+	}
+
+	public int getMaxSlotIndex() {
+		int n = (cores - 1) * slots;
+		
+		for (int i = 0; i < cores; i++) {
+			
+			for (int j = slots - 1; j >= 0; j--) {
+				if (reservedSlots[i][j]) {
+//					System.out.println("REALLY " + i + "," + j + " DESGRACA " + (n+j));
+					return n + j;
+				}
+			}
+			
+			n -= slots;
+			
+		}
+		
+		return slots * cores;
 	}
 
 }
