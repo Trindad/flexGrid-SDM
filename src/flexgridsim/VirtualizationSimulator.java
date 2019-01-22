@@ -59,39 +59,44 @@ public class VirtualizationSimulator extends Simulator {
 	        String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
 	        String mapperModule = "flexgridsim.von.mappers." + ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
 	        boolean dynamic = ((Element) doc.getElementsByTagName("vontraffic").item(0)).getAttribute("dynamic").contains("true") ? true : false;
-	        
+	        boolean mape = ((Element) doc.getElementsByTagName("vontraffic").item(0)).getAttribute("mapper").contains("true") ? true : false;
+	        		
 	        if (Simulator.verbose) 
 	        {
                 System.out.println("RSA module: " + rsaModule);
                 System.out.println("VON module: " + mapperModule);
             }
 	        
-	        OutputManager plotter = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
-            PhysicalTopology pt = new PhysicalTopology((Element) doc.getElementsByTagName("physical-topology").item(0));
-            
-            if (Simulator.verbose) {
-                System.out.println(pt);
-            }
-
+	        
             if(maxload== minload && minload == step && step == 0) {
             	step++;
             }
             
             Orchestrator.getInstance();
-           
-            	
+            
            System.out.println("Number of simulations: "+numberOfSimulations);
-		   for (int i = 1; i <= numberOfSimulations; i++) { 
-		      for (double load = minload; load <= maxload; load += step) {	
+           for (double load = minload; load <= maxload; load += step) {
+        	   OutputManager plotter = new OutputManager((Element) doc.getElementsByTagName("graphs").item(0));
+        	   
+		       for (int i = 1; i <= numberOfSimulations; i++) { 
+		      	
+		    	   PhysicalTopology pt = new PhysicalTopology((Element) doc.getElementsByTagName("physical-topology").item(0));
+		    	   
+		    	   if (Simulator.verbose) {
+		                System.out.println(pt);
+		            }
+		    	   
 		        	EventScheduler events = new EventScheduler();
 		        	
 		        	TrafficGenerator traffic = TrafficGenerator.generate((Element) doc.getElementsByTagName("vontraffic").item(0), load);
+		        	
 		            ((VonTrafficGenerator)traffic).generateTraffic(pt, events, i);
 		            
 		            VonStatistics st = VonStatistics.getVonStatisticsObject();
 		            st.configuration(plotter, pt, traffic);
+		            st.load = (int) load;
 	
-		        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic);
+		        	VonControlPlane cp = new VonControlPlane(((Element) doc.getElementsByTagName("rsa").item(0)), events, rsaModule, mapperModule, pt, traffic, mape);
 		 	        
 		        	new SimulationRunner(cp, events, dynamic);
 		        	
@@ -107,16 +112,15 @@ public class VirtualizationSimulator extends Simulator {
 		 	        }
 		 	        
 		 	       st.finish();
+		 	       
 		 	       if(cp.mape == true) {
 		 	    	   Database.reset();
 		 	    	   Orchestrator.reset();
 		 	       }
 		        }
-		        
-		    	
+		       
+		        plotter.writeAllToFiles();
 			}
-		   
-		   plotter.writeAllToFiles();
 		   System.out.println("Simulations are done...");
 		}
 		catch (Exception e) {

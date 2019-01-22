@@ -27,6 +27,8 @@ public class VonStatistics {
 	private PhysicalTopology pt;
 	private TrafficGenerator traffic;
 	
+	public int load;
+	
 	private int arrivals;
 	private int departures;
 	private int vonAcceptedRate;
@@ -56,6 +58,7 @@ public class VonStatistics {
         if (singletonObject == null) {
             singletonObject = new VonStatistics();
         }
+        
         return singletonObject;
     }
 	
@@ -83,15 +86,15 @@ public class VonStatistics {
 		if(arrivals == departures) {
 			
 			double value = ((float) this.vonAcceptedRate) / ((float) arrivals);
-			plotter.addDotToGraph("acceptance", arrivals, value);
+			plotter.addDotToGraph("acceptance", load, value);
 			
 			value = ((float) this.vonBlockedRate) / ((float) arrivals);
-			plotter.addDotToGraph("block", arrivals, value);
+			plotter.addDotToGraph("block", load, value);
 			
 			value = ((float) this.bandwidthBlocked) / ((float) requiredBandwidth);
-			plotter.addDotToGraph("mbbr", arrivals, value );
+			plotter.addDotToGraph("mbbr", load, value );
 			
-			System.out.println("Arrivals: " + arrivals+" Departures: "+departures+ " Flows: "+nFlows);
+			System.out.println("Arrivals: " + arrivals+" Departures: "+departures+ " Flows: "+nFlows + " LOAD: " + load);
 			System.out.println("acceptance: "+((float) this.vonAcceptedRate) / ((float) arrivals)+" available: "+availableSlotsRatio+" bbr: "+ ((float) this.bandwidthBlocked) / ((float) requiredBandwidth)
 					+" linkload: "+linkLoad+ "  meanXT: "+getMeanCrosstalk()+ " cost: "+revenueCost+ " transponders: "+ transponders);
 		}
@@ -111,14 +114,14 @@ public class VonStatistics {
 
 		xt = pt.getMeanCrosstalk();
     	
-		plotter.addDotToGraph("xtavg",arrivals, xt);
+		plotter.addDotToGraph("xtavg",load, xt);
 	}
 	
 	private void updateMeanTransponders() {
 
 		transponders = pt.getMeanAvailableTransponders();
     	
-		plotter.addDotToGraph("transponders",arrivals, transponders);
+		plotter.addDotToGraph("transponders",load, transponders);
 	}
 	
 	
@@ -146,7 +149,7 @@ public class VonStatistics {
 		int n = pt.getNumLinks() - 1;
 		linkLoad = Math.sqrt( 1.0 / (double)n * b);
 		
-		plotter.addDotToGraph("linkload", arrivals, getLinkLoad());	
+		plotter.addDotToGraph("linkload", load, getLinkLoad());	
 	}
 	
 	protected double getLinkLoad() {
@@ -198,8 +201,8 @@ public class VonStatistics {
 				updateLinkLoad();
 				updateMeanCrosstalk();
 				updateMeanTransponders();
-				plotter.addDotToGraph("available", getAvailableSlotsRatio());
-				plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
+				plotter.addDotToGraph("available", load, getAvailableSlotsRatio());
+				plotter.addDotToGraph("revenue-cost", load, getRevenueToCostRatio());
 			}
 		}
 		catch (Exception e)
@@ -239,8 +242,8 @@ public class VonStatistics {
 			updateLinkLoad();
 			updateMeanCrosstalk();
 			updateMeanTransponders();
-			plotter.addDotToGraph("available", getAvailableSlotsRatio());
-			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
+			plotter.addDotToGraph("available", load, getAvailableSlotsRatio());
+			plotter.addDotToGraph("revenue-cost", load, getRevenueToCostRatio());
 		}
 	 }
 	 
@@ -290,8 +293,8 @@ public class VonStatistics {
 			updateLinkLoad();
 			updateMeanCrosstalk();
 			updateMeanTransponders();
-			plotter.addDotToGraph("revenue-cost", arrivals, getRevenueToCostRatio());
-			plotter.addDotToGraph("available", getAvailableSlotsRatio());
+			plotter.addDotToGraph("revenue-cost", load, getRevenueToCostRatio());
+			plotter.addDotToGraph("available", load, getAvailableSlotsRatio());
 		}
 	}
 

@@ -34,7 +34,7 @@ public class OXC {
         this.id = idCount;
         idCount++;
         setTransponders(20);
-        computeResource = 500;
+        computeResource = 100;
         closenessCentrality = 0;
     }
     

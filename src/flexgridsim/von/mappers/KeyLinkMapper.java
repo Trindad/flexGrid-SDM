@@ -50,7 +50,8 @@ public class KeyLinkMapper extends Mapper {
 		
 		for(VirtualTopology von: vons) {
 			
-			if(shortestPaths.isEmpty()) {
+			if(shortestPaths.isEmpty()) 
+			{
 				cp.blockVon(von.getID());
 			}
 			

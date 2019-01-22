@@ -38,16 +38,14 @@ public class VonControlPlane implements ControlPlaneForVon {
 	 EventScheduler eventScheduler;
 	 private VonStatistics statistics = VonStatistics.getVonStatisticsObject();
 	 
-	public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic) {
+	public VonControlPlane(Element xml, EventScheduler eventScheduler, String rsaAlgorithm, String mapper, PhysicalTopology pt, TrafficGenerator traffic, boolean mape) {
 		 @SuppressWarnings("rawtypes")
 		 Class RSAClass;
 		 @SuppressWarnings("rawtypes")
 		 Class VonClass;
 		 
-		 if(mapper.equals("flexgridsim.von.mappers.MAPEMapper")) {
-			
-			 mape = true;
-		 }
+		this.mape = mape;
+		 
 		Database.setup(pt);
 		vne = new VirtualNetworkEmbedding();
 		
