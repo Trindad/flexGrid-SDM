@@ -225,14 +225,15 @@ public class VonControlPlane implements ControlPlaneForVon {
 		double countAvailableSlots = 0;
 		for(int i = 0; i < pt.getNumLinks(); i++)
 		{
-			if(Database.getInstance().slotsAvailablePerLink[i] <= ( (pt.getCores() * pt.getNumSlots())/4 )) {
+			double y = pt.getNumSlots() * pt.getCores();
+			if(((double)Database.getInstance().slotsAvailablePerLink[i]/y) < statistics.getAvailableSlotsRatio()) {
 				countAvailableSlots++;
 			}
 		}
 		
-//		System.out.println("COUNT: "+countAvailableSlots);
-		Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots <= (pt.getNumLinks() * 0.3) && countAvailableSlots >= 1 ? 1 : 0;
-		Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.4 ? 1 : 0;
+		System.out.println("COUNT: "+countAvailableSlots+" "+ statistics.getAvailableSlotsRatio());
+		Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots >= 1 ? 1 : 0;
+		Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.5 ? 1 : 0;
 		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * pt.transponders * 0.5) && countTransponders >= 1 ? 1 : 0; 
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {

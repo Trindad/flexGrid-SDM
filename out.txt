@@ -386,3 +386,14 @@ For n clusters: 3 The average silhouette_score is: 0.476313145826
 For n clusters: 3 The average silhouette_score is: 0.450766514865
 For n clusters: 3 The average silhouette_score is: 0.442141688404
 For n clusters: 3 The average silhouette_score is: 0.699971779906
+For n clusters: 3 The average silhouette_score is: 0.551311075873
+For n clusters: 3 The average silhouette_score is: 0.729547057981
+For n clusters: 3 The average silhouette_score is: 0.721598147029
+For n clusters: 3 The average silhouette_score is: 0.814303469707
+For n clusters: 3 The average silhouette_score is: 0.559803238338
+For n clusters: 3 The average silhouette_score is: 0.778097839356
+For n clusters: 3 The average silhouette_score is: 0.684854458312
+For n clusters: 3 The average silhouette_score is: 0.617356775893
+For n clusters: 3 The average silhouette_score is: 0.795676249673
+For n clusters: 3 The average silhouette_score is: 0.721303353186
+For n clusters: 3 The average silhouette_score is: 0.503355712398
