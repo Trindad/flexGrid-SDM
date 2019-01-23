@@ -59,6 +59,7 @@ public class MAPEConfiguring {
 				knowledge.plans.add(executionPlan);
 				
 				execute.run(executionPlan);
+				
 			}
 		} catch (Exception e) {
 			

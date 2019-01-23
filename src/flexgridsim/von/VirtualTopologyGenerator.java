@@ -94,7 +94,7 @@ public class VirtualTopologyGenerator {
 	
 	private static void setBandwidthVector(int minCapacity, int maxCapacity) {
 		
-		int add = 50, temp = minCapacity;
+		int add = 25, temp = minCapacity;
 		bandwidths = new ArrayList<Integer>();
 		
 		while(temp <= maxCapacity) {

@@ -128,7 +128,7 @@ public class ReinforcementLearning {
 //		Policy p = planner.planFromState(s);
 		Policy p = agent.planFromState(s);
 		
-		Episode ea  = PolicyUtils.rollout(p, s, domain.getModel());
+		Episode ea  = PolicyUtils.rollout(p, s, domain.getModel(), 150);
 		
 		for (State a : ea.stateSequence) {
 			GridState gs = (GridState) a;

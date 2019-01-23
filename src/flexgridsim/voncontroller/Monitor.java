@@ -30,6 +30,7 @@ public class Monitor {
 		ArrayList<Symptom> symptoms = new ArrayList<>();
 		
 		String problem = checkOverload(db);
+//		String problem = "non-balanced";
 		System.out.println("PROBLEM: "+problem);
 		
 		Symptom symptom = new Symptom(db.pt);

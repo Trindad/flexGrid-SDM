@@ -59,8 +59,9 @@ public class VirtualizationSimulator extends Simulator {
 	        String rsaModule = "flexgridsim.rsa." + ((Element) doc.getElementsByTagName("rsa").item(0)).getAttribute("module");
 	        String mapperModule = "flexgridsim.von.mappers." + ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("module");
 	        boolean dynamic = ((Element) doc.getElementsByTagName("vontraffic").item(0)).getAttribute("dynamic").contains("true") ? true : false;
-	        boolean mape = ((Element) doc.getElementsByTagName("vontraffic").item(0)).getAttribute("mapper").contains("true") ? true : false;
+	        boolean mape = ((Element) doc.getElementsByTagName("mapper").item(0)).getAttribute("mape").contains("true") ? true : false;
 	        		
+	        
 	        if (Simulator.verbose) 
 	        {
                 System.out.println("RSA module: " + rsaModule);

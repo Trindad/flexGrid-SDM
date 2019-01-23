@@ -53,13 +53,14 @@ public class RedirectingLightpathFilter {
 				double current = (double)pt.getLink(targetLink).getNumFreeSlots()/(double)(pt.getCores() * pt.getNumSlots());
 				if(current >= meanAvailableSlots) 
 				{
-					
+				
 					ShapedPlanRF.updateValue(new GridState(4,1), "right", 1);
 					pt.updateEverything(temp);
 					
 					return;
 				}
 			}
+			
 			
 		}
 		
