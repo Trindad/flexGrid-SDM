@@ -676,9 +676,10 @@ public class PhysicalTopology {
 		ClosenessCentrality<Integer,DefaultWeightedEdge> cc = new ClosenessCentrality<Integer,DefaultWeightedEdge>(graph);
        
     	for (int i = 0; i < links; i++) {
+    		
     		int source = linkVector[i].getSource();
     		int destination = linkVector[i].getDestination();
-    		
+    		System.out.println(source +"-"+destination);
     		c[i] = (cc.getVertexScore(source) + cc.getVertexScore(destination)) * 100;
     		nodeVector[source].setClosenessCentrality(cc.getVertexScore(source) * 100);
     		nodeVector[destination].setClosenessCentrality(cc.getVertexScore(destination) * 100);
