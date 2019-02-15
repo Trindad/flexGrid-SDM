@@ -1,5 +1,6 @@
 package flexgridsim.von.mappers;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import flexgridsim.von.VirtualTopology;
 
 public class MAPEMapper extends KeyLinkMapper {
 	private PhysicalTopology temp;
+	private int []transponders;
 
 	public void vonArrival(VirtualTopology von) {
 		
@@ -52,6 +54,12 @@ public class MAPEMapper extends KeyLinkMapper {
 		}
 			
 		von.nodes.sort(Comparator.comparing(VirtualNode::getRequestResource).reversed());
+		
+
+		transponders = new int[pt.getNumNodes()];
+		for	(int i = 0; i < pt.getNumNodes(); i++) {
+			transponders[i] = pt.getNode(i).getTransponders();
+		}
 		
 		nodeMapping(sortResourceContributionDegree(von, shortestPaths), von);
 		
@@ -121,4 +129,70 @@ public class MAPEMapper extends KeyLinkMapper {
 		pt = temp;
 	}
 	
+	
+	
+
+	public void nodeMapping(ArrayList<Integer> physicalNodes, VirtualTopology von) {
+		
+		ArrayList<Integer> temp = new ArrayList<Integer>();
+		
+		ArrayList<VirtualNode> nodes = new ArrayList<VirtualNode>();
+		
+		
+		for(VirtualNode node: von.nodes) {
+			int selectedNode;
+			ArrayList<Integer> available = new ArrayList<>(physicalNodes);
+			
+			available.removeAll(temp);
+			
+			do {
+				selectedNode = getSelectedNode(available, node.getCandidatePhysicalNodes());
+				
+			} while (temp.contains(selectedNode));
+			
+			if(selectedNode >= 0) 
+			{
+				node.setPhysicalNode(selectedNode);
+				temp.add(selectedNode);
+				transponders[selectedNode] -= 1;
+			}
+			else {
+				nodes.add(node);
+			}
+		}
+		
+		for(VirtualNode node: nodes) {
+			int selectedNode;
+			ArrayList<Integer> available = new ArrayList<>(physicalNodes);
+			
+			available.removeAll(temp);
+			
+			do {
+				selectedNode = getSelectedNode(available, available);
+			} while (temp.contains(selectedNode));
+			
+			if(selectedNode >= 0) 
+			{
+				node.setPhysicalNode(selectedNode);
+				temp.add(selectedNode);
+			}
+			else {
+				System.out.println("Node doesn't exist");
+			}
+		}
+	}
+
+	private int getSelectedNode(ArrayList<Integer> physicalNodes, ArrayList<Integer> candidates) {
+		
+		int nodeIndex = -1;
+		
+		for(int node : physicalNodes) {
+			
+			if(candidates.contains(node) && transponders[node] >= 1) {
+				return node;
+			}
+		}
+		
+		return nodeIndex;
+	}
 }

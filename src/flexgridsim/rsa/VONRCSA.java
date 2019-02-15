@@ -36,7 +36,8 @@ public class VONRCSA extends SCVCRCSA {
 	public void flowArrival(Flow flow) {
 
 		if(pt.getNode(flow.getSource()).getTransponders() <= 0 || pt.getNode(flow.getDestination()).getTransponders() <= 0) {
-			
+			 
+			System.out.println("THERE IS NO TRANSPONDER " + pt.getNode(flow.getDestination()).getTransponders()+" "+pt.getNode(flow.getSource()).getTransponders());
 			return;
 		}
 		

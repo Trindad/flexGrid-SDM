@@ -217,7 +217,7 @@ public class VonControlPlane implements ControlPlaneForVon {
 		double countTransponders = 0;
 		for(int i = 0; i < pt.getNumNodes(); i++)
 		{
-			if(pt.getNode(i).getTransponders() <= 2) {
+			if(pt.getNode(i).getTransponders() <= 10) {
 				countTransponders++;
 			}
 		}
@@ -231,10 +231,10 @@ public class VonControlPlane implements ControlPlaneForVon {
 			}
 		}
 		
-		System.out.println("COUNT: "+countAvailableSlots+" "+ statistics.getAvailableSlotsRatio());
+//		System.out.println("COUNT: "+countAvailableSlots+" "+ statistics.getAvailableSlotsRatio());
 		Database.getInstance().availableSlotsB = statistics.getAvailableSlotsRatio() >= 0.5 && countAvailableSlots >= 1  && countAvailableSlots < pt.getNumLinks() ? 1 : 0;
 		Database.getInstance().fragmentationB = statistics.getFragmentationRatio() >= 0.5 ? 1 : 0;
-		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * pt.transponders * 0.5) && countTransponders >= 1 ? 1 : 0; 
+		Database.getInstance().availableTranspondersB = (double)countTransponders <= ((double)pt.getNumNodes() * 0.4) && Database.getInstance().totalTransponders >= ((double)pt.getNumNodes() * pt.transponders * 0.4) && countTransponders >= 1 ? 1 : 0; 
 		
 		for (int i = 0; i < pt.getNumLinks(); i++) {
 			int available = pt.getLink(i).getSlotsAvailable();

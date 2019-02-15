@@ -19,7 +19,7 @@ public class DecisionTree {
 	private String trainingFilename;
 	private String testFilename;
 	
-	private RandomTree classifier;
+	private RandomForest classifier;
 
 	
 	public DecisionTree(String filename, String filenameTest) {
@@ -35,7 +35,7 @@ public class DecisionTree {
 		Instances trainingDataset = getDataset(this.trainingFilename);
 
 //		classifier = new J48();
-		classifier = new RandomTree();
+		classifier = new RandomForest();
 //		classifier.setBinarySplits(false);
 //		classifier.setUnpruned(true);
 //		classifier.setNumFolds(10);

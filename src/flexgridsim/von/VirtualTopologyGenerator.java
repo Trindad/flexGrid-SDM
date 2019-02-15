@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-
+import flexgridsim.Hooks;
 import flexgridsim.PhysicalTopology;
 
 /**
@@ -25,6 +25,14 @@ public class VirtualTopologyGenerator {
 		
 		int []nodes = new int[physicalTopology.getNumNodes()];
 		int physicalNodes = physicalTopology.getNumNodes();
+		int []transponders = new int[physicalTopology.getNumNodes()];
+//		System.out.println("------------");
+		
+		for	(int i = 0; i < physicalTopology.getNumNodes(); i++) {
+			transponders[i] = physicalTopology.getNode(i).getTransponders();
+//			System.out.println("t: " + transponders[i]);
+		}
+//		System.out.println("------------");
 		
 		for(int i = 0; i < n; i++) {
 			VirtualNode node = new VirtualNode();
@@ -33,9 +41,10 @@ public class VirtualTopologyGenerator {
 			ArrayList<Integer> candidateNodes = new ArrayList<Integer>();
 			do {
 				candidateNodes = getNRandomNodes(minAlternativeNodes, maxAlternativeNodes, physicalNodes);
+				
 				node.setCandidatePhysicalNodes(candidateNodes);
 			}
-			while(isValid(candidateNodes, nodes));
+			while(isValid(candidateNodes, nodes, physicalTopology, transponders));
 			
 			//adding computing resource
 			int computingResource = getRandomValue(minComputingResources, maxComputingResources);
@@ -103,17 +112,25 @@ public class VirtualTopologyGenerator {
 		}
 	}
 
-	private static boolean isValid(ArrayList<Integer> candidateNodes, int[] nodes) {
+	private static boolean isValid(ArrayList<Integer> candidateNodes, int[] nodes, PhysicalTopology physicalTopology, int[] transponders) {
 		
 		for(int node : candidateNodes)  {
 			
 			if(nodes[node] >= 2) {
 				return false;
 			}
+			
+			
+			if (!Hooks.runBlockCostlyNodeFilter(node ,physicalTopology) || transponders[node] <= 0) {
+				
+				System.out.println("TERE IS NO TP "+physicalTopology.getNode(node).getTransponders());
+				return false;
+        	}
+			
 		}
 
 		for(int node : candidateNodes)  {
-			
+			transponders[node] -= 1;
 			nodes[node] += 1;
 		}
 		

@@ -30,8 +30,8 @@ public class KNearestNeighbors {
 
 		classifier = new IBk(3);
 		classifier.buildClassifier(trainingDataset);
-		System.out.println(classifier.getDistanceWeighting());
-		System.out.println(classifier.getTechnicalInformation());
+//		System.out.println(classifier.getDistanceWeighting());
+//		System.out.println(classifier.getTechnicalInformation());
 		
 	}
 

@@ -227,7 +227,7 @@ public class VonReconfiguration extends DefragmentationRCSA {
 		this.activeFlows = new HashMap<Long, Flow>(); 
 		this.pt.resetAllSpectrum();
 
-		this.distributeCores();
+//		this.distributeCores();
 		
 		//re-assigned resources in the same link, but using clustering
 		for(Integer key: clusters.keySet()) {
