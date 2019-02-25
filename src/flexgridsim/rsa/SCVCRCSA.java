@@ -416,12 +416,34 @@ public class SCVCRCSA implements RSA{
 		}
 	}
 
+	protected void removeCrosstalkInMultipaths(int[] links, ArrayList<Slot> slotList) {
+		
+		for(int l : links) {
+			this.pt.getLink(l).resetCrosstalk(slotList);
+        }
+	}
+	
 	
 	public void flowDeparture(Flow flow) {
 		
-		if(!flow.isAccepeted()) return;
+		if(!flow.isAccepeted()) {
+			return;
+		}
 	
-		removeCrosstalk(flow.getLinks(), flow);
+		if(flow.isMultipath()) {
+			
+			int n = flow.getMultiSlotList().size();
+			
+			for(int j = 0; j < n; j++) {
+				removeCrosstalkInMultipaths(flow.getLinks(j), flow.getMultiSlotList().get(j));
+			}
+		}
+		else 
+		{
+			if(!flow.isAccepeted()) return;
+			
+			removeCrosstalk(flow.getLinks(), flow);
+		}
 	}
 
 	protected void removeCrosstalk(int[] links, Flow flow) {

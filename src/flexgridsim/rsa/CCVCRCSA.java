@@ -16,7 +16,7 @@ import flexgridsim.Slot;
  * @author trindade
  *
  */
-public class CCVCRCSA extends FCFFRCSA {
+public class CCVCRCSA extends XTFFRCSA {
 
 	/**
 	 * Traditional algorithm RCSA using First-fit 
@@ -29,6 +29,7 @@ public class CCVCRCSA extends FCFFRCSA {
 		for(int []links: this.paths) {
 			
 			if(fitConnection(flow, bitMapAll(links), links)) {
+//				System.out.println("accepted: "+flow);
 					this.paths.clear();
 					return;
 			}

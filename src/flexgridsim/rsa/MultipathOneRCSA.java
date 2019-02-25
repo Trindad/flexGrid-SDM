@@ -131,7 +131,7 @@ public class MultipathOneRCSA extends MultipathRCSA {
 		return false;
 	}
 	
-	private ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
+	public ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
 
 		ArrayList<int[]> temp = new ArrayList<int[]>();
 		int tam = paths.size() * 3;

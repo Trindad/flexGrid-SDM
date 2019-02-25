@@ -158,7 +158,7 @@ public class MultipathRCSA extends XTFFRCSA {
 	}
 	
 	
-	private ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
+	protected ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
 
 		ArrayList<int[]> temp = new ArrayList<int[]>();
 		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/4.0) ) );
@@ -278,6 +278,7 @@ public class MultipathRCSA extends XTFFRCSA {
 
 //		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 3, 1, 5, 2, 4 , 0));
 		ArrayList<Integer> priorityCores = new ArrayList<Integer>(Arrays.asList(6, 5, 4, 3, 2 , 1 , 0));
+//		System.out.println(demandInSlots+" "+flow.isMultipath());
 		for(int c = 0; c < priorityCores.size() ; c++) {
 			int i = priorityCores.get(c);
 			
