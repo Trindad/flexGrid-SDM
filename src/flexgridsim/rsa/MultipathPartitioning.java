@@ -62,16 +62,16 @@ public class MultipathPartitioning extends MultipathRCSA {
 				}
 				
 				candidates.add(links);
-				if(candidates.size() >= 2 || check == true) {
-					
-					for(int []route : candidates) {
-						flow.setMultipath(true);
-						if(multiCoresAllocation(flow, route)) return;
-						
-					}
-					check = true;
-					candidates.clear();
-				}
+//				if(candidates.size() >= 2 || check == true) {
+//					
+//					for(int []route : candidates) {
+//						flow.setMultipath(true);
+//						if(multiCoresAllocation(flow, route)) return;
+//						
+//					}
+//					check = true;
+//					candidates.clear();
+//				}
 
 				candidatesMultipaths.add(links);
 
@@ -112,7 +112,7 @@ public class MultipathPartitioning extends MultipathRCSA {
 	
 	protected ArrayList< ArrayList<Slot> > getSetOfSlotsAvailableInEachPath(ArrayList<int[]> paths, Flow flow, ArrayList<int[]> lightpathsAvailable) {
 		
-//		if(flow.getRate() <= 50) return new ArrayList< ArrayList<Slot> >(); 
+		if(flow.getRate() <= 50) return new ArrayList< ArrayList<Slot> >(); 
 		
 		min = 0;
 		max = pt.getNumSlots()-1;
@@ -122,7 +122,7 @@ public class MultipathPartitioning extends MultipathRCSA {
 		if(flow.getRate() < 400) cores.addAll( new ArrayList<>(Arrays.asList(4,6,5)) );
 		
 		ArrayList<int[]> temp = new ArrayList<int[]>();
-		int a = flow.getRate() <= 50 ? 2 : 3;
+		int a = flow.getRate() <= 100 ? 2 : 3;
 		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/a) ) );
 		
 		if(temp.size() <= 1) {
@@ -210,7 +210,7 @@ public class MultipathPartitioning extends MultipathRCSA {
 		ArrayList<ArrayList<Slot>> slotList = new ArrayList<ArrayList<Slot>>();
 		
 		int n = 2;
-		int limit = flow.getRate() <= 50 ? 2 : 4;
+		int limit = flow.getRate() <= 50 ? 2 : 3;
 		int rate = flow.getRate();//rate for each lightpath
 		while(n <= limit) {
 			
@@ -218,7 +218,7 @@ public class MultipathPartitioning extends MultipathRCSA {
 			rate = (int) Math.ceil((double)flow.getRate()/(double)(n));//rate for each lightpath
 			int totalRate = flow.getRate();
 			
-			if(rate <= 50) {
+			if(rate <= 100) {
 				
 				
 				min = 0;
@@ -229,7 +229,7 @@ public class MultipathPartitioning extends MultipathRCSA {
 			}
 			else
 			{
-				min = pt.getNumSlots()/2;
+				min = 0;
 				max = pt.getNumSlots()-1;
 	
 				cores.clear();
