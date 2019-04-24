@@ -354,6 +354,10 @@ public class Flow {
 	public void setMultipath(ArrayList<int[]> multipath) {
 		this.multipath = multipath;
 	}
+	
+	public void setMultipath(int[] path) {
+		this.multipath.addAll(multipath);
+	}
 
 	public void setLinks(ArrayList<int[]> paths) {
 		

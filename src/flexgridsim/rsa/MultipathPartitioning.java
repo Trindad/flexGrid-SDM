@@ -15,7 +15,20 @@ public class MultipathPartitioning extends MultipathRCSA {
 	
 	public void flowArrival(Flow flow) {
 		
+		kPaths = 4;
 		setkShortestPaths(flow);
+		double []fi = new double[paths.size()];
+		
+		ArrayList<Integer> indices = new ArrayList<Integer>();
+		for(int i = 0; i < paths.size(); i++) {
+//    		
+//			fi[i] = getFragmentationRatio(paths.get(i));
+//			
+    		indices.add(i);
+//    		i++;
+    	}
+		
+//		indices.sort((a,b) -> (int)(fi[a] - fi[b]) );
 		
 //		Collections.shuffle(this.paths);
 		
@@ -32,12 +45,12 @@ public class MultipathPartitioning extends MultipathRCSA {
 				min = (int) (pt.getNumSlots()*0.4);
 				max = pt.getNumSlots()-1;
 			}
-			priorities.add( new ArrayList<>(Arrays.asList(4,6,5)) );
+			priorities.add( new ArrayList<>(Arrays.asList(5,4,6)) );
 		}
 		else {
 			min = 0;
 			max = pt.getNumSlots()-1;
-			priorities.add( new ArrayList<>(Arrays.asList(1,3,2)) );
+			priorities.add( new ArrayList<>(Arrays.asList(2,1,4)) );
 		}
 		priorities.add( new ArrayList<>(Arrays.asList(0)) );
 		
@@ -48,8 +61,9 @@ public class MultipathPartitioning extends MultipathRCSA {
 		for(ArrayList<Integer> area : priorities) {
 			
 			cores = area;
-			for(int []links: this.paths) {
+			for(Integer i : indices) {
 				
+				int []links = paths.get(i);
 				ArrayList<Slot> fittedSlotList = new ArrayList<Slot>();
 				
 				fittedSlotList  = canBeFitConnection(flow, links, bitMapAll(links), flow.getRate());
@@ -79,11 +93,12 @@ public class MultipathPartitioning extends MultipathRCSA {
 			}
 		}
 		
+//		indices.sort((a,b) -> (int)(fi[a] - fi[b]) );
 		flow.setMultipath(true);
 		if(multipathEstablishConnection(flow, candidatesMultipaths)) 
 		{
 			this.paths.clear();
-			System.out.println("Connection accepted using multipath: "+flow);
+//			System.out.println("Connection accepted using multipath: "+flow);
 			return;
 		}
 //		for(int []links : getkShortestPaths()) printSpectrum(bitMapAll(links));
@@ -91,6 +106,20 @@ public class MultipathPartitioning extends MultipathRCSA {
 		this.paths.clear();
 		cp.blockFlow(flow.getID());
 		
+	}
+	
+	private double getFragmentationRatio(int []links) {
+    	
+    	int nLinks = pt.getNumLinks();
+    	double fi = 0;
+    	double nSlots = (pt.getNumSlots() * pt.getCores());
+    	
+    	for(int i = 0; i < nLinks; i++) {
+    		
+    		fi +=  ((double)(nSlots - (double)pt.getLink(i).getNumFreeSlots()) / nSlots) * 100;
+    	}
+    	
+    	return fi;
 	}
 	
 	public boolean multipathEstablishConnection(Flow flow, ArrayList<int[]> candidates) {
@@ -118,11 +147,11 @@ public class MultipathPartitioning extends MultipathRCSA {
 		max = pt.getNumSlots()-1;
 		
 		cores.clear();
-		if(flow.getRate() >= 400) cores.addAll( new ArrayList<>(Arrays.asList(1,3,2)) );
-		if(flow.getRate() < 400) cores.addAll( new ArrayList<>(Arrays.asList(4,6,5)) );
+		if(flow.getRate() < 400) cores.addAll( new ArrayList<>(Arrays.asList(2,1,3)) );
+		else if(flow.getRate() >= 400) cores.addAll( new ArrayList<>(Arrays.asList(5,4,6)) );
 		
 		ArrayList<int[]> temp = new ArrayList<int[]>();
-		int a = flow.getRate() <= 100 ? 2 : 3;
+		int a = flow.getRate() <= 100 ? 2 : 4;
 		temp = getPathsCandidates(paths, getDemandInSlots( (int)Math.ceil( (double)flow.getRate()/a) ) );
 		
 		if(temp.size() <= 1) {
